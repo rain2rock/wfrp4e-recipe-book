@@ -63,6 +63,14 @@ Hooks.once("init", () => {
   });
   loadLangs();
 
+  // Дополнительные фильтры книги: по ремеслу и типу создаваемого предмета
+  game.settings.register(MODULE_ID, "extraFilters", {
+    name: "WFRPRB.Settings.ExtraFilters.Name",
+    hint: "WFRPRB.Settings.ExtraFilters.Hint",
+    scope: "client", config: true, type: Boolean, default: false,
+    onChange: () => RecipeBookApp.renderAll()
+  });
+
   // ГМ: смотреть интерфейс как обычный игрок (без вкладки «Мир» и ГМ-кнопок)
   game.settings.register(MODULE_ID, "playerView", {
     name: "WFRPRB.Settings.PlayerView.Name",

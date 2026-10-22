@@ -98,6 +98,10 @@
       "PlayerView": {
         "Name": "GM: player view",
         "Hint": "Show the recipe book exactly as a regular player sees it - without the World tab and recipe creation, editing or deletion."
+      },
+      "ExtraFilters": {
+        "Name": "Skill and type filters",
+        "Hint": "Show dropdown filters by trade skill and by crafted item type in the book."
       }
     },
     "Sheet": {
@@ -199,6 +203,12 @@
       "Ask": "Give this recipe to player {name}?",
       "Give": "Give",
       "Keep": "Don't give, just save"
+    },
+    "Extra": {
+      "AllSkills": "All trades",
+      "AllTypes": "All item types",
+      "SkillTip": "Filter by trade skill",
+      "TypeTip": "Filter by crafted item type"
     }
   }
 }

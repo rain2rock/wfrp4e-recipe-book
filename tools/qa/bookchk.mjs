@@ -130,6 +130,11 @@ ok(sheet.skillOptions >= 10 && sheet.hasTrade, "лист ГМа: навык - д
 ok(sheet.minutes, "лист ГМа: поле минут времени");
 ok(sheet.toolZone, "лист ГМа: зона инструментов");
 ok(sheet.coinIcons === 3, "лист ГМа: иконки монет как во всём модуле");
+const inputH = await page.evaluate(() => {
+  const el = document.querySelector("#rb-sheet-demo select");
+  return el ? el.getBoundingClientRect().height : 0;
+});
+ok(inputH > 0 && inputH <= 30, "поля листа компактные - высота ядра Foundry перебита", `(${inputH}px)`);
 ok((await $("#rb-sheet-demo [data-action='addItem'][data-zone='result']").count()) === 1, "у результата есть «+» из базы");
 ok((await $("#rb-sheet-demo .rb-result-name").count()) === 1, "имя результата - редактируемое поле");
 const footSizes = await page.evaluate(() => {
@@ -436,6 +441,27 @@ await page.waitForTimeout(200);
 ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "черновик убран отменой создания");
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(100);
+
+/* --- Доп. фильтры по ремеслу и типу (настройка, по умолчанию выключены) --- */
+ok((await $(".rb-extra-filters").count()) === 0, "доп. фильтры по умолчанию выключены");
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "extraFilters", true));
+await page.waitForTimeout(150);
+ok((await $(".rb-extra-filters select").count()) === 2, "настройка включила фильтры ремесла и типа");
+await page.selectOption(".rb-skill-filter", "Ремесло (Аптекарь)");
+await page.evaluate(() => document.querySelector(".rb-skill-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+ok((await $(".rb-entry:not(.rb-project)").count()) === 3, "фильтр по ремеслу: только аптекарь (3)");
+await page.selectOption(".rb-skill-filter", "");
+await page.evaluate(() => document.querySelector(".rb-skill-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+await page.selectOption(".rb-type-filter", "weapon");
+await page.evaluate(() => document.querySelector(".rb-type-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+const weaponEntries = await $(".rb-entry:not(.rb-project) .rb-entry-name").allTextContents();
+ok(weaponEntries.length === 1 && weaponEntries[0].includes("Кинжал"), "фильтр по типу: только оружие (Кинжал)", weaponEntries.join(";"));
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "extraFilters", false));
+await page.waitForTimeout(150);
+ok((await $(".rb-extra-filters").count()) === 0, "выключение настройки спрятало фильтры");
 
 /* --- Переключатель языка модуля --- */
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "en"));

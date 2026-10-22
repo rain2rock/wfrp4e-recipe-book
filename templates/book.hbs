@@ -17,6 +17,19 @@
       {{/if}}
     </div>
 
+    {{#if extraFilters}}
+      <div class="rb-extra-filters">
+        <select class="rb-skill-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.SkillTip'}}">
+          <option value="">{{rbL "WFRPRB.Extra.AllSkills"}}</option>
+          {{#each skillOptions}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+        <select class="rb-type-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.TypeTip'}}">
+          <option value="">{{rbL "WFRPRB.Extra.AllTypes"}}</option>
+          {{#each typeOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+        </select>
+      </div>
+    {{/if}}
+
     <div class="rb-list">
       {{#if projects.length}}
         <div class="rb-group-title rb-work-title">{{rbL "WFRPRB.InWork"}} <span class="rb-count">{{counts.work}}</span></div>

@@ -26,6 +26,9 @@
 .wfrp-recipe-book .rb-left .rb-search { margin-bottom: var(--rb-space-3); }
 .wfrp-recipe-book .rb-left .rb-filters { margin-bottom: var(--rb-space-3); }
 
+.wfrp-recipe-book .rb-extra-filters { display: flex; gap: var(--rb-space-2); margin-bottom: var(--rb-space-3); }
+.wfrp-recipe-book .rb-extra-filters select { flex: 1 1 0; min-width: 0; width: auto; }
+
 .wfrp-recipe-book .rb-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
 
 .wfrp-recipe-book .rb-group-title {
@@ -91,7 +94,7 @@
 }
 .wfrp-recipe-book .rb-sheet-head { display: flex; gap: var(--rb-space-4); align-items: center; }
 .wfrp-recipe-book .rb-sheet-img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius-lg); cursor: pointer; }
-.wfrp-recipe-book .rb-sheet-name { flex: 1 1 0; min-width: 0; width: auto; font-size: var(--rb-fs-xl); font-weight: 700; padding: var(--rb-space-1) var(--rb-space-3); }
+.wfrp-recipe-book .rb-sheet-name { flex: 1 1 0; min-width: 0; width: auto; font-size: var(--rb-fs-xl) !important; font-weight: 700; padding: var(--rb-space-1) var(--rb-space-3); }
 .wfrp-recipe-book .rb-sheet-count { display: inline-flex; align-items: center; gap: var(--rb-space-1); color: var(--rb-text-dim); white-space: nowrap; }
 .wfrp-recipe-book .rb-sheet-root .rb-block { margin-bottom: var(--rb-space-3); }
 .wfrp-recipe-book .rb-sheet-root .rb-row { padding: 2px 0; }

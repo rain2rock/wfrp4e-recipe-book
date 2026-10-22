@@ -665,6 +665,12 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // Рецепты без навыка (свежесозданные ГМом) - в группу «Необычные», она всегда в конце
     const unusual = L("WFRPRB.Group.Unusual");
+    // Тип предмета-результата: по uuid из базы, кастомный результат создаётся как trapping
+    const resType = (r) => {
+      const uuid = r.system.result?.uuid;
+      if (!uuid) return "trapping";
+      try { return globalThis.fromUuidSync?.(uuid)?.type ?? "trapping"; } catch { return "trapping"; }
+    };
     let entries = (world ? this.worldRecipes() : this.recipes()).map((r) => {
       const st = recipeStatus(this.actor, r);
       const missing = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
@@ -673,11 +679,27 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // В списке - иконка ПРЕДМЕТА-РЕЗУЛЬТАТА (что получится); иконка рецепта - запасная
         id: r.id, name: r.name, img: res.img || r.img,
         resultName: res.name || r.name, count: res.count ?? 1,
-        skill: st.skillUsed || unusual, ready: st.ready, missing,
+        skill: st.skillUsed || unusual, type: resType(r), ready: st.ready, missing,
         tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing })
       };
     });
     for (const e of entries) e.kind = world ? "wrecipe" : "recipe";
+    // Доп. фильтры (настройка extraFilters): по ремеслу и типу результата
+    const extraFilters = game.settings.get(MODULE_ID, "extraFilters");
+    let skillOptions = [];
+    let typeOptions = [];
+    if (extraFilters) {
+      skillOptions = [...new Set(entries.map((e) => e.skill))].sort((a, b) => a.localeCompare(b, "ru"));
+      typeOptions = [...new Set(entries.map((e) => e.type))].map((t) => {
+        const key = `TYPES.Item.${t}`;
+        const label = game.i18n.localize(key);
+        return { key: t, label: label === key ? t : label };
+      }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
+      if (this.skillFilter && !skillOptions.includes(this.skillFilter)) this.skillFilter = "";
+      if (this.typeFilter && !typeOptions.find((t) => t.key === this.typeFilter)) this.typeFilter = "";
+      if (this.skillFilter) entries = entries.filter((e) => e.skill === this.skillFilter);
+      if (this.typeFilter) entries = entries.filter((e) => e.type === this.typeFilter);
+    }
     if (q) entries = entries.filter((e) => norm(e.name).includes(q) || norm(e.resultName).includes(q) || norm(e.skill).includes(q));
     if (this.filter === "ready") entries = entries.filter((e) => e.ready);
     if (this.filter === "missing") entries = entries.filter((e) => !e.ready);
@@ -772,6 +794,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       actor: { name: this.actor?.name ?? "", img: this.actor?.img ?? "" },
       gm,
       world,
+      extraFilters,
+      skillOptions: skillOptions.map((n) => ({ name: n, selected: n === this.skillFilter })),
+      typeOptions: typeOptions.map((t) => ({ ...t, selected: t.key === this.typeFilter })),
       dark, groups, projects, detail, search: this.search,
       filter: this.filter, counts,
       empty: !this.recipes().length && !projects.length
@@ -794,6 +819,14 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     RBTooltip.hide();
     RBTooltip.adoptTips();
     this._bindTooltips(root);
+    root.querySelector(".rb-skill-filter")?.addEventListener("change", (ev) => {
+      this.skillFilter = ev.currentTarget.value;
+      this.render();
+    });
+    root.querySelector(".rb-type-filter")?.addEventListener("change", (ev) => {
+      this.typeFilter = ev.currentTarget.value;
+      this.render();
+    });
     const input = root.querySelector(".rb-search input");
     if (input) {
       input.addEventListener("input", (ev) => {

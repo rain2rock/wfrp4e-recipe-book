@@ -17,6 +17,7 @@ const outPath = outArg > 0 ? process.argv[outArg + 1] : "docs/book-mock.html";
 const handlebarsSrc = fs.readFileSync(require.resolve("handlebars/dist/handlebars.min.js"), "utf8");
 
 const lang = JSON.parse(read("lang/ru.json"));
+Object.assign(lang.TYPES.Item, { trapping: "Товар", weapon: "Оружие" }); // локализация типов - в живом Foundry её даёт система
 const langEn = JSON.parse(read("lang/en.json"));
 const templates = {
   "modules/wfrp4e-recipe-book/templates/book.hbs": read("templates/book.hbs"),
@@ -55,6 +56,8 @@ const html = `<!DOCTYPE html>
   #mock-mount .window-header .header-control { background: none; border: none; color: #a89c86; cursor: pointer; width: auto; }
   /* как в живом AppV2: дети окна НЕ растягиваются автоматически - центрируются */
   #mock-mount .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
+  /* как ядро Foundry: раздутые поля по умолчанию - модуль обязан их перебить */
+  #mock-mount .window-content input, #mock-mount .window-content select { height: 38px; font-size: 16px; }
   #mock-mount .window-content > * { flex: 1; min-height: 0; }
   #mock-chat { width: 260px; min-height: 120px; background: #efe9dc; border: 1px solid #555; border-radius: 6px; padding: 8px; font-size: 12px; }
   #mock-chat:before { content: "Чат"; display: block; font-weight: 700; margin-bottom: 6px; }

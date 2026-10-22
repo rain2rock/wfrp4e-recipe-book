@@ -311,6 +311,16 @@
     return null;
   };
 
+  window.fromUuidSync = (uuid) => {
+    for (const w of window.__RB_worldItems__) if (w.uuid === uuid) return w;
+    for (const w of game?.items ?? []) if (w.uuid === uuid) return w;
+    for (const a of window.__RB_actors__ ?? []) {
+      const item = a.items.find((i) => i.uuid === uuid);
+      if (item) return item;
+    }
+    return null;
+  };
+
   window.__RB_makeWorldItem__ = (data) => {
     const obj = {
       uuid: `Item.${data.id}`,

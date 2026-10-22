@@ -144,7 +144,17 @@
   box-sizing: border-box; background: var(--rb-well); color: var(--rb-text);
   border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
   padding: var(--rb-space-1) var(--rb-space-2);
-  font-size: var(--rb-fs-m); font-family: inherit; height: auto;
+  font-family: inherit;
+  /* ядро Foundry (--input-height) и скин системы раздувают поля; их селекторы сильнее -
+     размеры перебиваем точечным !important (габариты и кегль, не внешний вид) */
+  font-size: var(--rb-fs-m) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  line-height: 1.3;
+}
+.wfrp-recipe-book input[type="checkbox"] {
+  width: var(--rb-fs-l); height: var(--rb-fs-l); margin: 0;
+  accent-color: var(--rb-gold-soft);
 }
 .wfrp-recipe-book input:focus,
 .wfrp-recipe-book select:focus,

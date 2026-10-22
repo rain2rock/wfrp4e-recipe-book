@@ -46,6 +46,11 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     return !!this.document.getFlag?.("wfrp4e-recipe-book", "fresh");
   }
 
+  /** Заголовок окна - только имя рецепта (иначе Foundry добавляет тип: «Recipe: Recipe: ...») */
+  get title() {
+    return this.document?.name ?? super.title;
+  }
+
   async _prepareContext() {
     const sys = this.document.system;
     // Навыки из базы (мир + компендиумы); текущее значение всегда в списке
