@@ -180,7 +180,8 @@
       "GiveTip": "The character learns a copy of this recipe",
       "Edit": "Edit",
       "Given": "«{name}» given to {actor}",
-      "ThisBook": "this book"
+      "ThisBook": "this book",
+      "NoPlayers": "No one to give to: no player-owned characters found."
     },
     "Delete": {
       "WorldTitle": "Delete world recipe?",
@@ -192,6 +193,12 @@
     },
     "Group": {
       "Unusual": "Unusual"
+    },
+    "Give": {
+      "Title": "Give the recipe?",
+      "Ask": "Give this recipe to player {name}?",
+      "Give": "Give",
+      "Keep": "Don't give, just save"
     }
   }
 }

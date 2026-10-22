@@ -163,7 +163,10 @@
       api: {
         ApplicationV2,
         HandlebarsApplicationMixin: (Base) => class extends Base {},
-        DialogV2: { confirm: async () => window.__RB_CONFIRM__ ?? true }
+        DialogV2: {
+          confirm: async () => window.__RB_CONFIRM__ ?? true,
+          wait: async () => window.__RB_DIALOG_CHOICE__ ?? "keep"
+        }
       },
       sheets: { ItemSheetV2 },
       apps: { DocumentSheetConfig: { registerSheet() {} } }
@@ -237,6 +240,7 @@
       this.img = data.img ?? "";
       this.type = data.type ?? "character";
       this.isOwner = true;
+      this.hasPlayerOwner = data.hasPlayerOwner ?? true;
       this.system = structuredClone(data.system ?? { characteristics: {} });
       const arr = (data.items ?? []).map((d) => new FakeItem(this, d));
       arr.get = (id) => arr.find((i) => i.id === id);

@@ -856,9 +856,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!r) return;
     const old = this.element.querySelector(".rb-give-picker");
     if (old) return old.remove();
+    // Только персонажи ИГРОКОВ: тип character и есть владелец не-ГМ (NPC и прочие не показываем)
     const actors = (game.actors?.contents ?? [])
-      .filter((a) => ["character", "npc"].includes(a.type))
+      .filter((a) => a.type === "character" && a.hasPlayerOwner)
       .slice(0, 20);
+    if (!actors.length) return ui.notifications.warn(L("WFRPRB.World.NoPlayers"));
     const panel = document.createElement("div");
     panel.className = "rb-picker rb-give-picker";
     panel.innerHTML = `<div class="rb-picker-list">` + actors.map((a, i) =>
@@ -903,7 +905,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       name: L("WFRPRB.NewRecipe"),
       type: RECIPE_TYPE,
       img: `modules/${MODULE_ID}/assets/icons/recipe-default.png`,
-      flags: { [MODULE_ID]: { fresh: true } }  // создание с нуля: в листе нет «Сохранить как новый»
+      // создание с нуля + из чьей книги: «Сохранить» спросит, выдать ли рецепт этому игроку
+      flags: { [MODULE_ID]: { fresh: true, forActor: this.actor?.uuid ?? "" } }
     });
     if (!item) return;
     this.filter = "world";

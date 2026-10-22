@@ -3,7 +3,7 @@
    сырьё = 1/4 цены - по правилам «Создание предмета» (стр. 199). */
 
 import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
-import { L, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex, RecipeBookApp } from "./recipe-book.js";
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
 const ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
@@ -82,7 +82,34 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   }
 
   static async #onSave() {
-    if (this.isFresh) await this.document.unsetFlag("wfrp4e-recipe-book", "fresh");
+    if (this.isFresh) {
+      // Рецепт создан из книги игрока - спросить, выдать ли его этому игроку
+      const uuid = this.document.getFlag("wfrp4e-recipe-book", "forActor");
+      const actor = uuid ? await fromUuid(uuid).catch(() => null) : null;
+      if (actor?.hasPlayerOwner) {
+        const choice = await foundry.applications.api.DialogV2.wait({
+          window: { title: L("WFRPRB.Give.Title") },
+          content: `<p>${F("WFRPRB.Give.Ask", { name: esc(actor.name) })}</p>`,
+          buttons: [
+            { action: "give", label: L("WFRPRB.Give.Give"), default: true },
+            { action: "keep", label: L("WFRPRB.Give.Keep") },
+            { action: "cancel", label: L("WFRPRB.Sheet.Cancel") }
+          ]
+        }).catch(() => "cancel");
+        if (choice === "cancel") return; // вернуться к созданию рецепта
+        if (choice === "give") {
+          const obj = this.document.toObject();
+          delete obj._id;
+          if (obj.flags?.["wfrp4e-recipe-book"]) {
+            delete obj.flags["wfrp4e-recipe-book"].fresh;
+            delete obj.flags["wfrp4e-recipe-book"].forActor;
+          }
+          await actor.createEmbeddedDocuments("Item", [obj]);
+          ui.notifications.info(F("WFRPRB.World.Given", { name: this.document.name, actor: actor.name }));
+        }
+      }
+      await this.document.unsetFlag("wfrp4e-recipe-book", "fresh");
+    }
     this._snap = null;
     await this.close();
   }

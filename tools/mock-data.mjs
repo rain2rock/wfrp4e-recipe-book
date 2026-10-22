@@ -136,3 +136,9 @@ export const ACTOR2 = {
     { id: "g-coin-bp", name: "Медное пенни", type: "money", system: { coinValue: { value: 1 }, quantity: { value: 12 } } }
   ]
 };
+
+/** NPC без владельца-игрока - НЕ должен попадать в список выдачи */
+export const ACTOR_NPC = {
+  id: "rat", name: "Гигантская крыса", type: "npc", hasPlayerOwner: false,
+  system: { characteristics: {} }, items: []
+};

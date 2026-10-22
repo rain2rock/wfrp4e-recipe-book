@@ -350,7 +350,8 @@ ok((await $("[data-action='giveRecipe']").count()) === 1 && (await $("[data-acti
   "у рецепта мира кнопки «выдать» и «удалить»");
 await $("[data-action='giveRecipe']").click();
 await page.waitForTimeout(150);
-ok((await $(".rb-give-picker .rb-picker-row").count()) === 2, "выдача: список персонажей-получателей");
+ok((await $(".rb-give-picker .rb-picker-row").count()) === 2, "выдача: только персонажи игроков (двое)");
+ok((await $(".rb-give-picker .rb-picker-row", { hasText: "крыса" }).count()) === 0, "NPC в списке выдачи нет");
 /* сначала выдадим Гюнтеру - рецепт уходит выбранному игроку, книга остаётся на «Мире» */
 await $(".rb-give-picker .rb-picker-row", { hasText: "Гюнтер" }).click();
 await page.waitForTimeout(200);
@@ -405,6 +406,36 @@ ok(playerView.world === 0 && playerView.newBtn === 0 && playerView.trash === 0 &
 await page.click("#tb-view");
 await page.waitForTimeout(150);
 ok((await $(".rb-filter--world").count()) === 1, "вид ГМа вернулся");
+
+/* --- Сохранение рецепта из книги игрока: вопрос «выдать игроку?» --- */
+await $("[data-action='createRecipe']").click();
+await page.waitForTimeout(200);
+await page.evaluate(() => { window.__RB_DIALOG_CHOICE__ = "give"; });
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='saveSheet']")].at(-1)?.click());
+await page.waitForTimeout(250);
+ok(await page.evaluate(() =>
+  __RB_actor__.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.name === "Новый рецепт")),
+  "«Выдать рецепт» при сохранении - копия ушла игроку");
+await page.evaluate(async () => {
+  for (const i of [...__RB_actor__.items].filter((x) => x.name === "Новый рецепт")) await i.delete();
+  for (const i of [...game.items].filter((x) => x.name === "Новый рецепт")) await i.delete();
+});
+await page.waitForTimeout(150);
+
+await $("[data-action='createRecipe']").click();
+await page.waitForTimeout(200);
+await page.evaluate(() => { window.__RB_DIALOG_CHOICE__ = "cancel"; });
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='saveSheet']")].at(-1)?.click());
+await page.waitForTimeout(250);
+ok(await page.evaluate(() =>
+  [...document.querySelectorAll("[id^='rb-sheet-']")].length > 0 && game.items.some((i) => i.name === "Новый рецепт")),
+  "«Отмена» в вопросе вернула к созданию рецепта");
+await page.evaluate(() => { window.__RB_DIALOG_CHOICE__ = undefined; });
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='cancelSheet']")].at(-1)?.click());
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "черновик убран отменой создания");
+await $("[data-action='filter'][data-filter='all']").click();
+await page.waitForTimeout(100);
 
 /* --- Переключатель языка модуля --- */
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "en"));
