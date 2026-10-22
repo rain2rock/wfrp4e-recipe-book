@@ -63,7 +63,7 @@ export const RECIPES = [
         { uuid: "Item.res-mandrake", name: "Корень мандрагоры", img: "modules/wfrp4e-recipe-book/assets/icons/mandrake-root.png", count: 1 },
         { uuid: "", name: "Целебные травы", img: "modules/wfrp4e-recipe-book/assets/icons/salwort.png", count: 1 }
       ],
-      moneyBp: 60, needsWorkshop: true, tools: [{ uuid: "Item.tool-still", name: "Перегонный куб", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png" }], timeDays: 1, timeHours: 0, timeMinutes: 0,
+      moneyBp: 60, needsWorkshop: true, tools: [{ uuid: "Item.tool-still", name: "Перегонный куб", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png" }], timeDays: 38, timeHours: 15, timeMinutes: 10,
       description: "<p>Против большинства известных ядов. Против неизвестных - как повезёт.</p>"
     }
   },

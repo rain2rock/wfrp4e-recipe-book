@@ -90,6 +90,10 @@
 .wfrp-recipe-book .rb-sheet-root .rb-row { padding: 2px 0; }
 .wfrp-recipe-book .rb-sheet-root .rb-block-title { display: flex; align-items: center; justify-content: space-between; gap: var(--rb-space-2); }
 
+/* Иконка результата кликабельна - выбор из базы (новый предмет без картинки) */
+.wfrp-recipe-book .rb-result-ico { display: inline-flex; cursor: pointer; }
+.wfrp-recipe-book .rb-result-ico:hover img, .wfrp-recipe-book .rb-result-ico:hover .rb-ing-ico { border-color: var(--rb-gold-soft); }
+
 /* Имя результата - поле в строке; пометка «новый предмет» */
 .wfrp-recipe-book .rb-result-name { flex: 1; min-width: 0; }
 .wfrp-recipe-book .rb-result-note { font-size: var(--rb-fs-s); font-style: italic; }

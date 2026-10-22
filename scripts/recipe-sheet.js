@@ -3,7 +3,7 @@
    сырьё = 1/4 цены - по правилам «Создание предмета» (стр. 199). */
 
 import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
-import { L, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex } from "./recipe-book.js";
+import { L, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex, RecipeBookApp } from "./recipe-book.js";
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
 const ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
@@ -32,6 +32,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       removeTool: RecipeSheet.#onRemoveTool,
       addItem: RecipeSheet.#onAddItem,
       pickImage: RecipeSheet.#onPickImage,
+      pickResultIcon: RecipeSheet.#onPickResultIcon,
       saveSheet: RecipeSheet.#onSave,
       saveAsNew: RecipeSheet.#onSaveAsNew,
       cancelSheet: RecipeSheet.#onCancel
@@ -39,6 +40,11 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   };
 
   static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs` } };
+
+  /** Рецепт создан с нуля и ещё ни разу не сохранён */
+  get isFresh() {
+    return !!this.document.getFlag?.("wfrp4e-recipe-book", "fresh");
+  }
 
   async _prepareContext() {
     const sys = this.document.system;
@@ -49,6 +55,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       item: this.document,
       sys,
       editable: this.isEditable,
+      fresh: this.isFresh,
       skills: names.map((n) => ({ name: n, selected: n === sys.skill })),
       skillsAlt: names.map((n) => ({ name: n, selected: n === sys.skillAlt })),
       moneyGc: Math.floor((sys.moneyBp || 0) / COIN_VALUE.gc),
@@ -75,6 +82,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   }
 
   static async #onSave() {
+    if (this.isFresh) await this.document.unsetFlag("wfrp4e-recipe-book", "fresh");
     this._snap = null;
     await this.close();
   }
@@ -90,6 +98,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   }
 
   static async #onCancel() {
+    if (this.isFresh) {
+      // Отмена создания с нуля - недосозданный рецепт удаляется целиком
+      this._deleted = true;
+      await this.close();
+      await this.document.delete();
+      RecipeBookApp?.renderAll?.();
+      return;
+    }
     await this.#revert();
     this._snap = null;
     await this.close();
@@ -113,6 +129,18 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       zone.addEventListener("dragover", (ev) => ev.preventDefault());
       zone.addEventListener("drop", (ev) => this.#onDrop(ev, zone.dataset.dropzone));
     }
+    // Время: часы не больше 23, минуты не больше 59 - подрезаем и пишем одним апдейтом
+    const clamp = (v, max) => Math.max(0, Math.min(Number(v) || 0, max));
+    const syncTime = () => {
+      const g = (sel) => root.querySelector(sel);
+      const d = clamp(g(".rb-time-d")?.value, 9999);
+      const h = clamp(g(".rb-time-h")?.value, 23);
+      const m = clamp(g(".rb-time-m")?.value, 59);
+      this.document.update({ "system.timeDays": d, "system.timeHours": h, "system.timeMinutes": m }).then(() => this.render());
+    };
+    for (const sel of [".rb-time-d", ".rb-time-h", ".rb-time-m"])
+      root.querySelector(sel)?.addEventListener("change", syncTime);
+
     // Деньги: три поля номиналов складываем в пенни
     const sync = () => {
       const v = (sel) => Number(root.querySelector(sel)?.value) || 0;
@@ -166,6 +194,10 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     if (zone === "icon") {
       // Иконка РЕЦЕПТА (книжки в списке); иконка результата - своя, с предмета-результата
       await this.document.update({ img: entry.img });
+    } else if (zone === "resultIcon") {
+      // Иконка ПРЕДМЕТА-РЕЗУЛЬТАТА: для нового предмета её выбирают из базы
+      await this.document.update({ "system.result.img": entry.img });
+      this.render();
     } else if (zone === "result") {
       const doc = await fromUuid(entry.uuid).catch(() => null);
       if (doc) return this.#applyResult(doc);
@@ -245,6 +277,8 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   }
 
   async close(options) {
+    // Закрытие крестиком = сохранить: свежий рецепт перестаёт быть «свежим»
+    if (!this._deleted && this.isFresh) await this.document.unsetFlag?.("wfrp4e-recipe-book", "fresh");
     this._snap = null;
     this.#closePicker();
     return super.close(options);
@@ -252,5 +286,9 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   static async #onPickImage(event, target) {
     await this.#openPicker("icon", target.closest(".rb-sheet-head"));
+  }
+
+  static async #onPickResultIcon(event, target) {
+    await this.#openPicker("resultIcon", target.closest(".rb-row"));
   }
 }

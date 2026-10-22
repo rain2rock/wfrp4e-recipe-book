@@ -209,6 +209,10 @@
     getFlag(scope, key) {
       return key.split(".").reduce((o, p) => (o == null ? undefined : o[p]), this.flags?.[scope]);
     }
+    async unsetFlag(scope, key) {
+      if (this.flags?.[scope]) delete this.flags[scope][key];
+      return this;
+    }
     toObject() {
       return JSON.parse(JSON.stringify({ name: this.name, type: this.type, img: this.img, system: this.system, flags: this.flags }));
     }

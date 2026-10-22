@@ -57,8 +57,8 @@ export class RecipeModel extends foundry.abstract.TypeDataModel {
         img: new F.StringField({ initial: "" })
       })),
       timeDays: new F.NumberField({ initial: 0, min: 0, integer: true }),
-      timeHours: new F.NumberField({ initial: 0, min: 0, integer: true }),
-      timeMinutes: new F.NumberField({ initial: 0, min: 0, integer: true }),
+      timeHours: new F.NumberField({ initial: 0, min: 0, max: 23, integer: true }),
+      timeMinutes: new F.NumberField({ initial: 0, min: 0, max: 59, integer: true }),
       description: new F.HTMLField({ initial: "" })
     };
   }

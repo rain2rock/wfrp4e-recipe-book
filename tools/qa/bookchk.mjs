@@ -106,6 +106,7 @@ ok(tt.includes("Раритетный") && tt.includes("перчатках"),
   "ховер отсутствующего ингредиента берёт данные из мира (fromUuid)", tt.slice(0, 120));
 await page.mouse.move(5, 5);
 ok((await $(".rb-ing.is-bad", { hasText: "Перегонный куб" }).count()) === 1, "недостающий инструмент подсвечен красным");
+ok((await text(".rb-right")).includes("1мес 8д 15ч 10м"), "38 дней показываются игроку как 1мес 8д 15ч 10м");
 ok(((await $(".rb-entry", { hasText: "Противоядие" }).first().getAttribute("data-rb-tip")) ?? "").includes("инструменты"),
   "в причинах недоступности есть инструменты");
 
@@ -120,7 +121,7 @@ const sheet = await page.evaluate(() => {
   return {
     skillOptions: sel ? sel.options.length : 0,
     hasTrade: sel ? [...sel.options].some((o) => o.value === "Ремесло (Кузнец)") : false,
-    minutes: !!el?.querySelector("input[name='system.timeMinutes']"),
+    minutes: !!el?.querySelector(".rb-time-m"),
     toolZone: !!el?.querySelector("[data-dropzone='tools']"),
     coinIcons: el?.querySelectorAll(".rb-money-fields .rb-coin-img, .rb-money-fields .rb-coin-dot").length ?? 0
   };
@@ -185,6 +186,31 @@ await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-result-name
 await page.waitForTimeout(200);
 ok(await page.evaluate(() => !!__RB_actor__.items.get("rec-0").system.result.uuid),
   "то же имя результата - рецепт снова привязан к предмету, не «новый»");
+
+/* Часы и минуты подрезаются: не больше 23 и 59 */
+await page.fill("#rb-sheet-demo .rb-time-h", "99");
+await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-time-h").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+await page.fill("#rb-sheet-demo .rb-time-m", "99");
+await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-time-m").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+ok(await page.evaluate(() => {
+  const sys = __RB_actor__.items.get("rec-0").system;
+  return sys.timeHours === 23 && sys.timeMinutes === 59;
+}), "часы и минуты подрезаны до 23 и 59");
+
+/* Иконка результата выбирается из базы отдельно от иконки рецепта (для новых предметов) */
+await page.click("#rb-sheet-demo [data-action='pickResultIcon']");
+await page.waitForTimeout(100);
+await page.fill("#rb-sheet-demo .rb-picker-search", "мандраг");
+await page.waitForTimeout(100);
+await page.click("#rb-sheet-demo .rb-picker-row");
+await page.waitForTimeout(150);
+ok(await page.evaluate(() => {
+  const r = __RB_actor__.items.get("rec-0");
+  const w = __RB_worldItems__.find((x) => x.name === "Корень мандрагоры");
+  return r.system.result.img === w.img && r.img !== w.img;
+}), "иконка результата выбрана из базы, иконка рецепта не тронута");
 
 /* «Отмена» откатывает ВСЁ к моменту открытия листа: и мандрагору, и смену иконки */
 await page.evaluate(() => __RB_actor__.items.get("rec-0").update({ "system.slTarget": 9 }));
@@ -286,10 +312,24 @@ await $("[data-action='createRecipe']").click();
 await page.waitForTimeout(250);
 ok((await $(".rb-filter--world.is-active").count()) === 1, "после создания книга на вкладке «Мир»");
 ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 1, "новый рецепт виден во вкладке «Мир»");
+ok((await $(".rb-group-title", { hasText: "Необычные" }).count()) === 1, "рецепт без навыка - в группе «Необычные», не «?»");
 ok(await page.evaluate(() => game.items.some((i) => i.name === "Новый рецепт")), "рецепт создан именно в мире, не на актёре");
 const newSheetOpen = await page.evaluate(() =>
   [...document.querySelectorAll(".rb-sheet-root")].some((el) => el.closest(".window-app")));
 ok(newSheetOpen, "лист нового рецепта открылся сразу");
+ok(await page.evaluate(() => {
+  const sheets = [...document.querySelectorAll("[id^='rb-sheet-']")];
+  const el = sheets.at(-1);
+  return !!el?.querySelector("[data-action='saveSheet']") && !el?.querySelector("[data-action='saveAsNew']");
+}), "у рецепта с нуля - только «Сохранить», без «Сохранить как новый»");
+
+/* «Отмена» при создании с нуля удаляет недосозданный рецепт */
+await $("[data-action='createRecipe']").click();
+await page.waitForTimeout(200);
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='cancelSheet']")].at(-1)?.click());
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => game.items.filter((i) => i.name === "Новый рецепт").length === 1),
+  "«Отмена» при создании удалила недосозданный рецепт");
 await page.evaluate(() => {
   for (const el of document.querySelectorAll("[id^='rb-sheet-']")) el.querySelector("[data-mock-close]")?.click();
 });

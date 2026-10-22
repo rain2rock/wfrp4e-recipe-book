@@ -72,10 +72,14 @@ export function moneyHtml(totalBp) {
   return parts.join(" ");
 }
 
-/** Время изготовления: «1д 3ч 15м», показываем только ненулевое */
+/** Время изготовления: «1мес 8д 15ч 10м», показываем только ненулевое.
+    От 30 дней дни сворачиваются в месяцы (месяц = 30 дней). */
 export function fmtTime(d, h, m) {
+  const mo = Math.floor((d || 0) / 30);
+  const dd = (d || 0) % 30;
   const parts = [];
-  if (d) parts.push(`${d}${L("WFRPRB.Time.d")}`);
+  if (mo) parts.push(`${mo}${L("WFRPRB.Time.mo")}`);
+  if (dd) parts.push(`${dd}${L("WFRPRB.Time.d")}`);
   if (h) parts.push(`${h}${L("WFRPRB.Time.h")}`);
   if (m) parts.push(`${m}${L("WFRPRB.Time.m")}`);
   return parts.join(" ");
@@ -632,6 +636,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       };
     });
 
+    // Рецепты без навыка (свежесозданные ГМом) - в группу «Необычные», она всегда в конце
+    const unusual = L("WFRPRB.Group.Unusual");
     let entries = (world ? this.worldRecipes() : this.recipes()).map((r) => {
       const st = recipeStatus(this.actor, r);
       const missing = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
@@ -640,7 +646,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // В списке - иконка ПРЕДМЕТА-РЕЗУЛЬТАТА (что получится); иконка рецепта - запасная
         id: r.id, name: r.name, img: res.img || r.img,
         resultName: res.name || r.name, count: res.count ?? 1,
-        skill: st.skillUsed || "?", ready: st.ready, missing,
+        skill: st.skillUsed || unusual, ready: st.ready, missing,
         tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing })
       };
     });
@@ -648,7 +654,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (q) entries = entries.filter((e) => norm(e.name).includes(q) || norm(e.resultName).includes(q) || norm(e.skill).includes(q));
     if (this.filter === "ready") entries = entries.filter((e) => e.ready);
     if (this.filter === "missing") entries = entries.filter((e) => !e.ready);
-    entries.sort((a, b) => a.skill.localeCompare(b.skill, "ru") || a.name.localeCompare(b.name, "ru"));
+    entries.sort((a, b) =>
+      (a.skill === unusual) - (b.skill === unusual) ||
+      a.skill.localeCompare(b.skill, "ru") || a.name.localeCompare(b.name, "ru"));
     const groups = [];
     for (const e of entries) {
       let g = groups.at(-1);
@@ -867,7 +875,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const item = await Item.create({
       name: L("WFRPRB.NewRecipe"),
       type: RECIPE_TYPE,
-      img: `modules/${MODULE_ID}/assets/icons/recipe-default.png`
+      img: `modules/${MODULE_ID}/assets/icons/recipe-default.png`,
+      flags: { [MODULE_ID]: { fresh: true } }  // создание с нуля: в листе нет «Сохранить как новый»
     });
     if (!item) return;
     this.filter = "world";

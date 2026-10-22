@@ -8,7 +8,10 @@
     <div class="rb-block-title"><span>{{localize "WFRPRB.Sheet.Result"}} <span class="rb-dim">· {{localize "WFRPRB.Sheet.DropHint"}}</span></span>
       <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{localize 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
     <div class="rb-row rb-ing">
-      <span class="rb-ing-name">{{#if sys.result.img}}<img src="{{sys.result.img}}" alt="">{{else}}<span class="rb-ing-ico"><i class="fa-solid fa-bullseye"></i></span>{{/if}}
+      <span class="rb-ing-name">
+        <span class="rb-result-ico" data-action="pickResultIcon" data-rb-tip="{{localize 'WFRPRB.Sheet.PickResultIcon'}}">
+          {{#if sys.result.img}}<img src="{{sys.result.img}}" alt="">{{else}}<span class="rb-ing-ico"><i class="fa-solid fa-bullseye"></i></span>{{/if}}
+        </span>
         <input type="text" class="rb-result-name" value="{{sys.result.name}}" placeholder="{{localize 'WFRPRB.Sheet.NoResult'}}" {{#unless editable}}disabled{{/unless}}></span>
       <span class="rb-sheet-count">×&nbsp;<input type="number" name="system.result.count" value="{{sys.result.count}}" min="1" step="1" class="rb-num"></span>
     </div>
@@ -86,9 +89,9 @@
       <input type="checkbox" name="system.needsWorkshop" {{#if sys.needsWorkshop}}checked{{/if}}></div>
     <div class="rb-field"><label>{{localize "WFRPRB.Time.Label"}}</label>
       <span class="rb-money-fields">
-        <input type="number" class="rb-num" name="system.timeDays" value="{{sys.timeDays}}" min="0"><span class="rb-unit">{{localize "WFRPRB.Time.d"}}</span>
-        <input type="number" class="rb-num" name="system.timeHours" value="{{sys.timeHours}}" min="0"><span class="rb-unit">{{localize "WFRPRB.Time.h"}}</span>
-        <input type="number" class="rb-num" name="system.timeMinutes" value="{{sys.timeMinutes}}" min="0"><span class="rb-unit">{{localize "WFRPRB.Time.m"}}</span>
+        <input type="number" class="rb-num rb-time-d" value="{{sys.timeDays}}" min="0"><span class="rb-unit">{{localize "WFRPRB.Time.d"}}</span>
+        <input type="number" class="rb-num rb-time-h" value="{{sys.timeHours}}" min="0" max="23"><span class="rb-unit">{{localize "WFRPRB.Time.h"}}</span>
+        <input type="number" class="rb-num rb-time-m" value="{{sys.timeMinutes}}" min="0" max="59"><span class="rb-unit">{{localize "WFRPRB.Time.m"}}</span>
       </span></div>
   </section>
 
@@ -101,7 +104,9 @@
   <footer class="rb-sheet-foot">
     <button type="button" class="rb-btn rb-btn--quiet" data-action="cancelSheet">{{localize "WFRPRB.Sheet.Cancel"}}</button>
     <span class="rb-sheet-foot-gap"></span>
+    {{#unless fresh}}
     <button type="button" class="rb-btn" data-action="saveAsNew" data-rb-tip="{{localize 'WFRPRB.Sheet.SaveAsNewTip'}}">{{localize "WFRPRB.Sheet.SaveAsNew"}}</button>
+    {{/unless}}
     <button type="button" class="rb-btn rb-btn--craft" data-action="saveSheet">{{localize "WFRPRB.Sheet.Save"}}</button>
   </footer>
   {{/if}}

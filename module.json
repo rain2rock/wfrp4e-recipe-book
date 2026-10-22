@@ -2,7 +2,7 @@
   "id": "wfrp4e-recipe-book",
   "title": "Книга рецептов WFRP",
   "description": "Крафт по рецептам для WFRP4e: книга известных рецептов, создание предметов по правилам «Создание предмета» (стр. 199), броски делает система. Recipe-based crafting for WFRP4e.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "authors": [
     {
       "name": "Mikhail"

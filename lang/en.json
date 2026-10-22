@@ -121,7 +121,8 @@
       "Save": "Save",
       "SaveAsNew": "Save as new",
       "Cancel": "Cancel",
-      "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored"
+      "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored",
+      "PickResultIcon": "Pick the result item icon"
     },
     "Difficulty": {
       "veryEasy": "Very Easy (+60)",
@@ -137,7 +138,8 @@
       "Label": "Crafting time",
       "d": "d",
       "h": "h",
-      "m": "m"
+      "m": "m",
+      "mo": "mo"
     },
     "Avail": {
       "common": "Common",
@@ -154,7 +156,7 @@
       "Talent": "Craftsman has already lowered the target",
       "Ingredient": "In stock {have} of {need}\n~ Consumed when work begins.",
       "Money": "Raw materials\nCharacter has\t{have}\nRequired\t{need}",
-      "Time": "Crafting time\nOnly non-zero units are shown: days, hours, minutes.\n~ Does not affect rolls; guidance for the GM.",
+      "Time": "Crafting time\nOnly non-zero units are shown: months (a month = 30 days), days, hours, minutes.\n~ Does not affect rolls; guidance for the GM.",
       "Workshop": "Workshop\nThe rules require a suitable workshop - ask your GM.",
       "Progress": "Progress\nSL accumulated out of required. Each endeavour between adventures allows one roll.",
       "Price": "Price",
@@ -187,6 +189,9 @@
       "ActorHint": "The character forgets «{name}». The world recipe (if any) remains.",
       "WorldTip": "Delete from world",
       "ActorTip": "Remove from book"
+    },
+    "Group": {
+      "Unusual": "Unusual"
     }
   }
 }

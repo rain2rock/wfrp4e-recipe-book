@@ -2,6 +2,22 @@
 
 Модуль Foundry VTT для системы Warhammer Fantasy Roleplay 4e: крафт по рецептам, книга рецептов на листе персонажа и автоматизация продолжительных проверок.
 
+## Установка
+
+**Manifest URL** (вставь в Foundry: «Модули» → «Установить модуль» → поле «URL манифеста» внизу):
+
+```
+https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest/download/module.json
+```
+
+Затем зайди в мир → «Настройки игры» → «Управление модулями» → включи «Книга рецептов WFRP».
+Обновления Foundry подтянет сам по этой же ссылке.
+
+Ссылка `github.com/.../blob/main/module.json` не подойдёт: это страница сайта, а не файл.
+
+Вручную: скачай `module.zip` из [последнего релиза](https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest)
+и распакуй в `Data/modules/wfrp4e-recipe-book/` (внутри сразу должен лежать `module.json`).
+
 ![Скриншот книги рецептов](docs/screenshot.png)
 
 ## Возможности
