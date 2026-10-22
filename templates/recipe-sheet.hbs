@@ -1,28 +1,28 @@
 <div class="rb-sheet-root">
   <header class="rb-sheet-head">
-    <img class="rb-sheet-img" src="{{item.img}}" alt="" data-action="pickImage" data-rb-tip="{{localize 'WFRPRB.Sheet.PickImage'}}">
+    <img class="rb-sheet-img" src="{{item.img}}" alt="" data-action="pickImage" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickImage'}}">
     <input class="rb-sheet-name" type="text" name="name" value="{{item.name}}" {{#unless editable}}disabled{{/unless}}>
   </header>
 
   <section class="rb-block rb-dropzone" data-dropzone="result">
-    <div class="rb-block-title"><span>{{localize "WFRPRB.Sheet.Result"}} <span class="rb-dim">· {{localize "WFRPRB.Sheet.DropHint"}}</span></span>
-      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{localize 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
+    <div class="rb-block-title"><span>{{rbL "WFRPRB.Sheet.Result"}} <span class="rb-dim">· {{rbL "WFRPRB.Sheet.DropHint"}}</span></span>
+      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
     <div class="rb-row rb-ing">
       <span class="rb-ing-name">
-        <span class="rb-result-ico" data-action="pickResultIcon" data-rb-tip="{{localize 'WFRPRB.Sheet.PickResultIcon'}}">
+        <span class="rb-result-ico" data-action="pickResultIcon" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickResultIcon'}}">
           {{#if sys.result.img}}<img src="{{sys.result.img}}" alt="">{{else}}<span class="rb-ing-ico"><i class="fa-solid fa-bullseye"></i></span>{{/if}}
         </span>
-        <input type="text" class="rb-result-name" value="{{sys.result.name}}" placeholder="{{localize 'WFRPRB.Sheet.NoResult'}}" {{#unless editable}}disabled{{/unless}}></span>
+        <input type="text" class="rb-result-name" value="{{sys.result.name}}" placeholder="{{rbL 'WFRPRB.Sheet.NoResult'}}" {{#unless editable}}disabled{{/unless}}></span>
       <span class="rb-sheet-count">×&nbsp;<input type="number" name="system.result.count" value="{{sys.result.count}}" min="1" step="1" class="rb-num"></span>
     </div>
     {{#unless sys.result.uuid}}{{#if sys.result.name}}
-      <div class="rb-row rb-dim rb-result-note">{{localize "WFRPRB.Sheet.CustomResult"}}</div>
+      <div class="rb-row rb-dim rb-result-note">{{rbL "WFRPRB.Sheet.CustomResult"}}</div>
     {{/if}}{{/unless}}
   </section>
 
   <section class="rb-block">
-    <div class="rb-block-title">{{localize "WFRPRB.Check"}}</div>
-    <div class="rb-field"><label>{{localize "WFRPRB.Sheet.Skill"}}</label>
+    <div class="rb-block-title">{{rbL "WFRPRB.Check"}}</div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.Skill"}}</label>
       {{#if skills.length}}
         <select name="system.skill">
           {{#each skills}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
@@ -31,7 +31,7 @@
         <input type="text" name="system.skill" value="{{sys.skill}}" placeholder="Ремесло (Аптекарь)">
       {{/if}}
     </div>
-    <div class="rb-field"><label>{{localize "WFRPRB.Sheet.SkillAlt"}}</label>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.SkillAlt"}}</label>
       {{#if skills.length}}
         <select name="system.skillAlt">
           <option value="">—</option>
@@ -41,27 +41,27 @@
         <input type="text" name="system.skillAlt" value="{{sys.skillAlt}}">
       {{/if}}
     </div>
-    <div class="rb-field"><label>{{localize "WFRPRB.Sheet.Difficulty"}}</label>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.Difficulty"}}</label>
       <select name="system.difficulty">
         {{#each difficulties}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
       </select></div>
-    <div class="rb-field"><label>{{localize "WFRPRB.SLTarget"}}</label>
+    <div class="rb-field"><label>{{rbL "WFRPRB.SLTarget"}}</label>
       <input type="number" name="system.slTarget" value="{{sys.slTarget}}" min="1" step="1" class="rb-num"></div>
   </section>
 
   <section class="rb-block rb-dropzone" data-dropzone="ingredients">
-    <div class="rb-block-title"><span>{{localize "WFRPRB.Ingredients"}} <span class="rb-dim">· {{localize "WFRPRB.Sheet.DropHint"}}</span></span>
-      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="ingredients" data-rb-tip="{{localize 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
+    <div class="rb-block-title"><span>{{rbL "WFRPRB.Ingredients"}} <span class="rb-dim">· {{rbL "WFRPRB.Sheet.DropHint"}}</span></span>
+      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="ingredients" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
     {{#each sys.ingredients}}
       <div class="rb-row rb-ing">
         <span class="rb-ing-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}{{name}}</span>
         <span class="rb-sheet-count">×&nbsp;{{count}}
-          <button type="button" class="rb-btn rb-btn--quiet rb-remove" data-action="removeIngredient" data-index="{{@index}}" data-rb-tip="{{localize 'WFRPRB.Sheet.Remove'}}"><i class="fa-solid fa-xmark"></i></button>
+          <button type="button" class="rb-btn rb-btn--quiet rb-remove" data-action="removeIngredient" data-index="{{@index}}" data-rb-tip="{{rbL 'WFRPRB.Sheet.Remove'}}"><i class="fa-solid fa-xmark"></i></button>
         </span>
       </div>
     {{/each}}
     <div class="rb-row rb-ing rb-money-row">
-      <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{localize "WFRPRB.RawMoney"}}</span>
+      <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{rbL "WFRPRB.RawMoney"}}</span>
       <span class="rb-money-fields">
         <label class="rb-coinfield">{{{coinGc}}}<input type="number" class="rb-num rb-money-gc" value="{{moneyGc}}" min="0"></label>
         <label class="rb-coinfield">{{{coinSs}}}<input type="number" class="rb-num rb-money-ss" value="{{moneySs}}" min="0"></label>
@@ -71,43 +71,43 @@
   </section>
 
   <section class="rb-block rb-dropzone" data-dropzone="tools">
-    <div class="rb-block-title"><span>{{localize "WFRPRB.Sheet.Tools"}} <span class="rb-dim">· {{localize "WFRPRB.Sheet.DropHint"}}</span></span>
-      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="tools" data-rb-tip="{{localize 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
+    <div class="rb-block-title"><span>{{rbL "WFRPRB.Sheet.Tools"}} <span class="rb-dim">· {{rbL "WFRPRB.Sheet.DropHint"}}</span></span>
+      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="tools" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
     {{#each sys.tools}}
       <div class="rb-row rb-ing">
         <span class="rb-ing-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}{{name}}</span>
         <span class="rb-sheet-count">
-          <button type="button" class="rb-btn rb-btn--quiet rb-remove" data-action="removeTool" data-index="{{@index}}" data-rb-tip="{{localize 'WFRPRB.Sheet.Remove'}}"><i class="fa-solid fa-xmark"></i></button>
+          <button type="button" class="rb-btn rb-btn--quiet rb-remove" data-action="removeTool" data-index="{{@index}}" data-rb-tip="{{rbL 'WFRPRB.Sheet.Remove'}}"><i class="fa-solid fa-xmark"></i></button>
         </span>
       </div>
     {{/each}}
   </section>
 
   <section class="rb-block">
-    <div class="rb-block-title">{{localize "WFRPRB.Conditions"}}</div>
-    <div class="rb-field rb-field-check"><label>{{localize "WFRPRB.Workshop"}}</label>
+    <div class="rb-block-title">{{rbL "WFRPRB.Conditions"}}</div>
+    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Workshop"}}</label>
       <input type="checkbox" name="system.needsWorkshop" {{#if sys.needsWorkshop}}checked{{/if}}></div>
-    <div class="rb-field"><label>{{localize "WFRPRB.Time.Label"}}</label>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Time.Label"}}</label>
       <span class="rb-money-fields">
-        <input type="number" class="rb-num rb-time-d" value="{{sys.timeDays}}" min="0"><span class="rb-unit">{{localize "WFRPRB.Time.d"}}</span>
-        <input type="number" class="rb-num rb-time-h" value="{{sys.timeHours}}" min="0" max="23"><span class="rb-unit">{{localize "WFRPRB.Time.h"}}</span>
-        <input type="number" class="rb-num rb-time-m" value="{{sys.timeMinutes}}" min="0" max="59"><span class="rb-unit">{{localize "WFRPRB.Time.m"}}</span>
+        <input type="number" class="rb-num rb-time-d" value="{{sys.timeDays}}" min="0"><span class="rb-unit">{{rbL "WFRPRB.Time.d"}}</span>
+        <input type="number" class="rb-num rb-time-h" value="{{sys.timeHours}}" min="0" max="23"><span class="rb-unit">{{rbL "WFRPRB.Time.h"}}</span>
+        <input type="number" class="rb-num rb-time-m" value="{{sys.timeMinutes}}" min="0" max="59"><span class="rb-unit">{{rbL "WFRPRB.Time.m"}}</span>
       </span></div>
   </section>
 
   <section class="rb-block">
-    <div class="rb-block-title">{{localize "WFRPRB.Sheet.Description"}}</div>
-    <textarea name="system.description" rows="4">{{sys.description}}</textarea>
+    <div class="rb-block-title">{{rbL "WFRPRB.Sheet.Description"}}</div>
+    <textarea name="system.description.value" rows="4">{{sys.description.value}}</textarea>
   </section>
 
   {{#if editable}}
   <footer class="rb-sheet-foot">
-    <button type="button" class="rb-btn rb-btn--quiet" data-action="cancelSheet">{{localize "WFRPRB.Sheet.Cancel"}}</button>
+    <button type="button" class="rb-btn rb-btn--quiet" data-action="cancelSheet">{{rbL "WFRPRB.Sheet.Cancel"}}</button>
     <span class="rb-sheet-foot-gap"></span>
     {{#unless fresh}}
-    <button type="button" class="rb-btn" data-action="saveAsNew" data-rb-tip="{{localize 'WFRPRB.Sheet.SaveAsNewTip'}}">{{localize "WFRPRB.Sheet.SaveAsNew"}}</button>
+    <button type="button" class="rb-btn" data-action="saveAsNew" data-rb-tip="{{rbL 'WFRPRB.Sheet.SaveAsNewTip'}}">{{rbL "WFRPRB.Sheet.SaveAsNew"}}</button>
     {{/unless}}
-    <button type="button" class="rb-btn rb-btn--craft" data-action="saveSheet">{{localize "WFRPRB.Sheet.Save"}}</button>
+    <button type="button" class="rb-btn rb-btn--craft" data-action="saveSheet">{{rbL "WFRPRB.Sheet.Save"}}</button>
   </footer>
   {{/if}}
 </div>

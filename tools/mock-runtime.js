@@ -137,7 +137,7 @@
           result: { uuid: "", name: "", img: "", count: 1 }, skill: "", skillAlt: "",
           difficulty: "average", slTarget: 5, ingredients: [], moneyBp: 0,
           needsWorkshop: false, tools: [], timeDays: 0, timeHours: 0, timeMinutes: 0,
-          description: "", ...(d.system ?? {})
+          description: { value: "" }, gmdescription: { value: "" }, ...(d.system ?? {})
         };
         const made = new FakeItem(null, d);
         game.items.push(made);

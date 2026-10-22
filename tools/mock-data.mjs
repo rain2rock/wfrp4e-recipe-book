@@ -34,7 +34,7 @@ export const RECIPES = [
       ],
       moneyBp: 15, needsWorkshop: false,
       tools: [{ uuid: "", name: "Ступка и пестик", img: "modules/wfrp4e-recipe-book/assets/icons/antitoxin-kit.png" }], timeDays: 0, timeHours: 1, timeMinutes: 0,
-      description: "<p>Горькая настойка на целебных травах - первая помощь искателя приключений.</p>"
+      description: { value: "<p>Горькая настойка на целебных травах - первая помощь искателя приключений.</p>" }
     }
   },
   {
@@ -49,7 +49,7 @@ export const RECIPES = [
         { uuid: "", name: "Мёд", img: "modules/wfrp4e-recipe-book/assets/icons/digestive-tonic.png", count: 1 }
       ],
       moneyBp: 12, needsWorkshop: false, tools: [], timeDays: 0, timeHours: 0, timeMinutes: 30,
-      description: "<p>Сладковатый отвар, унимающий дрожь в руках и дурные сны.</p>"
+      description: { value: "<p>Сладковатый отвар, унимающий дрожь в руках и дурные сны.</p>" }
     }
   },
   {
@@ -64,7 +64,7 @@ export const RECIPES = [
         { uuid: "", name: "Целебные травы", img: "modules/wfrp4e-recipe-book/assets/icons/salwort.png", count: 1 }
       ],
       moneyBp: 60, needsWorkshop: true, tools: [{ uuid: "Item.tool-still", name: "Перегонный куб", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png" }], timeDays: 38, timeHours: 15, timeMinutes: 10,
-      description: "<p>Против большинства известных ядов. Против неизвестных - как повезёт.</p>"
+      description: { value: "<p>Против большинства известных ядов. Против неизвестных - как повезёт.</p>" }
     }
   },
   {
@@ -76,7 +76,7 @@ export const RECIPES = [
       difficulty: "challenging", slTarget: 10,
       ingredients: [{ uuid: "", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", count: 1 }],
       moneyBp: 6, needsWorkshop: true, tools: [], timeDays: 1, timeHours: 3, timeMinutes: 0,
-      description: "<p>Простой клинок - было бы железо да горн.</p>"
+      description: { value: "<p>Простой клинок - было бы железо да горн.</p>" }
     }
   },
   {
@@ -91,7 +91,7 @@ export const RECIPES = [
         { uuid: "", name: "Сухари", img: "modules/wfrp4e-recipe-book/assets/icons/food-groceries-day.png", count: 2 }
       ],
       moneyBp: 10, needsWorkshop: false, tools: [], timeDays: 0, timeHours: 4, timeMinutes: 0,
-      description: "<p>Не роскошь, но в дороге не до жиру.</p>"
+      description: { value: "<p>Не роскошь, но в дороге не до жиру.</p>" }
     }
   }
 ];

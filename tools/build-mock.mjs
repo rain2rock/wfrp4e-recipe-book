@@ -17,6 +17,7 @@ const outPath = outArg > 0 ? process.argv[outArg + 1] : "docs/book-mock.html";
 const handlebarsSrc = fs.readFileSync(require.resolve("handlebars/dist/handlebars.min.js"), "utf8");
 
 const lang = JSON.parse(read("lang/ru.json"));
+const langEn = JSON.parse(read("lang/en.json"));
 const templates = {
   "modules/wfrp4e-recipe-book/templates/book.hbs": read("templates/book.hbs"),
   "modules/wfrp4e-recipe-book/templates/recipe-sheet.hbs": read("templates/recipe-sheet.hbs")
@@ -85,6 +86,7 @@ const html = `<!DOCTYPE html>
 <script>${handlebarsSrc}</script>
 <script>
 window.__RB_LANG__ = ${json(lang)};
+window.__RB_LANGS__ = { ru: ${json(lang)}, en: ${json(langEn)} };
 window.__RB_TEMPLATES__ = ${inlineAssets(json(templates))};
 window.__RB_CONFIG__ = ${json(CONFIG_WFRP)};
 window.__RB_SKILLS__ = ${json(SKILLS)};

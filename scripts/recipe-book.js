@@ -7,8 +7,35 @@ import { MODULE_ID, RECIPE_TYPE, difficultyMod, difficultyLabel, FALLBACK_DIFFIC
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-export const L = (k) => game.i18n.localize(k);
-export const F = (k, d) => game.i18n.format(k, d);
+/* Переводы модуля: настройка «Язык модуля» может отличаться от языка Foundry.
+   Таблицы грузим из lang/*.json сами; ключи вне WFRPRB.* уходят в обычный i18n. */
+let RB_LANGS = globalThis.__RB_LANGS__ ?? null;
+export async function loadLangs() {
+  if (RB_LANGS) return RB_LANGS;
+  try {
+    const [ru, en] = await Promise.all(["ru", "en"].map((l) =>
+      fetch(`modules/${MODULE_ID}/lang/${l}.json`).then((r) => r.json())));
+    RB_LANGS = { ru, en };
+  } catch { RB_LANGS = null; }
+  return RB_LANGS;
+}
+
+function rbLang() {
+  try {
+    const mode = game.settings.get(MODULE_ID, "lang");
+    return mode === "auto" ? null : mode;
+  } catch { return null; }
+}
+
+export const L = (k) => {
+  const lang = rbLang();
+  if (lang && RB_LANGS?.[lang]) {
+    const v = String(k).split(".").reduce((o, p) => (o == null ? undefined : o[p]), RB_LANGS[lang]);
+    if (typeof v === "string") return v;
+  }
+  return game.i18n.localize(k);
+};
+export const F = (k, d = {}) => L(k).replace(/\{(\w+)\}/g, (_, x) => d[x] ?? "");
 export const esc = (s) => foundry.utils.escapeHTML?.(String(s ?? "")) ?? Handlebars.escapeExpression(String(s ?? ""));
 const norm = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 const FLAG = MODULE_ID;
@@ -285,7 +312,7 @@ export async function startCraft(actor, recipe) {
     flags: {
       [FLAG]: {
         recipeUuid: recipe.uuid, recipeName: recipe.name,
-        result: { uuid: sys.result.uuid, name: sys.result.name, img: sys.result.img || recipe.img, count: sys.result.count, descr: sys.description ?? "" },
+        result: { uuid: sys.result.uuid, name: sys.result.name, img: sys.result.img || recipe.img, count: sys.result.count, descr: sys.description?.value ?? "" },
         moneyBp: sys.moneyBp || 0,
         spent: spentLite
       }
@@ -725,7 +752,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
             ...t,
             tt: await this._itemTip(t.name, t.uuid, t.img)
           }))),
-          description: r.system.description,
+          description: r.system.description?.value ?? "",
           canStart: st.canStart,
           problems: st.missing.map((m) => L(`WFRPRB.Missing.${m}`))
         };

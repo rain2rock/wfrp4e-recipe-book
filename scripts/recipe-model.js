@@ -59,7 +59,9 @@ export class RecipeModel extends foundry.abstract.TypeDataModel {
       timeDays: new F.NumberField({ initial: 0, min: 0, integer: true }),
       timeHours: new F.NumberField({ initial: 0, min: 0, max: 23, integer: true }),
       timeMinutes: new F.NumberField({ initial: 0, min: 0, max: 59, integer: true }),
-      description: new F.HTMLField({ initial: "" })
+      // Форма как у предметов системы: миграция wfrp4e читает .value у ЛЮБОГО предмета
+      description: new F.SchemaField({ value: new F.HTMLField({ initial: "" }) }),
+      gmdescription: new F.SchemaField({ value: new F.HTMLField({ initial: "" }) })
     };
   }
 }

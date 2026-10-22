@@ -406,6 +406,18 @@ await page.click("#tb-view");
 await page.waitForTimeout(150);
 ok((await $(".rb-filter--world").count()) === 1, "вид ГМа вернулся");
 
+/* --- Переключатель языка модуля --- */
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "en"));
+await page.waitForTimeout(200);
+const enText = await text(".rb-filters");
+ok(enText.includes("All") && enText.includes("Can craft"), "язык en: фильтры по-английски", enText.slice(0, 60));
+ok((await text(".rb-btn--craft")).includes("Craft"), "язык en: кнопка Craft");
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "ru"));
+await page.waitForTimeout(200);
+ok((await text(".rb-filters")).includes("Все"), "язык ru вернулся");
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "auto"));
+await page.waitForTimeout(150);
+
 /* --- Скриншот для Михаила --- */
 await $(".rb-entry", { hasText: "Противоядие" }).first().click();
 await page.waitForTimeout(80);

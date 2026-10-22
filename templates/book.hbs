@@ -2,24 +2,24 @@
   <aside class="rb-page rb-left">
     <div class="rb-search">
       <i class="fa-solid fa-magnifying-glass"></i>
-      <input type="text" value="{{search}}" placeholder="{{localize 'WFRPRB.Search'}}">
+      <input type="text" value="{{search}}" placeholder="{{rbL 'WFRPRB.Search'}}">
     </div>
     <div class="rb-filters">
       <button type="button" class="rb-filter {{#if (eq filter 'all')}}is-active{{/if}}" data-action="filter" data-filter="all">
-        {{localize "WFRPRB.Filter.all"}} <span class="rb-count">{{counts.all}}</span></button>
+        {{rbL "WFRPRB.Filter.all"}} <span class="rb-count">{{counts.all}}</span></button>
       <button type="button" class="rb-filter {{#if (eq filter 'ready')}}is-active{{/if}}" data-action="filter" data-filter="ready">
-        {{localize "WFRPRB.Filter.ready"}} <span class="rb-count">{{counts.ready}}</span></button>
+        {{rbL "WFRPRB.Filter.ready"}} <span class="rb-count">{{counts.ready}}</span></button>
       <button type="button" class="rb-filter {{#if (eq filter 'missing')}}is-active{{/if}}" data-action="filter" data-filter="missing">
-        {{localize "WFRPRB.Filter.missing"}}</button>
+        {{rbL "WFRPRB.Filter.missing"}}</button>
       {{#if gm}}
-        <button type="button" class="rb-filter rb-filter--world {{#if (eq filter 'world')}}is-active{{/if}}" data-action="filter" data-filter="world" data-rb-tip="{{localize 'WFRPRB.World.Hint'}}">
-          {{localize "WFRPRB.Filter.world"}} <span class="rb-count">{{counts.world}}</span></button>
+        <button type="button" class="rb-filter rb-filter--world {{#if (eq filter 'world')}}is-active{{/if}}" data-action="filter" data-filter="world" data-rb-tip="{{rbL 'WFRPRB.World.Hint'}}">
+          {{rbL "WFRPRB.Filter.world"}} <span class="rb-count">{{counts.world}}</span></button>
       {{/if}}
     </div>
 
     <div class="rb-list">
       {{#if projects.length}}
-        <div class="rb-group-title rb-work-title">{{localize "WFRPRB.InWork"}} <span class="rb-count">{{counts.work}}</span></div>
+        <div class="rb-group-title rb-work-title">{{rbL "WFRPRB.InWork"}} <span class="rb-count">{{counts.work}}</span></div>
         {{#each projects}}
           <button type="button" class="rb-entry rb-project {{#if (eq ../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="project" data-id="{{id}}">
             <img src="{{img}}" alt="">
@@ -35,16 +35,16 @@
           <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-rb-tip="{{tooltip}}">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
-            {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{localize 'WFRPRB.Ready'}}"></i>{{/if}}
+            {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
           </button>
         {{/each}}
       {{/each}}
 
-      {{#if empty}}<div class="rb-empty">{{localize "WFRPRB.Empty"}}</div>{{/if}}
+      {{#if empty}}<div class="rb-empty">{{rbL "WFRPRB.Empty"}}</div>{{/if}}
     </div>
     {{#if gm}}
-      <button type="button" class="rb-btn rb-newrecipe" data-action="createRecipe" data-rb-tip="{{localize 'WFRPRB.NewRecipeHint'}}">
-        <i class="fa-solid fa-plus"></i> {{localize "WFRPRB.NewRecipe"}}
+      <button type="button" class="rb-btn rb-newrecipe" data-action="createRecipe" data-rb-tip="{{rbL 'WFRPRB.NewRecipeHint'}}">
+        <i class="fa-solid fa-plus"></i> {{rbL "WFRPRB.NewRecipe"}}
       </button>
     {{/if}}
   </aside>
@@ -58,8 +58,8 @@
             <div class="rb-tt-src" hidden>
               <div class="rb-tt-head">{{#if detail.result.tt.img}}<img src="{{detail.result.tt.img}}" alt="">{{/if}}
                 <div><div class="rb-tt-name">{{detail.result.tt.name}}</div>
-                {{#if detail.result.tt.priceHtml}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Price"}}: {{{detail.result.tt.priceHtml}}}</div>{{/if}}
-                {{#if detail.result.tt.avail}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Avail"}}: {{detail.result.tt.avail}}</div>{{/if}}</div>
+                {{#if detail.result.tt.priceHtml}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Price"}}: {{{detail.result.tt.priceHtml}}}</div>{{/if}}
+                {{#if detail.result.tt.avail}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Avail"}}: {{detail.result.tt.avail}}</div>{{/if}}</div>
               </div>
               {{#if detail.result.tt.desc}}<div class="rb-tt-desc">{{{detail.result.tt.desc}}}</div>{{/if}}
             </div>
@@ -69,30 +69,30 @@
             <div class="rb-head-sub">{{detail.name}}</div>
           </div>
           {{#if detail.result.uuid}}
-            <button type="button" class="rb-btn rb-btn--quiet rb-head-open" data-action="openResult" data-uuid="{{detail.result.uuid}}" data-rb-tip="{{localize 'WFRPRB.OpenResult'}}"><i class="fa-solid fa-eye"></i></button>
+            <button type="button" class="rb-btn rb-btn--quiet rb-head-open" data-action="openResult" data-uuid="{{detail.result.uuid}}" data-rb-tip="{{rbL 'WFRPRB.OpenResult'}}"><i class="fa-solid fa-eye"></i></button>
           {{/if}}
           {{#if detail.isGM}}
-            <button type="button" class="rb-btn rb-btn--quiet" data-action="openRecipe" data-id="{{detail.id}}" data-rb-tip="{{localize 'WFRPRB.EditRecipe'}}"><i class="fa-solid fa-pen"></i></button>
+            <button type="button" class="rb-btn rb-btn--quiet" data-action="openRecipe" data-id="{{detail.id}}" data-rb-tip="{{rbL 'WFRPRB.EditRecipe'}}"><i class="fa-solid fa-pen"></i></button>
           {{/if}}
         </header>
 
         <section class="rb-block">
-          <div class="rb-block-title">{{localize "WFRPRB.Check"}}</div>
+          <div class="rb-block-title">{{rbL "WFRPRB.Check"}}</div>
           <div class="rb-row {{#unless detail.hasSkill}}is-bad{{/unless}}" data-rb-tip="{{detail.checkTip}}">
             <span>{{detail.skillUsed}}{{#if detail.skillAlt}} <span class="rb-dim">/ {{detail.skillAlt}}</span>{{/if}}</span>
             <span>
               {{#if detail.hasSkill}}{{detail.skillTotal}} · {{detail.diffLabel}} → <b>{{detail.target}}</b>
-              {{else}}{{localize "WFRPRB.Missing.skill"}}{{/if}}
+              {{else}}{{rbL "WFRPRB.Missing.skill"}}{{/if}}
             </span>
           </div>
           <div class="rb-row" data-rb-tip="{{detail.slTip}}">
-            <span>{{localize "WFRPRB.SLTarget"}}</span>
-            <span><b>{{detail.slTarget}}</b>{{#if detail.talent}} <span class="rb-dim">({{detail.slBase}} − {{detail.talent}} {{localize "WFRPRB.TalentShort"}})</span>{{/if}}</span>
+            <span>{{rbL "WFRPRB.SLTarget"}}</span>
+            <span><b>{{detail.slTarget}}</b>{{#if detail.talent}} <span class="rb-dim">({{detail.slBase}} − {{detail.talent}} {{rbL "WFRPRB.TalentShort"}})</span>{{/if}}</span>
           </div>
         </section>
 
         <section class="rb-block">
-          <div class="rb-block-title">{{localize "WFRPRB.Ingredients"}}</div>
+          <div class="rb-block-title">{{rbL "WFRPRB.Ingredients"}}</div>
           {{#each detail.ingredients}}
             <div class="rb-row rb-ing {{#if ok}}is-ok{{else}}is-bad{{/if}}" data-rbtt="ing">
               <span class="rb-ing-name">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}{{name}}</span>
@@ -100,51 +100,51 @@
               <div class="rb-tt-src" hidden>
                 <div class="rb-tt-head">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}
                   <div><div class="rb-tt-name">{{tt.name}}</div>
-                  {{#if tt.priceHtml}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Price"}}: {{{tt.priceHtml}}}</div>{{/if}}
-                  {{#if tt.avail}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Avail"}}: {{tt.avail}}</div>{{/if}}</div>
+                  {{#if tt.priceHtml}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Price"}}: {{{tt.priceHtml}}}</div>{{/if}}
+                  {{#if tt.avail}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Avail"}}: {{tt.avail}}</div>{{/if}}</div>
                 </div>
-                <div class="rb-tt-line rb-tt-craft">{{localize "WFRPRB.Tip.InStock"}}: {{have}} · {{localize "WFRPRB.Tip.Need"}}: {{count}}</div>
+                <div class="rb-tt-line rb-tt-craft">{{rbL "WFRPRB.Tip.InStock"}}: {{have}} · {{rbL "WFRPRB.Tip.Need"}}: {{count}}</div>
                 {{#if tt.desc}}<div class="rb-tt-desc">{{{tt.desc}}}</div>{{/if}}
               </div>
             </div>
           {{/each}}
           {{#if detail.moneyBp}}
             <div class="rb-row rb-ing {{#if detail.moneyOk}}is-ok{{else}}is-bad{{/if}}" data-rb-tip="{{detail.moneyTip}}">
-              <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{localize "WFRPRB.RawMoney"}}</span>
+              <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{rbL "WFRPRB.RawMoney"}}</span>
               <span class="rb-ing-count">{{{detail.moneyHtml}}}</span>
             </div>
           {{/if}}
           {{#unless detail.ingredients.length}}{{#unless detail.moneyBp}}
-            <div class="rb-row rb-dim">{{localize "WFRPRB.NoIngredients"}}</div>
+            <div class="rb-row rb-dim">{{rbL "WFRPRB.NoIngredients"}}</div>
           {{/unless}}{{/unless}}
         </section>
 
         {{#if (or detail.time detail.needsWorkshop detail.tools.length)}}
         <section class="rb-block">
-          <div class="rb-block-title">{{localize "WFRPRB.Conditions"}}</div>
+          <div class="rb-block-title">{{rbL "WFRPRB.Conditions"}}</div>
           {{#each detail.tools}}
             <div class="rb-row rb-ing {{#if ok}}is-ok{{else}}is-bad{{/if}}" data-rbtt="tool">
               <span class="rb-ing-name">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}{{name}}</span>
-              <span class="rb-ing-count">{{#if ok}}{{localize "WFRPRB.Tool.Have"}}{{else}}{{localize "WFRPRB.Tool.Missing"}}{{/if}}</span>
+              <span class="rb-ing-count">{{#if ok}}{{rbL "WFRPRB.Tool.Have"}}{{else}}{{rbL "WFRPRB.Tool.Missing"}}{{/if}}</span>
               <div class="rb-tt-src" hidden>
                 <div class="rb-tt-head">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}
                   <div><div class="rb-tt-name">{{tt.name}}</div>
-                  {{#if tt.priceHtml}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Price"}}: {{{tt.priceHtml}}}</div>{{/if}}
-                  {{#if tt.avail}}<div class="rb-tt-line">{{localize "WFRPRB.Tip.Avail"}}: {{tt.avail}}</div>{{/if}}</div>
+                  {{#if tt.priceHtml}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Price"}}: {{{tt.priceHtml}}}</div>{{/if}}
+                  {{#if tt.avail}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Avail"}}: {{tt.avail}}</div>{{/if}}</div>
                 </div>
-                <div class="rb-tt-line rb-tt-craft">{{localize "WFRPRB.Tip.ToolNote"}}</div>
+                <div class="rb-tt-line rb-tt-craft">{{rbL "WFRPRB.Tip.ToolNote"}}</div>
                 {{#if tt.desc}}<div class="rb-tt-desc">{{{tt.desc}}}</div>{{/if}}
               </div>
             </div>
           {{/each}}
           {{#if detail.needsWorkshop}}
-            <div class="rb-row rb-ing" data-rb-tip="{{localize 'WFRPRB.Tip.Workshop'}}">
-              <span class="rb-ing-name"><span class="rb-ing-ico"><i class="fa-solid fa-warehouse"></i></span>{{localize "WFRPRB.Workshop"}}</span>
+            <div class="rb-row rb-ing" data-rb-tip="{{rbL 'WFRPRB.Tip.Workshop'}}">
+              <span class="rb-ing-name"><span class="rb-ing-ico"><i class="fa-solid fa-warehouse"></i></span>{{rbL "WFRPRB.Workshop"}}</span>
             </div>
           {{/if}}
           {{#if detail.time}}
-            <div class="rb-row rb-ing" data-rb-tip="{{localize 'WFRPRB.Tip.Time'}}">
-              <span class="rb-ing-name"><span class="rb-ing-ico"><i class="fa-regular fa-clock"></i></span>{{localize "WFRPRB.Time.Label"}}</span>
+            <div class="rb-row rb-ing" data-rb-tip="{{rbL 'WFRPRB.Tip.Time'}}">
+              <span class="rb-ing-name"><span class="rb-ing-ico"><i class="fa-regular fa-clock"></i></span>{{rbL "WFRPRB.Time.Label"}}</span>
               <span class="rb-ing-count">{{detail.time}}</span>
             </div>
           {{/if}}
@@ -155,20 +155,20 @@
 
         <footer class="rb-foot">
           {{#if detail.world}}
-            <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="deleteRecipe" data-rb-tip="{{localize 'WFRPRB.Delete.WorldTip'}}"><i class="fa-solid fa-trash"></i></button>
-            <button type="button" class="rb-btn" data-action="openRecipe"><i class="fa-solid fa-pen"></i> {{localize "WFRPRB.World.Edit"}}</button>
-            <button type="button" class="rb-btn rb-btn--craft" data-action="giveRecipe" data-rb-tip="{{localize 'WFRPRB.World.GiveTip'}}">
-              <i class="fa-solid fa-hand-holding"></i> {{localize "WFRPRB.World.Give"}}
+            <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="deleteRecipe" data-rb-tip="{{rbL 'WFRPRB.Delete.WorldTip'}}"><i class="fa-solid fa-trash"></i></button>
+            <button type="button" class="rb-btn" data-action="openRecipe"><i class="fa-solid fa-pen"></i> {{rbL "WFRPRB.World.Edit"}}</button>
+            <button type="button" class="rb-btn rb-btn--craft" data-action="giveRecipe" data-rb-tip="{{rbL 'WFRPRB.World.GiveTip'}}">
+              <i class="fa-solid fa-hand-holding"></i> {{rbL "WFRPRB.World.Give"}}
             </button>
           {{else}}
             {{#if detail.isGM}}
-              <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="deleteRecipe" data-rb-tip="{{localize 'WFRPRB.Delete.ActorTip'}}"><i class="fa-solid fa-trash"></i></button>
+              <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="deleteRecipe" data-rb-tip="{{rbL 'WFRPRB.Delete.ActorTip'}}"><i class="fa-solid fa-trash"></i></button>
             {{/if}}
             {{#unless detail.canStart}}
-              <div class="rb-problems">{{localize "WFRPRB.MissingLabel"}}: {{#each detail.problems}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>
+              <div class="rb-problems">{{rbL "WFRPRB.MissingLabel"}}: {{#each detail.problems}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</div>
             {{/unless}}
             <button type="button" class="rb-btn rb-btn--craft" data-action="craft" {{#unless detail.canStart}}disabled{{/unless}}>
-              <i class="fa-solid fa-dice-d20"></i> {{localize "WFRPRB.Create"}}
+              <i class="fa-solid fa-dice-d20"></i> {{rbL "WFRPRB.Create"}}
             </button>
           {{/if}}
         </footer>
@@ -179,20 +179,20 @@
           <img class="rb-head-img" src="{{detail.img}}" alt="">
           <div class="rb-head-text">
             <h2>{{detail.name}}{{#if (gt detail.count 1)}} ×{{detail.count}}{{/if}}</h2>
-            <div class="rb-head-sub">{{localize "WFRPRB.InWorkOne"}} · {{detail.skill}}</div>
+            <div class="rb-head-sub">{{rbL "WFRPRB.InWorkOne"}} · {{detail.skill}}</div>
           </div>
         </header>
         <section class="rb-block">
           <div class="rb-progress"><div class="rb-progress-fill" style="width:{{detail.pct}}%"></div></div>
-          <div class="rb-row" data-rb-tip="{{localize 'WFRPRB.Tip.Progress'}}"><span>{{localize "WFRPRB.Progress"}}</span><span><b>{{detail.cur}}</b> / {{detail.target}} {{localize "WFRPRB.SL"}}</span></div>
+          <div class="rb-row" data-rb-tip="{{rbL 'WFRPRB.Tip.Progress'}}"><span>{{rbL "WFRPRB.Progress"}}</span><span><b>{{detail.cur}}</b> / {{detail.target}} {{rbL "WFRPRB.SL"}}</span></div>
         </section>
         <footer class="rb-foot">
-          <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="abandon" data-id="{{detail.id}}" data-rb-tip="{{localize 'WFRPRB.Abandon.Button'}}"><i class="fa-solid fa-trash"></i></button>
-          <button type="button" class="rb-btn rb-btn--craft" data-action="continueTest" data-id="{{detail.id}}"><i class="fa-solid fa-dice-d20"></i> {{localize "WFRPRB.Continue"}}</button>
+          <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="abandon" data-id="{{detail.id}}" data-rb-tip="{{rbL 'WFRPRB.Abandon.Button'}}"><i class="fa-solid fa-trash"></i></button>
+          <button type="button" class="rb-btn rb-btn--craft" data-action="continueTest" data-id="{{detail.id}}"><i class="fa-solid fa-dice-d20"></i> {{rbL "WFRPRB.Continue"}}</button>
         </footer>
       {{/if}}
     {{else}}
-      <div class="rb-empty rb-empty-page">{{localize "WFRPRB.Empty"}}</div>
+      <div class="rb-empty rb-empty-page">{{rbL "WFRPRB.Empty"}}</div>
     {{/if}}
   </main>
 </div>

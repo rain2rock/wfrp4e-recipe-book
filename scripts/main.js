@@ -1,7 +1,7 @@
 /* «Книга рецептов WFRP» - init: модель, лист, настройки, клавиша, кнопка на листе, api. */
 
 import { MODULE_ID, RECIPE_TYPE, RecipeModel } from "./recipe-model.js";
-import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus } from "./recipe-book.js";
+import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, loadLangs, L } from "./recipe-book.js";
 import { RecipeSheet } from "./recipe-sheet.js";
 
 const SUPPORTED_TYPES = ["character", "npc", "creature"];
@@ -11,6 +11,8 @@ Hooks.once("init", () => {
   if (!Handlebars.helpers.eq) Handlebars.registerHelper("eq", (a, b) => a === b);
   if (!Handlebars.helpers.gt) Handlebars.registerHelper("gt", (a, b) => Number(a) > Number(b));
   if (!Handlebars.helpers.or) Handlebars.registerHelper("or", (...args) => args.slice(0, -1).some(Boolean));
+  // Локализация шаблонов модуля - через свой L (учитывает настройку «Язык модуля»)
+  Handlebars.registerHelper("rbL", (k) => L(k));
 
   // Данные и лист подтипа «Рецепт»
   Object.assign(CONFIG.Item.dataModels, { [RECIPE_TYPE]: RecipeModel });
@@ -49,6 +51,17 @@ Hooks.once("init", () => {
     },
     default: "half"
   });
+
+  // Язык модуля: как в Foundry, либо принудительно русский / английский
+  game.settings.register(MODULE_ID, "lang", {
+    name: "Module language / Язык модуля",
+    hint: "Interface language of the Recipe Book / Язык интерфейса книги рецептов.",
+    scope: "client", config: true, type: String,
+    choices: { auto: "Foundry", ru: "Русский", en: "English" },
+    default: "auto",
+    onChange: () => RecipeBookApp.renderAll()
+  });
+  loadLangs();
 
   // ГМ: смотреть интерфейс как обычный игрок (без вкладки «Мир» и ГМ-кнопок)
   game.settings.register(MODULE_ID, "playerView", {
@@ -102,10 +115,11 @@ Hooks.once("init", () => {
   game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, RecipeBookApp };
 });
 
-/* Кнопка в шапке листа персонажа (как в paperdoll) */
-Hooks.on("renderActorSheetV2", (app, element) => {
+/* Кнопка в шапке листа персонажа (как в paperdoll).
+   Основной хук - renderActorSheetV2; запасной renderActorSheet - для листов на ApplicationV1. */
+function addSheetButton(app, element) {
   if (game.system.id !== "wfrp4e" || !game.settings.get(MODULE_ID, "enabled")) return;
-  const actor = app.document;
+  const actor = app.document ?? app.actor;
   if (!actor || !SUPPORTED_TYPES.includes(actor.type)) return;
   const header = app.window?.header ?? element.querySelector(".window-header");
   if (!header || header.querySelector(".rb-open")) return;
@@ -122,7 +136,9 @@ Hooks.on("renderActorSheetV2", (app, element) => {
     RecipeBookApp.openFor(actor);
   });
   btn.addEventListener("pointerdown", (ev) => ev.stopPropagation());
-  const anchor = header.querySelector('[data-action="toggleControls"]') ?? header.querySelector('[data-action="close"]');
+  const anchor = header.querySelector('[data-action="toggleControls"]') ?? header.querySelector('[data-action="close"]') ?? header.querySelector(".close");
   if (anchor) header.insertBefore(btn, anchor);
   else header.append(btn);
-});
+}
+Hooks.on("renderActorSheetV2", (app, element) => addSheetButton(app, element));
+Hooks.on("renderActorSheet", (app, html) => addSheetButton(app, html?.[0] ?? html));
