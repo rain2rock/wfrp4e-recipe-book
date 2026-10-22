@@ -95,7 +95,10 @@
 
 /* ========================= Кнопки ========================= */
 
-/* Любая кнопка - .rb-btn: единая высота --rb-btn-h, свои паддинги и шрифты не задаются */
+/* Любая кнопка - .rb-btn: единая высота --rb-btn-h, свои паддинги и шрифты не задаются.
+   Селекторы квалифицированы элементом (button.rb-btn) и дополнены резетом: скин системы
+   стилизует .application button сильнее голого класса - обводки и фактуры протекали. */
+.wfrp-recipe-book button.rb-btn,
 .wfrp-recipe-book .rb-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: var(--rb-space-2);
   box-sizing: border-box; width: auto; height: auto; min-height: var(--rb-btn-h);
@@ -103,16 +106,21 @@
   font-size: var(--rb-fs-m); line-height: 1.2; font-weight: 400; text-align: center;
   background: var(--rb-well); border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
   color: var(--rb-text); cursor: pointer;
+  background-image: none; box-shadow: none; border-image: none;
+  text-transform: none; text-shadow: none; letter-spacing: normal;
 }
-.wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover); color: var(--rb-text); box-shadow: none; }
-.wfrp-recipe-book .rb-btn[disabled] { opacity: 0.5; cursor: default; }
+.wfrp-recipe-book button.rb-btn:hover,
+.wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover); color: var(--rb-text); box-shadow: none; text-shadow: none; }
+.wfrp-recipe-book button.rb-btn[disabled], .wfrp-recipe-book .rb-btn[disabled] { opacity: 0.5; cursor: default; }
 .wfrp-recipe-book .rb-btn i { color: var(--rb-muted); }
-.wfrp-recipe-book .rb-btn--quiet { background: none; border-color: transparent; }
+.wfrp-recipe-book button.rb-btn--quiet, .wfrp-recipe-book .rb-btn--quiet { background: none; border-color: transparent; }
 /* Акцентная кнопка главного действия окна («Создать», «Сохранить», «Выдать»):
    тот же размер, что у всех кнопок - выделяется только рамкой и жирностью */
-.wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft); font-weight: 600; }
+.wfrp-recipe-book button.rb-btn--craft, .wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft); font-weight: 600; }
 
 /* Квадратные иконко-кнопки: «+» в заголовке секции и крестик удаления строки */
+.wfrp-recipe-book button.rb-add,
+.wfrp-recipe-book button.rb-remove,
 .wfrp-recipe-book .rb-add,
 .wfrp-recipe-book .rb-remove {
   width: var(--rb-icon-s); height: var(--rb-icon-s); min-height: 0; padding: 0;
@@ -123,14 +131,18 @@
 /* ========================= Чипы-фильтры ========================= */
 
 .wfrp-recipe-book .rb-filters { display: flex; flex-wrap: wrap; gap: var(--rb-space-2); }
+.wfrp-recipe-book button.rb-filter,
 .wfrp-recipe-book .rb-filter {
   display: inline-flex; align-items: center; gap: var(--rb-space-1);
   padding: 2px var(--rb-space-3); margin: 0; width: auto; line-height: 1.4;
   font-size: var(--rb-fs-s); color: var(--rb-text-dim);
   background: none; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius-pill); cursor: pointer;
+  background-image: none; box-shadow: none; border-image: none;
+  text-transform: none; text-shadow: none; letter-spacing: normal; height: auto; min-height: 0;
 }
+.wfrp-recipe-book button.rb-filter:hover,
 .wfrp-recipe-book .rb-filter:hover { background: var(--rb-hover); box-shadow: none; }
-.wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text); border-color: var(--rb-gold-soft); background: var(--rb-hover); }
+.wfrp-recipe-book button.rb-filter.is-active, .wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text); border-color: var(--rb-gold-soft); background: var(--rb-hover); }
 .wfrp-recipe-book .rb-filter--world { border-style: dashed; }
 .wfrp-recipe-book .rb-count { opacity: 0.7; font-size: var(--rb-fs-xs); }
 
@@ -259,11 +271,14 @@
 }
 .wfrp-recipe-book .rb-picker-search { width: 100%; margin-bottom: var(--rb-space-2); }
 .wfrp-recipe-book .rb-picker-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.wfrp-recipe-book button.rb-picker-row,
 .wfrp-recipe-book .rb-picker-row {
   display: flex; align-items: center; gap: var(--rb-space-2);
   width: 100%; margin: 0; padding: var(--rb-space-1) var(--rb-space-2);
   background: none; border: 1px solid transparent; border-radius: var(--rb-radius);
   color: var(--rb-text); font-size: var(--rb-fs-m); font-family: inherit; text-align: left; cursor: pointer;
+  background-image: none; box-shadow: none; border-image: none;
+  text-transform: none; text-shadow: none; height: auto; min-height: 0;
 }
 .wfrp-recipe-book .rb-picker-row:hover { background: var(--rb-hover); box-shadow: none; }
 .wfrp-recipe-book .rb-picker-row img { width: 20px; height: 20px; object-fit: cover; border: 1px solid var(--rb-frame); border-radius: 3px; }

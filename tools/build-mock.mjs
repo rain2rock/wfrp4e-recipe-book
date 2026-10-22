@@ -58,6 +58,12 @@ const html = `<!DOCTYPE html>
   #mock-mount .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
   /* как ядро Foundry: раздутые поля по умолчанию - модуль обязан их перебить */
   #mock-mount .window-content input, #mock-mount .window-content select { height: 38px; font-size: 16px; }
+  /* как скин системы: агрессивные стили кнопок - модуль обязан их перебить */
+  .window-content button {
+    background-image: linear-gradient(#f00, #900); border: 3px double #000; border-radius: 0;
+    box-shadow: 0 0 6px #f00; text-transform: uppercase; text-shadow: 1px 1px 0 #000;
+    letter-spacing: 2px; height: 44px; padding: 10px;
+  }
   #mock-mount .window-content > * { flex: 1; min-height: 0; }
   #mock-chat { width: 260px; min-height: 120px; background: #efe9dc; border: 1px solid #555; border-radius: 6px; padding: 8px; font-size: 12px; }
   #mock-chat:before { content: "Чат"; display: block; font-weight: 700; margin-bottom: 6px; }

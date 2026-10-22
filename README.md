@@ -1,4 +1,4 @@
-# WFRP 4e Recipe Book (Книга рецептов WFRP)
+# WFRP4e Paperdoll Craft Recipe Book (Книга рецептов WFRP)
 
 **Лицензия:** модуль бесплатен для личного использования; изменять его и распространять изменённые версии нельзя - см. [LICENSE](LICENSE).
 
@@ -12,7 +12,7 @@
 https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest/download/module.json
 ```
 
-Затем зайди в мир → «Настройки игры» → «Управление модулями» → включи «WFRP 4e Recipe Book».
+Затем зайди в мир → «Настройки игры» → «Управление модулями» → включи «WFRP4e Paperdoll Craft Recipe Book».
 Обновления Foundry подтянет сам по этой же ссылке.
 
 Ссылка `github.com/.../blob/main/module.json` не подойдёт: это страница сайта, а не файл.
@@ -69,7 +69,7 @@ https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest/download/module.
 
 ---
 
-## WFRP 4e Recipe Book
+## WFRP4e Paperdoll Craft Recipe Book
 
 A Foundry VTT module for Warhammer Fantasy Roleplay 4e that adds recipe-based crafting following the «Crafting» rules (Core Rulebook, p. 199) and extended tests (p. 154).
 
