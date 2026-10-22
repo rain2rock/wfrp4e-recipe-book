@@ -177,7 +177,8 @@
       "Give": "Give to character",
       "GiveTip": "The character learns a copy of this recipe",
       "Edit": "Edit",
-      "Given": "«{name}» given to {actor}"
+      "Given": "«{name}» given to {actor}",
+      "ThisBook": "this book"
     },
     "Delete": {
       "WorldTitle": "Delete world recipe?",

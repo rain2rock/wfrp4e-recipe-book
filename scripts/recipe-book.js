@@ -815,16 +815,35 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.selectedRecipe()?.sheet?.render(true);
   }
 
-  /** ГМ: выдать рецепт мира текущему персонажу («выучить») */
-  static async #onGiveRecipe() {
+  /** ГМ: выдать рецепт мира - открывает выбор персонажа-получателя */
+  static async #onGiveRecipe(event, target) {
     const r = this.selectedRecipe();
     if (!r) return;
-    const obj = r.toObject();
+    const old = this.element.querySelector(".rb-give-picker");
+    if (old) return old.remove();
+    const actors = (game.actors?.contents ?? [])
+      .filter((a) => ["character", "npc"].includes(a.type))
+      .slice(0, 20);
+    const panel = document.createElement("div");
+    panel.className = "rb-picker rb-give-picker";
+    panel.innerHTML = `<div class="rb-picker-list">` + actors.map((a, i) =>
+      `<button type="button" class="rb-picker-row" data-idx="${i}">
+         <img src="${esc(a.img ?? "")}" alt="">${esc(a.name)}${a.id === this.actor.id ? ` <span class="rb-dim">(${esc(L("WFRPRB.World.ThisBook"))})</span>` : ""}
+       </button>`).join("") + `</div>`;
+    target.closest(".rb-foot").before(panel);
+    panel.querySelectorAll(".rb-picker-row").forEach((row, i) =>
+      row.addEventListener("click", () => { panel.remove(); this.#giveTo(actors[i], r); }));
+  }
+
+  async #giveTo(actor, recipe) {
+    const obj = recipe.toObject();
     delete obj._id;
-    const [made] = await this.actor.createEmbeddedDocuments("Item", [obj]);
-    ui.notifications.info(F("WFRPRB.World.Given", { name: r.name, actor: this.actor.name }));
-    this.filter = "all";
-    this.selected = { kind: "recipe", id: made.id };
+    const [made] = await actor.createEmbeddedDocuments("Item", [obj]);
+    ui.notifications.info(F("WFRPRB.World.Given", { name: recipe.name, actor: actor.name }));
+    if (actor.id === this.actor.id) {
+      this.filter = "all";
+      this.selected = { kind: "recipe", id: made.id };
+    }
     this.render();
   }
 

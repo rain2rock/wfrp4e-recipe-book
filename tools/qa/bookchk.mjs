@@ -309,8 +309,20 @@ await page.waitForTimeout(100);
 ok((await $("[data-action='giveRecipe']").count()) === 1 && (await $("[data-action='deleteRecipe']").count()) === 1,
   "у рецепта мира кнопки «выдать» и «удалить»");
 await $("[data-action='giveRecipe']").click();
+await page.waitForTimeout(150);
+ok((await $(".rb-give-picker .rb-picker-row").count()) === 2, "выдача: список персонажей-получателей");
+/* сначала выдадим Гюнтеру - рецепт уходит выбранному игроку, книга остаётся на «Мире» */
+await $(".rb-give-picker .rb-picker-row", { hasText: "Гюнтер" }).click();
 await page.waitForTimeout(200);
-ok((await $(".rb-filter[data-filter='all'].is-active").count()) === 1, "после выдачи книга вернулась к рецептам персонажа");
+ok(await page.evaluate(() => __RB_actor2__.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Талисман из коры")),
+  "рецепт выдан выбранному персонажу (Гюнтеру)");
+ok((await $(".rb-filter--world.is-active").count()) === 1, "после выдачи другому - книга осталась на «Мире»");
+/* теперь владельцу открытой книги */
+await $("[data-action='giveRecipe']").click();
+await page.waitForTimeout(150);
+await $(".rb-give-picker .rb-picker-row", { hasText: "Хьюго" }).click();
+await page.waitForTimeout(200);
+ok((await $(".rb-filter[data-filter='all'].is-active").count()) === 1, "после выдачи владельцу книга вернулась к его рецептам");
 ok(await page.evaluate(() => __RB_actor__.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Талисман из коры")),
   "персонаж выучил выданный рецепт");
 await $(".rb-entry", { hasText: "Талисман из коры" }).first().click();

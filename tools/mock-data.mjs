@@ -125,3 +125,14 @@ export const SKILLS = [
   "Ремесло (Оружейник)", "Ремесло (Плотник)", "Ремесло (Пивовар)", "Ремесло (Свечник)",
   "Ремесло (Лучник)", "Атлетика", "Выживание", "Лечение"
 ];
+
+/** Второй персонаж - цель для «выдать рецепт выбранному игроку» */
+export const ACTOR2 = {
+  id: "gunther",
+  name: "Гюнтер",
+  type: "character",
+  system: { characteristics: { dex: { value: 30 } } },
+  items: [
+    { id: "g-coin-bp", name: "Медное пенни", type: "money", system: { coinValue: { value: 1 }, quantity: { value: 12 } } }
+  ]
+};

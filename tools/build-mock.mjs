@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import { CONFIG_WFRP, WORLD_ITEMS, RECIPES, ACTOR, SKILLS } from "./mock-data.mjs";
+import { CONFIG_WFRP, WORLD_ITEMS, RECIPES, ACTOR, ACTOR2, SKILLS } from "./mock-data.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
@@ -112,6 +112,7 @@ const actorData = ${inlineAssets(json(ACTOR))};
 actorData.items = [...actorData.items, ...recipes];
 const actor = __RB_makeActor__(actorData);
 window.__RB_actor__ = actor;
+window.__RB_actor2__ = __RB_makeActor__(${json(ACTOR2)});
 game.user.character = actor;
 game.modules.get("wfrp4e-recipe-book").api.open(actor);
 
