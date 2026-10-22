@@ -134,7 +134,8 @@
       "SaveAsNew": "Save as new",
       "Cancel": "Cancel",
       "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored",
-      "PickResultIcon": "Pick the result item icon"
+      "PickResultIcon": "Pick the result item icon",
+      "SkillSearch": "Start typing to search..."
     },
     "Difficulty": {
       "veryEasy": "Very Easy (+60)",
@@ -194,7 +195,10 @@
       "Given": "«{name}» given to {actor}",
       "ThisBook": "this book",
       "NoPlayers": "No one to give to: no player-owned characters found.",
-      "Source": "World"
+      "Source": "World",
+      "Make": "Make in world",
+      "MakeTip": "Create the result item in the Items tab - no character, no roll",
+      "Made": "«{name}» ×{count} created in the world (Items tab)"
     },
     "Delete": {
       "WorldTitle": "Delete world recipe?",
@@ -268,7 +272,9 @@
       "PrognosisTip": "By the rules: each flaw halves the target, then +5 per quality.",
       "Create": "Create item and update recipe",
       "NameEmpty": "Enter the item name",
-      "Created": "Item «{name}» created in the world; the recipe has been updated"
+      "Created": "Item «{name}» created in the world; the recipe has been updated",
+      "Weight": "Weight",
+      "Price": "Base price"
     }
   }
 }

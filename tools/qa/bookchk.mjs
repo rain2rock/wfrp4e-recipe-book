@@ -132,20 +132,27 @@ await page.click("#tb-sheet");
 await page.waitForTimeout(200);
 const sheet = await page.evaluate(() => {
   const el = document.getElementById("rb-sheet-demo");
-  const sel = el?.querySelector("select[name='system.skill']");
+  const dl = el?.querySelector("datalist");
   return {
-    skillOptions: sel ? sel.options.length : 0,
-    hasTrade: sel ? [...sel.options].some((o) => o.value === "Ремесло (Кузнец)") : false,
+    skillOptions: dl ? dl.options.length : 0,
+    hasTrade: dl ? [...dl.options].some((o) => o.value === "Ремесло (Кузнец)") : false,
+    combo: !!el?.querySelector(".rb-skill-input[list]") && !!el?.querySelector(".rb-skillalt-input[list]"),
     minutes: !!el?.querySelector(".rb-time-m"),
     toolZone: !!el?.querySelector("[data-dropzone='tools']"),
     coinIcons: el?.querySelectorAll(".rb-money-fields .rb-coin-img, .rb-money-fields .rb-coin-dot").length ?? 0
   };
 });
-ok(sheet.skillOptions >= 10 && sheet.hasTrade, "лист ГМа: навык - дропдаун из базы", JSON.stringify(sheet));
+ok(sheet.skillOptions >= 10 && sheet.hasTrade && sheet.combo, "лист ГМа: навык и альт. навык - комбобоксы с поиском по базе", JSON.stringify(sheet));
 ok(await page.evaluate(() => {
-  const sel = document.querySelector("#rb-sheet-demo select[name='system.skill']");
-  return [...sel.options].some((o) => o.value === "Ремесло (Самогонщик)");
-}), "в дропдауне есть навык, созданный ГМом только на персонаже");
+  const dl = document.querySelector("#rb-sheet-demo datalist");
+  return [...dl.options].some((o) => o.value === "Ремесло (Самогонщик)");
+}), "в списке поиска есть навык, созданный ГМом только на персонаже");
+/* ввод в комбобокс сохраняется */
+await page.fill("#rb-sheet-demo .rb-skillalt-input", "Ремесло (Повар)");
+await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-skillalt-input").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+ok(await page.evaluate(() => __RB_actor__.items.get("rec-0").system.skillAlt === "Ремесло (Повар)"),
+  "значение из комбобокса записалось в рецепт");
 ok(sheet.minutes, "лист ГМа: поле минут времени");
 ok(sheet.toolZone, "лист ГМа: зона инструментов");
 ok(sheet.coinIcons === 3, "лист ГМа: иконки монет как во всём модуле");
@@ -550,6 +557,25 @@ ok((await $(".rb-extra-filters select").count()) === 2, "у ГМа фильтр�
 await $("[data-action='filter'][data-filter='world']").click();
 await page.waitForTimeout(120);
 ok((await $(".rb-owner-filter").count()) === 1, "в реестре появился фильтр по владельцу");
+/* ГМ создаёт предмет в мир по мировому рецепту, без персонажа */
+await page.evaluate(async () => { await Item.create({ name: "Рецепт мира", type: "wfrp4e-recipe-book.recipe", img: "",
+  system: { result: { uuid: "Item.res-heal", name: "Лечебная настойка", img: "", count: 3 }, skill: "Ремесло (Аптекарь)", slTarget: 5,
+    ingredients: [], moneyBp: 0, tools: [], critQualities: [], failPool: [], description: { value: "" }, gmdescription: { value: "" } } }); });
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Лечебная настойка" }).first().click();
+await page.waitForTimeout(100);
+ok((await $("[data-action='makeToWorld']").count()) === 1, "у мирового рецепта есть «Создать в мир»");
+await $("[data-action='makeToWorld']").click();
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => {
+  const it = game.items.find((i) => i.name === "Лечебная настойка" && i.type === "trapping");
+  return !!it && it.system.quantity.value === 3;
+}), "предмет создан в мире ×3 без персонажа и броска");
+await page.evaluate(async () => {
+  for (const i of [...game.items].filter((x) => x.name === "Рецепт мира" || (x.name === "Лечебная настойка" && x.type === "trapping"))) await i.delete();
+});
+await page.waitForTimeout(120);
+
 await page.selectOption(".rb-owner-filter", await page.evaluate(() => __RB_actor2__.id));
 await page.evaluate(() => document.querySelector(".rb-owner-filter").dispatchEvent(new Event("change")));
 await page.waitForTimeout(150);
@@ -602,6 +628,13 @@ await page.fill(`${forge} .rb-qrow[data-key='durable'] .rb-extra-count`, "2");
 await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='durable'] .rb-extra-count`).dispatchEvent(new Event("change")), forge);
 await page.fill(`${forge} .rb-qrow[data-key='durable'] .rb-extra-bp`, "12");
 await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='durable'] .rb-extra-bp`).dispatchEvent(new Event("change")), forge);
+/* вес и базовая цена */
+await page.fill(`${forge} .rb-forge-enc`, "2");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-enc`).dispatchEvent(new Event("change")), forge);
+await page.fill(`${forge} .rb-forge-gc`, "1");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-gc`).dispatchEvent(new Event("change")), forge);
+await page.fill(`${forge} .rb-forge-ss`, "4");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-ss`).dispatchEvent(new Event("change")), forge);
 /* иконка будущего предмета - из базы */
 await page.click(`${forge} .rb-forge-img`);
 await page.waitForTimeout(120);
@@ -620,6 +653,11 @@ await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
 await page.waitForTimeout(200);
 const forgeScroll = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-root`).scrollTop, forge);
 ok(forgeScroll > 100, "скролл мастера сохранился после чекбокса", `(${forgeScroll})`);
+const cbSize = await page.evaluate((f) => {
+  const cb = document.querySelector(`${f} input[type=checkbox]`);
+  return cb ? cb.getBoundingClientRect().width : 0;
+}, forge);
+ok(cbSize > 0 && cbSize <= 18, "чекбоксы прижаты против скина ядра", `(${cbSize}px)`);
 await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
 await page.waitForTimeout(150);
 /* крит-качество и правила брака */
@@ -637,6 +675,7 @@ const forged = await page.evaluate((rid) => {
   return {
     item: !!item, type: item?.type,
     img: item?.img === __RB_worldItems__.find((x) => x.name === "Кинжал")?.img,
+    enc: item?.system.encumbrance?.value, price: item?.system.price,
     durable: item?.system.qualities.value.find((q) => q.name === "durable")?.value,
     slTarget: r.system.slTarget,
     iron: r.system.ingredients.find((i) => i.name === "Корень мандрагоры")?.count,
@@ -648,6 +687,7 @@ const forged = await page.evaluate((rid) => {
   };
 }, forgeRec);
 ok(forged.item && forged.type === "weapon" && forged.durable === 2 && forged.img, "создан предмет мира: оружие с «Прочный (2)» и выбранной иконкой", JSON.stringify(forged));
+ok(forged.enc === 2 && forged.price?.gc === 1 && forged.price?.ss === 4, "вес 2 и базовая цена 1зк 4сш записаны в предмет", JSON.stringify({enc: forged.enc, price: forged.price}));
 ok(forged.slTarget === 10 && forged.iron === 2 && forged.moneyBp === 12, "рецепт обновлён: УУ 10, мандрагора ×2, 12 пенни");
 ok(forged.critQ === "damaging" && forged.failFlawed && forged.cleanSL === 2 && forged.pool > 0 && forged.linked,
   "крит-качества и правила брака записаны, результат привязан");

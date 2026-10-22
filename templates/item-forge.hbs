@@ -9,6 +9,14 @@
       <div class="rb-field"><label>{{rbL "WFRPRB.Forge.SubType"}}</label>
         <select class="rb-forge-subtype">{{#each trappingTypes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
     {{/if}}
+    <div class="rb-field"><label>{{rbL "WFRPRB.Forge.Weight"}}</label>
+      <input type="number" class="rb-num rb-forge-enc" value="{{st.enc}}" min="0" step="1"></div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Forge.Price"}}</label>
+      <span class="rb-money-fields">
+        <label class="rb-coinfield">{{{coinGc}}}<input type="number" class="rb-num rb-forge-gc" value="{{st.priceGc}}" min="0"></label>
+        <label class="rb-coinfield">{{{coinSs}}}<input type="number" class="rb-num rb-forge-ss" value="{{st.priceSs}}" min="0"></label>
+        <label class="rb-coinfield">{{{coinBp}}}<input type="number" class="rb-num rb-forge-pbp" value="{{st.priceBp}}" min="0"></label>
+      </span></div>
   </section>
 
   <section class="rb-block">

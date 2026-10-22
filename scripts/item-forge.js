@@ -4,7 +4,7 @@
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
 import { MODULE_ID } from "./recipe-model.js";
-import { L, F, esc, itemIndex, propertyLabel, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, itemIndex, propertyLabel, coinIco, RecipeBookApp } from "./recipe-book.js";
 
 const { ApplicationV2: ForgeAppBase, HandlebarsApplicationMixin: ForgeMixin } = foundry.applications.api;
 
@@ -53,6 +53,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       name: "",
       img: `modules/${MODULE_ID}/assets/icons/recipe-default.png`,
       trappingType: "drugsPoisonsHerbsDraughts",
+      enc: 0,
+      priceGc: 0, priceSs: 0, priceBp: 0,
       qualities: {},   // key -> { on, value, extraName, extraImg, extraUuid, extraCount, extraBp }
       flaws: {},       // key -> { on, value }
       critQualities: {}, // key -> { on, value }
@@ -110,7 +112,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       qRows, fRows, critRows, poolRows,
       critMulti: Object.values(st.critQualities).filter((x) => x.on).length > 1,
       baseSL: this.baseSL,
-      prognosis: this.computedSL()
+      prognosis: this.computedSL(),
+      coinGc: coinIco("gc"), coinSs: coinIco("ss"), coinBp: coinIco("bp")
     };
   }
 
@@ -127,6 +130,10 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     });
     root.querySelector(".rb-forge-name")?.addEventListener("change", (ev) => { st.name = ev.currentTarget.value; });
     root.querySelector(".rb-forge-subtype")?.addEventListener("change", (ev) => { st.trappingType = ev.currentTarget.value; });
+    root.querySelector(".rb-forge-enc")?.addEventListener("change", (ev) => { st.enc = Math.max(0, Number(ev.currentTarget.value) || 0); });
+    for (const [sel, field] of [[".rb-forge-gc", "priceGc"], [".rb-forge-ss", "priceSs"], [".rb-forge-pbp", "priceBp"]]) {
+      root.querySelector(sel)?.addEventListener("change", (ev) => { st[field] = Math.max(0, Number(ev.currentTarget.value) || 0); });
+    }
 
     const bindRows = (sel, stateMap, after = rerender) => {
       for (const el of root.querySelectorAll(sel)) {
@@ -219,6 +226,9 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
 
     const system = {
       quantity: { value: 1 },
+      encumbrance: { value: Number(st.enc) || 0 },
+      price: { gc: Number(st.priceGc) || 0, ss: Number(st.priceSs) || 0, bp: Number(st.priceBp) || 0 },
+      availability: { value: "common" },
       qualities: { value: qualities },
       flaws: { value: flaws }
     };

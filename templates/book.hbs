@@ -181,6 +181,7 @@
         <footer class="rb-foot">
           {{#if detail.world}}
             <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="deleteRecipe" data-rb-tip="{{rbL 'WFRPRB.Delete.WorldTip'}}"><i class="fa-solid fa-trash"></i></button>
+            <button type="button" class="rb-btn" data-action="makeToWorld" data-rb-tip="{{rbL 'WFRPRB.World.MakeTip'}}"><i class="fa-solid fa-wand-magic-sparkles"></i> {{rbL "WFRPRB.World.Make"}}</button>
             <button type="button" class="rb-btn" data-action="openRecipe"><i class="fa-solid fa-pen"></i> {{rbL "WFRPRB.World.Edit"}}</button>
             <button type="button" class="rb-btn rb-btn--craft" data-action="giveRecipe" data-rb-tip="{{rbL 'WFRPRB.World.GiveTip'}}">
               <i class="fa-solid fa-hand-holding"></i> {{rbL "WFRPRB.World.Give"}}

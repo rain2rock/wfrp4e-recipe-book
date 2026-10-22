@@ -528,6 +528,7 @@ export function watchCrafting() {
   for (const hook of ["createItem", "deleteItem"]) {
     Hooks.on(hook, (item) => {
       if (item?.actor && (item.type === RECIPE_TYPE || item.type === "extendedTest" || isStock(item))) RecipeBookApp.renderAll();
+      else if (item?.type === RECIPE_TYPE) RecipeBookApp.renderAll(); // мировой рецепт - реестр ГМа
     });
   }
 }
@@ -687,6 +688,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       openRecipe: RecipeBookApp.#onOpenRecipe,
       createRecipe: RecipeBookApp.#onCreateRecipe,
       giveRecipe: RecipeBookApp.#onGiveRecipe,
+      makeToWorld: RecipeBookApp.#onMakeToWorld,
       deleteRecipe: RecipeBookApp.#onDeleteRecipe
     }
   };
@@ -1093,6 +1095,27 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       this.selected = { kind: "recipe", id: made.id };
     }
     this.render();
+  }
+
+  /** ГМ: создать предмет-результат прямо в мир, без персонажа и броска (воля ведущего) */
+  static async #onMakeToWorld() {
+    const r = this.selectedRecipe();
+    if (!r) return;
+    const res = r.system.result ?? {};
+    let obj = null;
+    const src = res.uuid ? await fromUuid(res.uuid).catch(() => null) : null;
+    if (src) {
+      obj = src.toObject();
+      delete obj._id;
+    } else {
+      obj = {
+        name: res.name || r.name, type: "trapping", img: res.img || r.img,
+        system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: r.system.description?.value ?? "" } }
+      };
+    }
+    if (obj.system?.quantity) obj.system.quantity.value = res.count || 1;
+    const made = await Item.create(obj);
+    if (made) ui.notifications.info(F("WFRPRB.World.Made", { name: made.name, count: res.count || 1 }));
   }
 
   /** ГМ: удалить рецепт - из книги персонажа или насовсем из мира */

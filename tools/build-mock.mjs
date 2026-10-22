@@ -59,6 +59,7 @@ const html = `<!DOCTYPE html>
   #mock-mount .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
   /* как ядро Foundry: раздутые поля по умолчанию - модуль обязан их перебить */
   #mock-mount .window-content input, #mock-mount .window-content select { height: 38px; font-size: 16px; }
+  .window-content input[type=checkbox] { width: 32px !important; height: 32px !important; }
   /* как скин системы: агрессивные стили кнопок - модуль обязан их перебить */
   .window-content button {
     background-image: linear-gradient(#f00, #900) !important; border: 3px double #000 !important;

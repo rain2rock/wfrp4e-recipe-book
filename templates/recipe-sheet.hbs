@@ -26,24 +26,12 @@
   <section class="rb-block">
     <div class="rb-block-title">{{rbL "WFRPRB.Check"}}</div>
     <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.Skill"}}</label>
-      {{#if skills.length}}
-        <select name="system.skill">
-          {{#each skills}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
-        </select>
-      {{else}}
-        <input type="text" name="system.skill" value="{{sys.skill}}" placeholder="Ремесло (Аптекарь)">
-      {{/if}}
-    </div>
+      <input type="text" class="rb-skill-input" list="rb-skills-{{item.id}}" value="{{sys.skill}}" placeholder="{{rbL 'WFRPRB.Sheet.SkillSearch'}}"></div>
     <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.SkillAlt"}}</label>
-      {{#if skills.length}}
-        <select name="system.skillAlt">
-          <option value="">—</option>
-          {{#each skillsAlt}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
-        </select>
-      {{else}}
-        <input type="text" name="system.skillAlt" value="{{sys.skillAlt}}">
-      {{/if}}
-    </div>
+      <input type="text" class="rb-skillalt-input" list="rb-skills-{{item.id}}" value="{{sys.skillAlt}}" placeholder="{{rbL 'WFRPRB.Sheet.SkillSearch'}}"></div>
+    <datalist id="rb-skills-{{item.id}}">
+      {{#each skills}}<option value="{{name}}"></option>{{/each}}
+    </datalist>
     <div class="rb-field"><label>{{rbL "WFRPRB.Sheet.Difficulty"}}</label>
       <select name="system.difficulty">
         {{#each difficulties}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}

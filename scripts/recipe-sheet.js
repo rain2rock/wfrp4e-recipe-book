@@ -62,7 +62,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   async _prepareContext() {
     const sys = this.document.system;
-    // Навыки из базы (мир + компендиумы); текущее значение всегда в списке
+    // Навыки из базы (мир + компендиумы + персонажи) - для комбобокса с поиском
     const names = [...await skillNames()];
     for (const v of [sys.skill, sys.skillAlt]) if (v && !names.includes(v)) names.unshift(v);
     return {
@@ -71,8 +71,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       editable: this.isEditable,
       fresh: this.isFresh,
       critMulti: [sys.critExtra, sys.critUpgrade, sys.critRefund].filter(Boolean).length > 1,
-      skills: names.map((n) => ({ name: n, selected: n === sys.skill })),
-      skillsAlt: names.map((n) => ({ name: n, selected: n === sys.skillAlt })),
+      skills: names.map((n) => ({ name: n })),
       moneyGc: Math.floor((sys.moneyBp || 0) / COIN_VALUE.gc),
       moneySs: Math.floor(((sys.moneyBp || 0) % COIN_VALUE.gc) / COIN_VALUE.ss),
       moneyBpRest: (sys.moneyBp || 0) % COIN_VALUE.ss,
@@ -185,6 +184,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     }
     root.querySelector(".rb-crit-count")?.addEventListener("change", (ev) => {
       this.document.update({ "system.critCount": Math.max(1, Number(ev.currentTarget.value) || 1) });
+    });
+
+    // Навыки: комбобоксы с поиском (datalist), пишем сами - работает и в живом, и в моке
+    root.querySelector(".rb-skill-input")?.addEventListener("change", (ev) => {
+      this.document.update({ "system.skill": ev.currentTarget.value.trim() }).then(() => this.#refresh());
+    });
+    root.querySelector(".rb-skillalt-input")?.addEventListener("change", (ev) => {
+      this.document.update({ "system.skillAlt": ev.currentTarget.value.trim() }).then(() => this.#refresh());
     });
 
     // Время: часы не больше 23, минуты не больше 59 - подрезаем и пишем одним апдейтом
