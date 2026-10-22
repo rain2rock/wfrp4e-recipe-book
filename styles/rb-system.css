@@ -183,10 +183,11 @@
 .wfrp-recipe-book .rb-search input { width: 100%; padding-left: calc(var(--rb-space-3) * 3); }
 
 /* Строка формы: подпись слева, поле справа */
-.wfrp-recipe-book .rb-field { display: flex; align-items: center; gap: var(--rb-space-3); padding: 2px 0; }
-.wfrp-recipe-book .rb-field label { flex: 0 0 38%; color: var(--rb-text-dim); font-size: var(--rb-fs-m); }
-.wfrp-recipe-book .rb-field input[type="text"], .wfrp-recipe-book .rb-field select { flex: 1; width: 100%; }
-.wfrp-recipe-book textarea { width: 100%; }
+.wfrp-recipe-book .rb-field { display: flex; align-items: center; gap: var(--rb-space-3); padding: 2px 0; min-width: 0; }
+.wfrp-recipe-book .rb-field label { flex: 0 0 38%; min-width: 0; color: var(--rb-text-dim); font-size: var(--rb-fs-m); }
+/* flex-basis 0 + min-width 0: поле НЕ распирает строку длинным содержимым (живой Foundry это ловил) */
+.wfrp-recipe-book .rb-field input[type="text"], .wfrp-recipe-book .rb-field select { flex: 1 1 0; width: auto; min-width: 0; }
+.wfrp-recipe-book textarea { width: 100%; box-sizing: border-box; }
 
 /* ========================= Секции и строки ========================= */
 

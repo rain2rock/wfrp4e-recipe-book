@@ -53,7 +53,8 @@ const html = `<!DOCTYPE html>
   #mock-mount .window-header { display: flex; align-items: center; gap: 8px; padding: 4px 10px; background: #15120f; color: #f0e6d2; font-size: 13px; }
   #mock-mount .window-title { flex: 1; }
   #mock-mount .window-header .header-control { background: none; border: none; color: #a89c86; cursor: pointer; width: auto; }
-  #mock-mount .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  /* как в живом AppV2: дети окна НЕ растягиваются автоматически - центрируются */
+  #mock-mount .window-content { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; }
   #mock-mount .window-content > * { flex: 1; min-height: 0; }
   #mock-chat { width: 260px; min-height: 120px; background: #efe9dc; border: 1px solid #555; border-radius: 6px; padding: 8px; font-size: 12px; }
   #mock-chat:before { content: "Чат"; display: block; font-weight: 700; margin-bottom: 6px; }

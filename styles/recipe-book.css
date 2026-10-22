@@ -7,6 +7,7 @@
 /* ---------- Разворот книги ---------- */
 
 .wfrp-recipe-book .rb-root {
+  width: 100%; align-self: stretch; box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(280px, 340px) 1fr;
   height: 100%; min-height: 0;
@@ -80,11 +81,17 @@
 
 /* ---------- Лист рецепта (ГМ) ---------- */
 
-.rb-sheet .window-content { background: var(--rb-bg); color: var(--rb-text); }
-.wfrp-recipe-book .rb-sheet-root { display: flex; flex-direction: column; gap: var(--rb-space-4); padding: var(--rb-space-4); overflow-y: auto; height: 100%; box-sizing: border-box; font-size: var(--rb-fs-base); }
+.rb-sheet .window-content { background: var(--rb-bg); color: var(--rb-text); padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.wfrp-recipe-book .rb-sheet-root {
+  display: flex; flex-direction: column; gap: var(--rb-space-4);
+  padding: var(--rb-space-5); font-size: var(--rb-fs-base);
+  /* живой AppV2: растягиваемся на всю ширину и скроллим сами, по горизонтали не вылезаем */
+  width: 100%; align-self: stretch; box-sizing: border-box;
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+}
 .wfrp-recipe-book .rb-sheet-head { display: flex; gap: var(--rb-space-4); align-items: center; }
 .wfrp-recipe-book .rb-sheet-img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius-lg); cursor: pointer; }
-.wfrp-recipe-book .rb-sheet-name { flex: 1; font-size: var(--rb-fs-xl); font-weight: 700; padding: var(--rb-space-1) var(--rb-space-3); }
+.wfrp-recipe-book .rb-sheet-name { flex: 1 1 0; min-width: 0; width: auto; font-size: var(--rb-fs-xl); font-weight: 700; padding: var(--rb-space-1) var(--rb-space-3); }
 .wfrp-recipe-book .rb-sheet-count { display: inline-flex; align-items: center; gap: var(--rb-space-1); color: var(--rb-text-dim); white-space: nowrap; }
 .wfrp-recipe-book .rb-sheet-root .rb-block { margin-bottom: var(--rb-space-3); }
 .wfrp-recipe-book .rb-sheet-root .rb-row { padding: 2px 0; }
@@ -95,7 +102,7 @@
 .wfrp-recipe-book .rb-result-ico:hover img, .wfrp-recipe-book .rb-result-ico:hover .rb-ing-ico { border-color: var(--rb-gold-soft); }
 
 /* Имя результата - поле в строке; пометка «новый предмет» */
-.wfrp-recipe-book .rb-result-name { flex: 1; min-width: 0; }
+.wfrp-recipe-book .rb-result-name { flex: 1 1 0; min-width: 0; width: auto; }
 .wfrp-recipe-book .rb-result-note { font-size: var(--rb-fs-s); font-style: italic; }
 
 /* Футер листа: отмена слева, сохранение справа, кнопки одной ширины */

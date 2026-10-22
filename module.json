@@ -1,8 +1,8 @@
 {
   "id": "wfrp4e-recipe-book",
-  "title": "WFRP Paperdoll Recipe Book",
+  "title": "WFRP 4e Recipe Book",
   "description": "Recipe-based crafting for WFRP4e: a recipe book with availability highlighting, crafting via system extended tests, and a GM recipe editor. In-app language switch (EN/RU). | Крафт по рецептам для WFRP4e, переключатель языка в настройках.",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "authors": [
     {
       "name": "Mikhail"
