@@ -465,8 +465,8 @@ await page.waitForTimeout(150);
 await $(".rb-entry", { hasText: "Лечебная настойка" }).first().click();
 await page.waitForTimeout(100);
 const playerCrit = await text(".rb-right");
-ok(playerCrit.includes("особый бонус") && !playerCrit.includes("случайно"),
-  "вид игрока: случайный крит показан как «особый бонус»");
+ok(!playerCrit.includes("Крит") && !playerCrit.includes("случайно") && !playerCrit.includes("особый"),
+  "вид игрока: условия крита полностью скрыты");
 await page.click("#tb-view");
 await page.waitForTimeout(150);
 ok((await $(".rb-filter--world").count()) === 1, "вид ГМа вернулся");

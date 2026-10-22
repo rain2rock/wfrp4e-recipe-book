@@ -230,7 +230,6 @@
       "Tip": "Critical success\nIf enough SL is accumulated by completion, the result is improved.",
       "Random": "Grant one bonus at random",
       "RandomTip": "Random\nONE of the checked effects triggers, chosen at random. Players only see «special bonus» in the book.",
-      "Hidden": "special bonus",
       "RandomNote": "one of, at random:",
       "And": " and "
     }

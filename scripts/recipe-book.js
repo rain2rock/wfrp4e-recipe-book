@@ -841,17 +841,15 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           checkTip: st.skillItem
             ? F("WFRPRB.Tip.Check", { skill: st.skillUsed, total: st.skillTotal, mod: st.mod >= 0 ? `+${st.mod}` : st.mod, target: st.target })
             : F("WFRPRB.Tip.NoSkill", { skill: st.skillUsed }),
-          crit: r.system.critEnabled ? (() => {
+          // Условия крита видит ТОЛЬКО ГМ - для игрока крит остаётся сюрпризом
+          crit: gm && r.system.critEnabled ? (() => {
             const effs = [];
             if (r.system.critExtra) effs.push(F("WFRPRB.Chat.CritExtra", { n: r.system.critCount || 1 }));
             if (r.system.critUpgrade) effs.push(F("WFRPRB.Chat.CritUpgrade", { name: r.system.critResult?.name || "?" }));
             if (r.system.critRefund) effs.push(L("WFRPRB.Chat.CritRefund"));
             if (!effs.length) return "";
             const secret = r.system.critRandom && effs.length > 1;
-            // Игрок не знает про случайную выдачу - видит «особый бонус»; ГМ видит расклад
-            const effect = secret && !gm
-              ? L("WFRPRB.Crit.Hidden")
-              : (secret ? L("WFRPRB.Crit.RandomNote") + " " : "") + effs.join(L("WFRPRB.Crit.And"));
+            const effect = (secret ? L("WFRPRB.Crit.RandomNote") + " " : "") + effs.join(L("WFRPRB.Crit.And"));
             return F("WFRPRB.Crit.Line", { sl: r.system.critSL, effect });
           })() : "",
           slTip: F("WFRPRB.Tip.SL", { target: st.slTarget }) + (st.talent ? "\n· " + L("WFRPRB.Tip.Talent") : ""),
