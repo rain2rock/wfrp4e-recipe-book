@@ -61,6 +61,15 @@ const skinCss = await page.evaluate(() => {
   return { entry: check(document.querySelector(".rb-entry")), chip: check(document.querySelector(".rb-filter")) };
 });
 ok(skinCss.entry && skinCss.chip, "записи списка и чипы тоже перебивают скин", JSON.stringify(skinCss));
+const moneyRow = await page.evaluate(() => {
+  const coin = document.querySelector(".rb-ing-count .rb-coin-img, .rb-ing-count .rb-coin-dot");
+  const count = coin?.closest(".rb-ing-count");
+  return { coinW: coin ? coin.getBoundingClientRect().width : 0, rowH: count ? count.getBoundingClientRect().height : 0 };
+});
+ok(moneyRow.coinW > 0 && moneyRow.coinW <= 17 && moneyRow.rowH <= 26,
+  "монеты 16px и сумма в одну строку (не столбиком)", JSON.stringify(moneyRow));
+const contentBg = await page.evaluate(() => getComputedStyle(document.querySelector("#rb-book-hugo .window-content")).backgroundColor);
+ok(contentBg === "rgb(216, 209, 194)", "фон окна - наш пергамент, системная подложка перебита", contentBg);
 
 /* --- Понятность: подсказки и богатый ховер (свой тултип, системный отключён) --- */
 ok((await $("[data-tooltip]").count()) === 0, "системные тултипы Foundry не используются");
@@ -143,6 +152,8 @@ const sheet = await page.evaluate(() => {
   };
 });
 ok(sheet.skillOptions >= 10 && sheet.hasTrade && sheet.combo, "лист ГМа: навык и альт. навык - комбобоксы с поиском по базе", JSON.stringify(sheet));
+const rootPad = await page.evaluate(() => getComputedStyle(document.querySelector("#rb-sheet-demo .rb-sheet-root")).paddingLeft);
+ok(rootPad === "14px", "отступ от края карточки до контента держится (14px)", rootPad);
 ok(await page.evaluate(() => {
   const dl = document.querySelector("#rb-sheet-demo datalist");
   return [...dl.options].some((o) => o.value === "Ремесло (Самогонщик)");

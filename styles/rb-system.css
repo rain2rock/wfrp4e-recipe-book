@@ -356,3 +356,36 @@
   border-top: 1px dashed var(--rb-line-soft);
   font-size: var(--rb-fs-m); color: var(--rb-muted); font-style: italic;
 }
+
+/* ========================= Жёсткая защита от скина системы ========================= */
+
+/* Фоны, цвет и паддинги окон модуля: системная подложка и обнулённые отступы пробивали тему */
+.wfrp-recipe-book .window-content {
+  background: var(--rb-bg) !important;
+  color: var(--rb-text) !important;
+  padding: 0 !important;
+}
+.wfrp-recipe-book .rb-sheet-root,
+.wfrp-recipe-book .rb-forge-root { padding: var(--rb-space-5) !important; }
+
+/* Размеры картинок: скин/ядро растягивали иконки и монеты, строки заворачивались */
+.wfrp-recipe-book img { max-width: none !important; }
+.wfrp-recipe-book .rb-coin-img {
+  width: var(--rb-coin) !important; height: var(--rb-coin) !important;
+  vertical-align: middle !important; border: none !important;
+}
+.wfrp-recipe-book .rb-coin { display: inline-flex; align-items: center; white-space: nowrap; }
+.wfrp-recipe-book .rb-ing-count { display: inline-flex; align-items: center; gap: var(--rb-space-1); white-space: nowrap; flex: 0 0 auto; }
+.wfrp-recipe-book .rb-ing-name img,
+.wfrp-recipe-book .rb-entry img,
+.wfrp-recipe-book .rb-picker-row img,
+.wfrp-recipe-book .rb-crit-item img,
+.wfrp-recipe-book button.rb-extra-pick img {
+  width: var(--rb-icon-s) !important; height: var(--rb-icon-s) !important;
+}
+.wfrp-recipe-book .rb-head-img,
+.wfrp-recipe-book .rb-sheet-img,
+.wfrp-recipe-book .rb-tt-head > img {
+  width: var(--rb-icon-l) !important; height: var(--rb-icon-l) !important;
+}
+.wfrp-recipe-book .rb-forge-img { width: var(--rb-icon-s) !important; height: var(--rb-icon-s) !important; }

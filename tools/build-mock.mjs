@@ -60,6 +60,10 @@ const html = `<!DOCTYPE html>
   /* как ядро Foundry: раздутые поля по умолчанию - модуль обязан их перебить */
   #mock-mount .window-content input, #mock-mount .window-content select { height: 38px; font-size: 16px; }
   .window-content input[type=checkbox] { width: 32px !important; height: 32px !important; }
+  /* как скин системы: тёмная подложка и раздутые картинки */
+  .window-content { background: #331a11 !important; color: #eee; }
+  .window-content img { width: 40px; height: 40px; max-width: 100%; }
+  .window-content > * { padding: 0 !important; }
   /* как скин системы: агрессивные стили кнопок - модуль обязан их перебить */
   .window-content button {
     background-image: linear-gradient(#f00, #900) !important; border: 3px double #000 !important;
