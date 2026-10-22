@@ -96,6 +96,40 @@
   </section>
 
   <section class="rb-block">
+    <div class="rb-block-title">{{rbL "WFRPRB.Crit.Title"}}</div>
+    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.Enable"}}</label>
+      <input type="checkbox" class="rb-crit-on" {{#if sys.critEnabled}}checked{{/if}}></div>
+    {{#if sys.critEnabled}}
+      <div class="rb-field"><label>{{rbL "WFRPRB.Crit.Threshold"}}</label>
+        <input type="number" class="rb-num rb-crit-sl" value="{{sys.critSL}}" min="1"></div>
+
+      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeExtra"}}</label>
+        <input type="checkbox" class="rb-crit-extra" {{#if sys.critExtra}}checked{{/if}}>
+        {{#if sys.critExtra}}<input type="number" class="rb-num rb-crit-count" value="{{sys.critCount}}" min="1" data-rb-tip="{{rbL 'WFRPRB.Crit.ExtraCount'}}">{{/if}}</div>
+
+      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeUpgrade"}}</label>
+        <input type="checkbox" class="rb-crit-upgrade" {{#if sys.critUpgrade}}checked{{/if}}></div>
+      {{#if sys.critUpgrade}}
+        <div class="rb-field"><label>{{rbL "WFRPRB.Crit.UpgradeItem"}}</label>
+          <span class="rb-crit-item" data-dropzone="critResult" data-rb-tip="{{rbL 'WFRPRB.Sheet.DropHint'}}">
+            {{#if sys.critResult.img}}<img src="{{sys.critResult.img}}" alt="">{{else}}<span class="rb-ing-ico"><i class="fa-solid fa-arrow-up"></i></span>{{/if}}
+            <span class="rb-crit-item-name">{{#if sys.critResult.name}}{{sys.critResult.name}}{{else}}<span class="rb-dim">{{rbL "WFRPRB.Crit.NoUpgrade"}}</span>{{/if}}</span>
+          </span>
+          <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="critResult" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      {{/if}}
+
+      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeRefund"}}</label>
+        <input type="checkbox" class="rb-crit-refund" {{#if sys.critRefund}}checked{{/if}}></div>
+
+      {{#if critMulti}}
+        <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.Random"}}</label>
+          <input type="checkbox" class="rb-crit-random" {{#if sys.critRandom}}checked{{/if}} data-rb-tip="{{rbL 'WFRPRB.Crit.RandomTip'}}"></div>
+      {{/if}}
+    {{/if}}
+  </section>
+
+  <section class="rb-block">
     <div class="rb-block-title">{{rbL "WFRPRB.Sheet.Description"}}</div>
     <textarea name="system.description.value" rows="4">{{sys.description.value}}</textarea>
   </section>

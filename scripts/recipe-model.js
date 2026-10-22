@@ -67,6 +67,20 @@ export function buildRecipeModel() {
         name: new F.StringField({ initial: "" }),
         img: new F.StringField({ initial: "" })
       })),
+      // Критический успех: если накопленный УУ при завершении >= critSL
+      critEnabled: new F.BooleanField({ initial: false }),
+      critSL: new F.NumberField({ initial: 8, min: 1, integer: true }),
+      // Эффекты складываются (И); critRandom - вместо всех выдать один случайный
+      critExtra: new F.BooleanField({ initial: false }),
+      critCount: new F.NumberField({ initial: 1, min: 1, integer: true }),
+      critUpgrade: new F.BooleanField({ initial: false }),
+      critRefund: new F.BooleanField({ initial: false }),
+      critRandom: new F.BooleanField({ initial: false }),
+      critResult: new F.SchemaField({
+        uuid: new F.StringField({ initial: "" }),
+        name: new F.StringField({ initial: "" }),
+        img: new F.StringField({ initial: "" })
+      }),
       timeDays: new F.NumberField({ initial: 0, min: 0, integer: true }),
       timeHours: new F.NumberField({ initial: 0, min: 0, max: 23, integer: true }),
       timeMinutes: new F.NumberField({ initial: 0, min: 0, max: 59, integer: true }),

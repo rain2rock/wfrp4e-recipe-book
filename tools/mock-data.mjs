@@ -33,6 +33,7 @@ export const RECIPES = [
         { uuid: "", name: "Спирт", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png", count: 1 }
       ],
       moneyBp: 15, needsWorkshop: false,
+      critEnabled: true, critSL: 6, critExtra: true, critCount: 1, critUpgrade: false, critRefund: false, critRandom: false,
       tools: [{ uuid: "", name: "Ступка и пестик", img: "modules/wfrp4e-recipe-book/assets/icons/antitoxin-kit.png" }], timeDays: 0, timeHours: 1, timeMinutes: 0,
       description: { value: "<p>Горькая настойка на целебных травах - первая помощь искателя приключений.</p>" }
     }
@@ -133,7 +134,17 @@ export const ACTOR2 = {
   type: "character",
   system: { characteristics: { dex: { value: 30 } } },
   items: [
-    { id: "g-coin-bp", name: "Медное пенни", type: "money", system: { coinValue: { value: 1 }, quantity: { value: 12 } } }
+    { id: "g-coin-bp", name: "Медное пенни", type: "money", system: { coinValue: { value: 1 }, quantity: { value: 12 } } },
+    /* Своя версия рецепта настойки - в реестре ГМа видны обе версии */
+    { id: "g-rec-heal", name: "Рецепт: Лечебная настойка", type: "wfrp4e-recipe-book.recipe",
+      img: "modules/wfrp4e-recipe-book/assets/icons/recipe-default.png",
+      system: {
+        result: { uuid: "Item.res-heal", name: "Лечебная настойка", img: "modules/wfrp4e-recipe-book/assets/icons/healing-draught.png", count: 1 },
+        skill: "Ремесло (Травник)", skillAlt: "", difficulty: "challenging", slTarget: 8,
+        ingredients: [{ uuid: "", name: "Целебные травы", img: "modules/wfrp4e-recipe-book/assets/icons/salwort.png", count: 3 }],
+        moneyBp: 30, needsWorkshop: false, tools: [], timeDays: 0, timeHours: 3, timeMinutes: 0,
+        description: { value: "<p>Гюнтерова версия: дольше, дороже, зато без спирта.</p>" }, gmdescription: { value: "" }
+      } }
   ]
 };
 

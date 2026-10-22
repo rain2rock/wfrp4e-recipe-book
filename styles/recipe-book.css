@@ -104,6 +104,14 @@
 .wfrp-recipe-book .rb-result-ico { display: inline-flex; cursor: pointer; }
 .wfrp-recipe-book .rb-result-ico:hover img, .wfrp-recipe-book .rb-result-ico:hover .rb-ing-ico { border-color: var(--rb-gold-soft); }
 
+/* Предмет при крите: дроп-зона в размер поля строки формы */
+.wfrp-recipe-book .rb-crit-item {
+  flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; gap: var(--rb-space-2);
+  padding: var(--rb-space-1) var(--rb-space-2); box-sizing: border-box;
+}
+.wfrp-recipe-book .rb-crit-item img { width: var(--rb-icon-s); height: var(--rb-icon-s); object-fit: cover; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius); flex: 0 0 var(--rb-icon-s); }
+.wfrp-recipe-book .rb-crit-item-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* Имя результата - поле в строке; пометка «новый предмет» */
 .wfrp-recipe-book .rb-result-name { flex: 1 1 0; min-width: 0; width: auto; }
 .wfrp-recipe-book .rb-result-note { font-size: var(--rb-fs-s); font-style: italic; }

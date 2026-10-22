@@ -312,6 +312,14 @@ export async function startCraft(actor, recipe) {
     flags: {
       [FLAG]: {
         recipeUuid: recipe.uuid, recipeName: recipe.name,
+        crit: sys.critEnabled ? {
+          sl: Number(sys.critSL) || 0,
+          extra: !!sys.critExtra, count: Number(sys.critCount) || 1,
+          upgrade: !!sys.critUpgrade,
+          result: { uuid: sys.critResult?.uuid ?? "", name: sys.critResult?.name ?? "", img: sys.critResult?.img ?? "" },
+          refund: !!sys.critRefund,
+          random: !!sys.critRandom
+        } : null,
         result: { uuid: sys.result.uuid, name: sys.result.name, img: sys.result.img || recipe.img, count: sys.result.count, descr: sys.description?.value ?? "" },
         moneyBp: sys.moneyBp || 0,
         spent: spentLite
@@ -338,7 +346,43 @@ function chatCard(actor, { icon, title, lines, img }) {
 }
 
 async function finishCraft(actor, test) {
-  const data = test.getFlag(FLAG, "result");
+  let data = test.getFlag(FLAG, "result");
+  const crit = test.getFlag(FLAG, "crit");
+  const curSL = Number(test.system.SL?.current) || 0;
+  const isCrit = !!crit && crit.sl > 0 && curSL >= crit.sl;
+  let count = data.count || 1;
+  const lines = [esc(test.getFlag(FLAG, "recipeName") ?? "")];
+
+  if (isCrit) {
+    // Эффекты складываются; при critRandom из выбранных выдаётся ОДИН случайный
+    let effects = [];
+    if (crit.extra) effects.push("extra");
+    if (crit.upgrade && (crit.result?.uuid || crit.result?.name)) effects.push("upgrade");
+    if (crit.refund) effects.push("refund");
+    if (crit.random && effects.length > 1) effects = [effects[Math.floor(Math.random() * effects.length)]];
+    if (effects.length) lines.push(`<b>${F("WFRPRB.Chat.Crit", { sl: curSL })}</b>`);
+    for (const eff of effects) {
+      if (eff === "extra") {
+        count += crit.count || 1;
+        lines.push("· " + esc(F("WFRPRB.Chat.CritExtra", { n: crit.count || 1 })));
+      } else if (eff === "upgrade") {
+        data = { ...data, ...crit.result };
+        lines.push("· " + esc(F("WFRPRB.Chat.CritUpgrade", { name: crit.result.name })));
+      } else if (eff === "refund") {
+        const spent = test.getFlag(FLAG, "spent") ?? [];
+        const back = [];
+        for (const sp of spent) {
+          const half = Math.floor(sp.count / 2);
+          if (half > 0) back.push({ ...sp.source, system: { ...sp.source.system, quantity: { value: half } } });
+        }
+        if (back.length) await actor.createEmbeddedDocuments("Item", back);
+        const backBp = Math.floor((test.getFlag(FLAG, "moneyBp") || 0) / 2);
+        if (backBp) await changeActorMoney(actor, backBp);
+        lines.push("· " + esc(L("WFRPRB.Chat.CritRefund")));
+      }
+    }
+  }
+
   let obj = null;
   const src = data.uuid ? await fromUuid(data.uuid).catch(() => null) : null;
   if (src) {
@@ -350,12 +394,12 @@ async function finishCraft(actor, test) {
       system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: data.descr ?? "" } }
     };
   }
-  if (obj.system?.quantity) obj.system.quantity.value = data.count || 1;
+  if (obj.system?.quantity) obj.system.quantity.value = count;
   await actor.createEmbeddedDocuments("Item", [obj]);
   chatCard(actor, {
-    icon: "✓", img: data.img || obj.img,
-    title: F("WFRPRB.Chat.Done", { name: data.name || obj.name, count: data.count || 1 }),
-    lines: [esc(test.getFlag(FLAG, "recipeName") ?? "")]
+    icon: isCrit ? "✓✓" : "✓", img: data.img || obj.img,
+    title: F("WFRPRB.Chat.Done", { name: data.name || obj.name, count }),
+    lines
   });
   await test.delete();
   RecipeBookApp.renderAll();
@@ -618,12 +662,18 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return (game.items ?? []).filter((i) => i.type === RECIPE_TYPE);
   }
 
-  /** Рецепт по выбору: с актёра или из мира */
+  /** Рецепт по выбору: с открытого актёра, из мира или с другого персонажа (реестр ГМа) */
   selectedRecipe() {
     const sel = this.selected;
     if (sel?.kind === "recipe") return this.actor.items.get(sel.id);
     if (sel?.kind === "wrecipe") return (game.items ?? []).find?.((i) => i.id === sel.id) ?? game.items?.get?.(sel.id);
+    if (sel?.kind === "arecipe") return game.actors?.get?.(sel.actorId)?.items.get(sel.id) ?? null;
     return null;
+  }
+
+  /** Владелец рецепта из реестра (для статуса и подписей) */
+  selectedOwner() {
+    return this.selected?.kind === "arecipe" ? game.actors?.get?.(this.selected.actorId) ?? this.actor : this.actor;
   }
 
   projects() {
@@ -631,8 +681,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   /** Данные для богатого ховера по предмету: картинка, цена, доступность, описание */
-  async _itemTip(name, uuid, fallbackImg) {
-    const own = stockOf(this.actor, name).items[0];
+  async _itemTip(name, uuid, fallbackImg, actor = this.actor) {
+    const own = stockOf(actor, name).items[0];
     const doc = own ?? (uuid ? await fromUuid(uuid).catch(() => null) : null);
     const sys = doc?.system ?? {};
     const bp = priceBp(sys);
@@ -671,8 +721,19 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (!uuid) return "trapping";
       try { return globalThis.fromUuidSync?.(uuid)?.type ?? "trapping"; } catch { return "trapping"; }
     };
-    let entries = (world ? this.worldRecipes() : this.recipes()).map((r) => {
-      const st = recipeStatus(this.actor, r);
+    const worldLabel = L("WFRPRB.World.Source");
+    let pool;
+    if (world) {
+      // Реестр ГМа: рецепты мира + копии у ВСЕХ персонажей (версии могут отличаться)
+      pool = this.worldRecipes().map((r) => ({ r, owner: null }));
+      for (const a of (game.actors?.contents ?? []).filter((x) => x.type === "character")) {
+        for (const r of a.items.filter((i) => i.type === RECIPE_TYPE)) pool.push({ r, owner: a });
+      }
+    } else {
+      pool = this.recipes().map((r) => ({ r, owner: null }));
+    }
+    let entries = pool.map(({ r, owner }) => {
+      const st = recipeStatus(world ? (owner ?? this.actor) : this.actor, r);
       const missing = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
       const res = r.system.result ?? {};
       return {
@@ -680,10 +741,13 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         id: r.id, name: r.name, img: res.img || r.img,
         resultName: res.name || r.name, count: res.count ?? 1,
         skill: st.skillUsed || unusual, type: resType(r), ready: st.ready, missing,
+        owner: owner?.name ?? null, ownerId: owner?.id ?? "",
+        kind: world ? (owner ? "arecipe" : "wrecipe") : "recipe",
+        group: world ? (owner?.name ?? worldLabel) : (st.skillUsed || unusual),
+        groupRank: world && !owner ? 0 : 1,
         tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing })
       };
     });
-    for (const e of entries) e.kind = world ? "wrecipe" : "recipe";
     // Доп. фильтры (настройка extraFilters): по ремеслу и типу результата
     const extraFilters = game.settings.get(MODULE_ID, "extraFilters");
     let skillOptions = [];
@@ -704,12 +768,14 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.filter === "ready") entries = entries.filter((e) => e.ready);
     if (this.filter === "missing") entries = entries.filter((e) => !e.ready);
     entries.sort((a, b) =>
-      (a.skill === unusual) - (b.skill === unusual) ||
+      (a.groupRank ?? 1) - (b.groupRank ?? 1) ||
+      (a.group === unusual) - (b.group === unusual) ||
+      a.group.localeCompare(b.group, "ru") ||
       a.skill.localeCompare(b.skill, "ru") || a.name.localeCompare(b.name, "ru"));
     const groups = [];
     for (const e of entries) {
       let g = groups.at(-1);
-      if (!g || g.skill !== e.skill) { g = { skill: e.skill, entries: [] }; groups.push(g); }
+      if (!g || g.skill !== e.group) { g = { skill: e.group, entries: [] }; groups.push(g); }
       g.entries.push(e);
     }
 
@@ -719,30 +785,33 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (sel?.kind === "project" && !projects.find((p) => p.id === sel.id)) sel = null;
     if (sel?.kind === "recipe" && !this.recipes().find((r) => r.id === sel.id)) sel = null;
     if (sel?.kind === "wrecipe" && !this.worldRecipes().find((r) => r.id === sel.id)) sel = null;
-    if (!sel && entries.length) sel = { kind: entries[0].kind, id: entries[0].id };
+    if (sel?.kind === "arecipe" && !game.actors?.get?.(sel.actorId)?.items.get(sel.id)) sel = null;
+    // Выбор из реестра не живёт вне реестра (и недоступен в виде игрока)
+    if (!world && (sel?.kind === "wrecipe" || sel?.kind === "arecipe")) sel = null;
+    if (!sel && entries.length) sel = { kind: entries[0].kind, id: entries[0].id, actorId: entries[0].ownerId };
     if (!sel && projects.length) sel = { kind: "project", id: projects[0].id };
     this.selected = sel;
 
-    if (sel?.kind === "recipe" || sel?.kind === "wrecipe") {
-      const r = sel.kind === "wrecipe"
-        ? this.worldRecipes().find((x) => x.id === sel.id)
-        : this.recipes().find((x) => x.id === sel.id);
+    if (sel?.kind === "recipe" || sel?.kind === "wrecipe" || sel?.kind === "arecipe") {
+      const r = this.selectedRecipe();
+      const statusActor = this.selectedOwner();
       if (r) {
-        const st = recipeStatus(this.actor, r);
+        const st = recipeStatus(statusActor, r);
         const res = r.system.result ?? {};
         const dd = Number(r.system.timeDays) || 0;
         const hh = Number(r.system.timeHours) || 0;
         const mm = Number(r.system.timeMinutes) || 0;
         detail = {
-          kind: "recipe", world: sel.kind === "wrecipe", id: r.id, name: r.name, img: r.img, isGM: gm,
+          kind: "recipe", world: sel.kind !== "recipe", id: r.id, name: r.name, img: r.img, isGM: gm,
+          ownerName: sel.kind === "arecipe" ? statusActor?.name ?? "" : "",
           result: {
             ...res, name: res.name || r.name, img: res.img || r.img, count: res.count ?? 1,
-            tt: await this._itemTip(res.name || r.name, res.uuid, res.img || r.img)
+            tt: await this._itemTip(res.name || r.name, res.uuid, res.img || r.img, statusActor)
           },
           ingredients: await Promise.all(st.ingredients.map(async (ing) => ({
             ...ing,
             tooltip: F("WFRPRB.Tip.Ingredient", { have: ing.have, need: ing.count }),
-            tt: await this._itemTip(ing.name, ing.uuid, ing.img)
+            tt: await this._itemTip(ing.name, ing.uuid, ing.img, statusActor)
           }))),
           moneyBp: r.system.moneyBp, moneyHtml: moneyHtml(r.system.moneyBp || 0), moneyOk: st.moneyOk,
           moneyTip: (() => {
@@ -768,11 +837,24 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           checkTip: st.skillItem
             ? F("WFRPRB.Tip.Check", { skill: st.skillUsed, total: st.skillTotal, mod: st.mod >= 0 ? `+${st.mod}` : st.mod, target: st.target })
             : F("WFRPRB.Tip.NoSkill", { skill: st.skillUsed }),
+          crit: r.system.critEnabled ? (() => {
+            const effs = [];
+            if (r.system.critExtra) effs.push(F("WFRPRB.Chat.CritExtra", { n: r.system.critCount || 1 }));
+            if (r.system.critUpgrade) effs.push(F("WFRPRB.Chat.CritUpgrade", { name: r.system.critResult?.name || "?" }));
+            if (r.system.critRefund) effs.push(L("WFRPRB.Chat.CritRefund"));
+            if (!effs.length) return "";
+            const secret = r.system.critRandom && effs.length > 1;
+            // Игрок не знает про случайную выдачу - видит «особый бонус»; ГМ видит расклад
+            const effect = secret && !gm
+              ? L("WFRPRB.Crit.Hidden")
+              : (secret ? L("WFRPRB.Crit.RandomNote") + " " : "") + effs.join(L("WFRPRB.Crit.And"));
+            return F("WFRPRB.Crit.Line", { sl: r.system.critSL, effect });
+          })() : "",
           slTip: F("WFRPRB.Tip.SL", { target: st.slTarget }) + (st.talent ? "\n· " + L("WFRPRB.Tip.Talent") : ""),
           needsWorkshop: r.system.needsWorkshop,
           tools: await Promise.all(st.tools.map(async (t) => ({
             ...t,
-            tt: await this._itemTip(t.name, t.uuid, t.img)
+            tt: await this._itemTip(t.name, t.uuid, t.img, statusActor)
           }))),
           description: r.system.description?.value ?? "",
           canStart: st.canStart,
@@ -787,7 +869,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       all: this.recipes().length,
       ready: this.recipes().filter((r) => recipeStatus(this.actor, r).ready).length,
       work: projects.length,
-      world: this.worldRecipes().length
+      world: this.worldRecipes().length +
+        (game.actors?.contents ?? []).filter((a) => a.type === "character")
+          .reduce((n, a) => n + a.items.filter((i) => i.type === RECIPE_TYPE).length, 0)
     };
 
     return {
@@ -842,7 +926,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   static #onSelect(event, target) {
-    this.selected = { kind: target.dataset.kind, id: target.dataset.id };
+    this.selected = { kind: target.dataset.kind, id: target.dataset.id, actorId: target.dataset.actor || "" };
     this.render();
   }
 

@@ -45,7 +45,7 @@
       {{#each groups}}
         <div class="rb-group-title">{{skill}}</div>
         {{#each entries}}
-          <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-rb-tip="{{tooltip}}">
+          <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rb-tip="{{tooltip}}">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
             {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
@@ -79,7 +79,7 @@
           </span>
           <div class="rb-head-text">
             <h2>{{detail.result.name}}{{#if (gt detail.result.count 1)}} ×{{detail.result.count}}{{/if}}</h2>
-            <div class="rb-head-sub">{{detail.name}}</div>
+            <div class="rb-head-sub">{{detail.name}}{{#if detail.ownerName}} · {{detail.ownerName}}{{/if}}</div>
           </div>
           {{#if detail.result.uuid}}
             <button type="button" class="rb-btn rb-btn--quiet rb-head-open" data-action="openResult" data-uuid="{{detail.result.uuid}}" data-rb-tip="{{rbL 'WFRPRB.OpenResult'}}"><i class="fa-solid fa-eye"></i></button>
@@ -102,6 +102,12 @@
             <span>{{rbL "WFRPRB.SLTarget"}}</span>
             <span><b>{{detail.slTarget}}</b>{{#if detail.talent}} <span class="rb-dim">({{detail.slBase}} − {{detail.talent}} {{rbL "WFRPRB.TalentShort"}})</span>{{/if}}</span>
           </div>
+          {{#if detail.crit}}
+            <div class="rb-row" data-rb-tip="{{rbL 'WFRPRB.Crit.Tip'}}">
+              <span>{{rbL "WFRPRB.Crit.Label"}}</span>
+              <span class="rb-crit-line">{{detail.crit}}</span>
+            </div>
+          {{/if}}
         </section>
 
         <section class="rb-block">

@@ -61,6 +61,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       sys,
       editable: this.isEditable,
       fresh: this.isFresh,
+      critMulti: [sys.critExtra, sys.critUpgrade, sys.critRefund].filter(Boolean).length > 1,
       skills: names.map((n) => ({ name: n, selected: n === sys.skill })),
       skillsAlt: names.map((n) => ({ name: n, selected: n === sys.skillAlt })),
       moneyGc: Math.floor((sys.moneyBp || 0) / COIN_VALUE.gc),
@@ -161,6 +162,22 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       zone.addEventListener("dragover", (ev) => ev.preventDefault());
       zone.addEventListener("drop", (ev) => this.#onDrop(ev, zone.dataset.dropzone));
     }
+    // Критический успех: галка, порог, режим, количество (как деньги - пишем сами)
+    root.querySelector(".rb-crit-on")?.addEventListener("change", (ev) => {
+      this.document.update({ "system.critEnabled": ev.currentTarget.checked }).then(() => this.render());
+    });
+    root.querySelector(".rb-crit-sl")?.addEventListener("change", (ev) => {
+      this.document.update({ "system.critSL": Math.max(1, Number(ev.currentTarget.value) || 1) });
+    });
+    for (const [sel, field] of [[".rb-crit-extra", "critExtra"], [".rb-crit-upgrade", "critUpgrade"], [".rb-crit-refund", "critRefund"], [".rb-crit-random", "critRandom"]]) {
+      root.querySelector(sel)?.addEventListener("change", (ev) => {
+        this.document.update({ [`system.${field}`]: ev.currentTarget.checked }).then(() => this.render());
+      });
+    }
+    root.querySelector(".rb-crit-count")?.addEventListener("change", (ev) => {
+      this.document.update({ "system.critCount": Math.max(1, Number(ev.currentTarget.value) || 1) });
+    });
+
     // Время: часы не больше 23, минуты не больше 59 - подрезаем и пишем одним апдейтом
     const clamp = (v, max) => Math.max(0, Math.min(Number(v) || 0, max));
     const syncTime = () => {
@@ -193,6 +210,9 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     if (!doc) return;
     if (zone === "result") {
       return this.#applyResult(doc);
+    } else if (zone === "critResult") {
+      await this.document.update({ "system.critResult": { uuid: doc.uuid, name: doc.name, img: doc.img } });
+      this.render();
     } else if (zone === "tools") {
       const list = [...this.document.system.tools];
       if (!list.find((t) => t.name === doc.name)) list.push({ uuid: doc.uuid, name: doc.name, img: doc.img });
@@ -226,6 +246,9 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     if (zone === "icon") {
       // Иконка РЕЦЕПТА (книжки в списке); иконка результата - своя, с предмета-результата
       await this.document.update({ img: entry.img });
+    } else if (zone === "critResult") {
+      await this.document.update({ "system.critResult": { uuid: entry.uuid, name: entry.name, img: entry.img } });
+      this.render();
     } else if (zone === "resultIcon") {
       // Иконка ПРЕДМЕТА-РЕЗУЛЬТАТА: для нового предмета её выбирают из базы
       await this.document.update({ "system.result.img": entry.img });

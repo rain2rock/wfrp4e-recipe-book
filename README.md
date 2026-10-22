@@ -1,5 +1,7 @@
 # WFRP 4e Recipe Book (Книга рецептов WFRP)
 
+**Лицензия:** модуль бесплатен для личного использования; изменять его и распространять изменённые версии нельзя - см. [LICENSE](LICENSE).
+
 Модуль Foundry VTT для системы Warhammer Fantasy Roleplay 4e: крафт по рецептам, книга рецептов на листе персонажа и автоматизация продолжительных проверок.
 
 ## Установка
@@ -85,4 +87,4 @@ A Foundry VTT module for Warhammer Fantasy Roleplay 4e that adds recipe-based cr
 
 **Install:** `https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest/download/module.json`
 
-**Author:** Mikhail (rain2rock). **License:** none yet, all rights reserved.
+**Author:** Mikhail (rain2rock). **License:** free for personal use; modification and redistribution of modified versions are prohibited - see [LICENSE](LICENSE).

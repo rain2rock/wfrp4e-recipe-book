@@ -118,7 +118,7 @@ const actorData = ${inlineAssets(json(ACTOR))};
 actorData.items = [...actorData.items, ...recipes];
 const actor = __RB_makeActor__(actorData);
 window.__RB_actor__ = actor;
-window.__RB_actor2__ = __RB_makeActor__(${json(ACTOR2)});
+window.__RB_actor2__ = __RB_makeActor__(${inlineAssets(json(ACTOR2))});
 __RB_makeActor__(${json(ACTOR_NPC)});
 game.user.character = actor;
 game.modules.get("wfrp4e-recipe-book").api.open(actor);

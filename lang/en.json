@@ -12,7 +12,7 @@
       "all": "All",
       "ready": "Can craft",
       "missing": "Missing",
-      "world": "World"
+      "world": "Registry"
     },
     "InWork": "In progress",
     "InWorkOne": "In progress",
@@ -55,7 +55,11 @@
         "none": "Materials were preserved.",
         "half": "Half of the materials were ruined.",
         "all": "All materials were ruined."
-      }
+      },
+      "Crit": "Critical success (SL {sl})!",
+      "CritExtra": "+{n} to quantity",
+      "CritUpgrade": "upgraded result: {name}",
+      "CritRefund": "half of the materials preserved"
     },
     "Money": {
       "gc": "GC",
@@ -179,13 +183,14 @@
     "NewRecipe": "New recipe",
     "NewRecipeHint": "New recipe\nCreates a recipe item in the Items tab. Fill in the sheet and give it to a player by dragging it onto their character.",
     "World": {
-      "Hint": "All world recipes\nGM only: give, edit or delete recipes from here.",
+      "Hint": "GM registry\nAll recipes: world ones and copies owned by characters (versions may differ), grouped by owner. Give, edit or delete recipes from here.",
       "Give": "Give to character",
       "GiveTip": "The character learns a copy of this recipe",
       "Edit": "Edit",
       "Given": "«{name}» given to {actor}",
       "ThisBook": "this book",
-      "NoPlayers": "No one to give to: no player-owned characters found."
+      "NoPlayers": "No one to give to: no player-owned characters found.",
+      "Source": "World"
     },
     "Delete": {
       "WorldTitle": "Delete world recipe?",
@@ -209,6 +214,25 @@
       "AllTypes": "All item types",
       "SkillTip": "Filter by trade skill",
       "TypeTip": "Filter by crafted item type"
+    },
+    "Crit": {
+      "Title": "Critical success",
+      "Enable": "Crit possible",
+      "Threshold": "If accumulated SL is at least",
+      "ModeExtra": "Extra quantity",
+      "ModeUpgrade": "Upgraded result",
+      "ModeRefund": "Half materials refunded",
+      "ExtraCount": "How many extra",
+      "UpgradeItem": "Crit item",
+      "NoUpgrade": "Pick the upgraded item",
+      "Label": "Crit",
+      "Line": "SL ≥ {sl} - {effect}",
+      "Tip": "Critical success\nIf enough SL is accumulated by completion, the result is improved.",
+      "Random": "Grant one bonus at random",
+      "RandomTip": "Random\nONE of the checked effects triggers, chosen at random. Players only see «special bonus» in the book.",
+      "Hidden": "special bonus",
+      "RandomNote": "one of, at random:",
+      "And": " and "
     }
   }
 }

@@ -239,14 +239,15 @@ await page.waitForTimeout(150);
 const after = await page.evaluate(() => ({
   herbs: __RB_actor__.items.find((i) => i.name === "Целебные травы")?.system.quantity.value ?? 0,
   spirit: __RB_actor__.items.find((i) => i.name === "Спирт") ? 1 : 0,
-  potion: __RB_actor__.items.find((i) => i.name === "Лечебная настойка" && i.type === "trapping") ? 1 : 0,
+  potion: __RB_actor__.items.find((i) => i.name === "Лечебная настойка" && i.type === "trapping")?.system.quantity.value ?? 0,
   tests: __RB_actor__.items.filter((i) => i.type === "extendedTest").length,
   moneyBp: __RB_actor__.items.filter((i) => i.type === "money").reduce((s, c) => s + c.system.quantity.value * c.system.coinValue.value, 0),
   chat: __RB_chat__.map((m) => m.content).join(" | ")
 }));
 ok(herbsBefore === 3 && after.herbs === 1, "травы списаны 3 → 1", `(${herbsBefore} → ${after.herbs})`);
 ok(after.spirit === 0, "спирт списан полностью");
-ok(after.potion === 1, "настойка появилась в инвентаре");
+ok(after.potion === 2, "крит (УУ 6 ≥ 6): настойка создана с +1 к количеству", `(${after.potion})`);
+ok(after.chat.includes("Критический успех"), "карточка крита в чате");
 ok(after.tests === 0, "проект закрыт после успеха");
 ok(after.moneyBp === 582 - 15, "деньги списаны: 582 − 15", `(${after.moneyBp})`);
 ok(after.chat.includes("Создано"), "карточка «Создано» в чате");
@@ -295,6 +296,37 @@ await page.waitForTimeout(150);
 const rations = await page.evaluate(() => __RB_actor__.items.find((i) => i.name === "Дорожный паёк")?.system.quantity.value ?? 0);
 ok(rations === 5, "паёк готов ×5 после добора УУ", `(${rations})`);
 
+/* --- Крит-апгрейд: вместо базового результата создаётся улучшенный предмет --- */
+await page.evaluate(async () => {
+  await __RB_actor__.createEmbeddedDocuments("Item", [{
+    name: "Рецепт: Пробная вещь", type: "wfrp4e-recipe-book.recipe", img: "",
+    system: {
+      result: { uuid: "", name: "Пробная вещь", img: "", count: 1 },
+      skill: "Ремесло (Аптекарь)", skillAlt: "", difficulty: "average", slTarget: 1,
+      ingredients: [], moneyBp: 0, needsWorkshop: false, tools: [],
+      critEnabled: true, critSL: 5, critExtra: true, critCount: 2, critUpgrade: true, critRefund: false, critRandom: false,
+      critResult: { uuid: "Item.res-dagger", name: "Кинжал", img: "" },
+      timeDays: 0, timeHours: 0, timeMinutes: 0,
+      description: { value: "" }, gmdescription: { value: "" }
+    }
+  }]);
+});
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Пробная вещь" }).first().click();
+await page.waitForTimeout(80);
+await page.evaluate(() => { window.__RB_FORCE_ROLL__ = 5; });
+await $(".rb-btn--craft").first().click();
+await page.waitForTimeout(250);
+ok(await page.evaluate(() => {
+  const d = __RB_actor__.items.find((i) => i.name === "Кинжал" && i.type !== "wfrp4e-recipe-book.recipe");
+  return !!d && d.system.quantity.value === 3 && !__RB_actor__.items.find((i) => i.name === "Пробная вещь");
+}), "крит И-эффекты: улучшенный предмет (Кинжал) и +2 к количеству (3 шт)");
+await page.evaluate(async () => {
+  for (const i of [...__RB_actor__.items].filter((x) => x.name === "Кинжал" && x.type !== "wfrp4e-recipe-book.recipe")) await i.delete();
+  for (const i of [...__RB_actor__.items].filter((x) => x.name === "Рецепт: Пробная вещь")) await i.delete();
+});
+await page.waitForTimeout(120);
+
 /* --- Фильтры и поиск --- */
 await $("[data-action='filter'][data-filter='ready']").click();
 await page.waitForTimeout(50);
@@ -317,7 +349,10 @@ await $("[data-action='createRecipe']").click();
 await page.waitForTimeout(250);
 ok((await $(".rb-filter--world.is-active").count()) === 1, "после создания книга на вкладке «Мир»");
 ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 1, "новый рецепт виден во вкладке «Мир»");
-ok((await $(".rb-group-title", { hasText: "Необычные" }).count()) === 1, "рецепт без навыка - в группе «Необычные», не «?»");
+ok((await $(".rb-group-title", { hasText: "Мир" }).count()) === 1, "реестр: мировые рецепты в группе «Мир»");
+ok((await $(".rb-group-title", { hasText: "Гюнтер" }).count()) === 1 &&
+   (await $(".rb-entry", { hasText: "Лечебная настойка" }).count()) === 2,
+  "реестр: видны копии у персонажей - две версии настойки");
 ok(await page.evaluate(() => game.items.some((i) => i.name === "Новый рецепт")), "рецепт создан именно в мире, не на актёре");
 const newSheetOpen = await page.evaluate(() =>
   [...document.querySelectorAll(".rb-sheet-root")].some((el) => el.closest(".window-app")));
@@ -408,9 +443,20 @@ const playerView = await page.evaluate(() => ({
 }));
 ok(playerView.world === 0 && playerView.newBtn === 0 && playerView.trash === 0 && playerView.pen === 0,
   "вид игрока: ГМ-интерфейс скрыт (мир, создание, изменение, удаление)", JSON.stringify(playerView));
+/* случайный крит: игрок видит «особый бонус», расклад не раскрывается */
+await page.evaluate(() => __RB_actor__.items.get("rec-0").update({ "system.critRefund": true, "system.critRandom": true }));
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Лечебная настойка" }).first().click();
+await page.waitForTimeout(100);
+const playerCrit = await text(".rb-right");
+ok(playerCrit.includes("особый бонус") && !playerCrit.includes("случайно"),
+  "вид игрока: случайный крит показан как «особый бонус»");
 await page.click("#tb-view");
 await page.waitForTimeout(150);
 ok((await $(".rb-filter--world").count()) === 1, "вид ГМа вернулся");
+ok((await text(".rb-right")).includes("случайно один из"), "вид ГМа: расклад случайного крита виден");
+await page.evaluate(() => __RB_actor__.items.get("rec-0").update({ "system.critRefund": false, "system.critRandom": false }));
+await page.waitForTimeout(120);
 
 /* --- Сохранение рецепта из книги игрока: вопрос «выдать игроку?» --- */
 await $("[data-action='createRecipe']").click();
