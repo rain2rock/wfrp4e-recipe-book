@@ -104,19 +104,25 @@
   box-sizing: border-box; width: auto; height: auto; min-height: var(--rb-btn-h);
   margin: 0; padding: var(--rb-btn-pad-y) var(--rb-btn-pad-x);
   font-size: var(--rb-fs-m); line-height: 1.2; font-weight: 400; text-align: center;
-  background: var(--rb-well); border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
   color: var(--rb-text); cursor: pointer;
-  background-image: none; box-shadow: none; border-image: none;
+  /* скин системы рисует кнопкам свои рамки/фактуры поверх наших - спорные свойства с !important */
+  background: var(--rb-well) !important;
+  background-image: none !important;
+  border: 1px solid var(--rb-frame) !important;
+  border-radius: var(--rb-radius) !important;
+  border-image: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   text-transform: none; text-shadow: none; letter-spacing: normal;
 }
 .wfrp-recipe-book button.rb-btn:hover,
-.wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover); color: var(--rb-text); box-shadow: none; text-shadow: none; }
+.wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover) !important; color: var(--rb-text); box-shadow: none !important; text-shadow: none; }
 .wfrp-recipe-book button.rb-btn[disabled], .wfrp-recipe-book .rb-btn[disabled] { opacity: 0.5; cursor: default; }
 .wfrp-recipe-book .rb-btn i { color: var(--rb-muted); }
-.wfrp-recipe-book button.rb-btn--quiet, .wfrp-recipe-book .rb-btn--quiet { background: none; border-color: transparent; }
+.wfrp-recipe-book button.rb-btn--quiet, .wfrp-recipe-book .rb-btn--quiet { background: none !important; border-color: transparent !important; }
 /* Акцентная кнопка главного действия окна («Создать», «Сохранить», «Выдать»):
    тот же размер, что у всех кнопок - выделяется только рамкой и жирностью */
-.wfrp-recipe-book button.rb-btn--craft, .wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft); font-weight: 600; }
+.wfrp-recipe-book button.rb-btn--craft, .wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft) !important; font-weight: 600; }
 
 /* Квадратные иконко-кнопки: «+» в заголовке секции и крестик удаления строки */
 .wfrp-recipe-book button.rb-add,

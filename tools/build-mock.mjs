@@ -60,8 +60,9 @@ const html = `<!DOCTYPE html>
   #mock-mount .window-content input, #mock-mount .window-content select { height: 38px; font-size: 16px; }
   /* как скин системы: агрессивные стили кнопок - модуль обязан их перебить */
   .window-content button {
-    background-image: linear-gradient(#f00, #900); border: 3px double #000; border-radius: 0;
-    box-shadow: 0 0 6px #f00; text-transform: uppercase; text-shadow: 1px 1px 0 #000;
+    background-image: linear-gradient(#f00, #900) !important; border: 3px double #000 !important;
+    border-radius: 0 !important; box-shadow: 0 0 6px #f00 !important; outline: 2px solid #0f0 !important;
+    text-transform: uppercase; text-shadow: 1px 1px 0 #000;
     letter-spacing: 2px; height: 44px; padding: 10px;
   }
   #mock-mount .window-content > * { flex: 1; min-height: 0; }

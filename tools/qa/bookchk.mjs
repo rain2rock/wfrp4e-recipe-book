@@ -46,6 +46,13 @@ let right = await text(".rb-right");
 ok(right.includes("65"), "цель = навык 45 + заурядная 20 = 65", right.slice(0, 200));
 ok(right.includes("5 − 2"), "талант снизил УУ: 5 − 2");
 ok(!(await $(".rb-btn--craft").first().isDisabled()), "настойка: «Создать» активна");
+const btnCss = await page.evaluate(() => {
+  const b = document.querySelector(".rb-btn--craft");
+  const s = getComputedStyle(b);
+  return { bw: s.borderTopWidth, shadow: s.boxShadow, bi: s.backgroundImage, outline: s.outlineStyle };
+});
+ok(btnCss.bw === "1px" && btnCss.shadow === "none" && btnCss.bi === "none" && btnCss.outline === "none",
+  "кнопка «Создать» перебивает скин: рамка 1px, без теней и фактур", JSON.stringify(btnCss));
 
 /* --- Понятность: подсказки и богатый ховер (свой тултип, системный отключён) --- */
 ok((await $("[data-tooltip]").count()) === 0, "системные тултипы Foundry не используются");
