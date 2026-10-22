@@ -127,6 +127,10 @@ const sheet = await page.evaluate(() => {
   };
 });
 ok(sheet.skillOptions >= 10 && sheet.hasTrade, "лист ГМа: навык - дропдаун из базы", JSON.stringify(sheet));
+ok(await page.evaluate(() => {
+  const sel = document.querySelector("#rb-sheet-demo select[name='system.skill']");
+  return [...sel.options].some((o) => o.value === "Ремесло (Самогонщик)");
+}), "в дропдауне есть навык, созданный ГМом только на персонаже");
 ok(sheet.minutes, "лист ГМа: поле минут времени");
 ok(sheet.toolZone, "лист ГМа: зона инструментов");
 ok(sheet.coinIcons === 3, "лист ГМа: иконки монет как во всём модуле");
@@ -216,6 +220,18 @@ ok(await page.evaluate(() => {
   const w = __RB_worldItems__.find((x) => x.name === "Корень мандрагоры");
   return r.system.result.img === w.img && r.img !== w.img;
 }), "иконка результата выбрана из базы, иконка рецепта не тронута");
+
+/* Переключение чекбокса не сбрасывает скролл листа наверх */
+await page.evaluate(() => {
+  const r = document.querySelector("#rb-sheet-demo .rb-sheet-root");
+  r.scrollTop = 300;
+});
+await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-crit-on")?.click());
+await page.waitForTimeout(250);
+const scrollKept = await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-sheet-root").scrollTop);
+ok(scrollKept > 150, "скролл листа сохранился после переключения чекбокса", `(${scrollKept})`);
+await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-crit-on")?.click());
+await page.waitForTimeout(200);
 
 /* «Отмена» откатывает ВСЁ к моменту открытия листа: и мандрагору, и смену иконки */
 await page.evaluate(() => __RB_actor__.items.get("rec-0").update({ "system.slTarget": 9 }));

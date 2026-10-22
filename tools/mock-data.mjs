@@ -105,6 +105,8 @@ export const ACTOR = {
   items: [
     { id: "sk-apoth", name: "Ремесло (Аптекарь)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 10 } } },
     { id: "sk-cook", name: "Ремесло (Повар)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 5 } } },
+    /* Кастомный навык ГМа - есть ТОЛЬКО на персонаже, ни в мире, ни в компендиумах */
+    { id: "sk-moonshine", name: "Ремесло (Самогонщик)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 3 } } },
     { id: "tal-master", name: "Мастер своего дела (Ремесло (Аптекарь))", type: "talent", system: { advances: { value: 2 } } },
     { id: "coin-gc", name: "Золотая крона", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#e0b020" stroke="#8a6408" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 240 }, quantity: { value: 2 } } },
     { id: "coin-ss", name: "Серебряный шиллинг", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#c8ccd0" stroke="#6e7378" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 12 }, quantity: { value: 8 } } },

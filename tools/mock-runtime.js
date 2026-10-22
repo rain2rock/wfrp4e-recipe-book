@@ -74,7 +74,8 @@
       const ctx = await this._prepareContext({});
       if (!this.element) this._buildFrame();
       const content = this.element.querySelector(".window-content");
-      const scrollKeep = [".rb-list", ".rb-right"].map((s) => [s, content.querySelector(s)?.scrollTop ?? 0]);
+      const scrollSel = Object.values(this.constructor.PARTS ?? {}).flatMap((p) => p.scrollable ?? []);
+      const scrollKeep = scrollSel.map((s) => [s, content.querySelector(s)?.scrollTop ?? 0]);
       const part = Object.values(this.constructor.PARTS)[0];
       content.innerHTML = templates[part.template](ctx);
       for (const [s, top] of scrollKeep) { const el = content.querySelector(s); if (el) el.scrollTop = top; }

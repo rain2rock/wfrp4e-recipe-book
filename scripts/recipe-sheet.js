@@ -39,7 +39,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     }
   };
 
-  static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs` } };
+  static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs`, scrollable: [".rb-sheet-root"] } };
 
   /** Рецепт создан с нуля и ещё ни разу не сохранён */
   get isFresh() {

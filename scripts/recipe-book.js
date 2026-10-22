@@ -117,7 +117,11 @@ let _skillNames = null;
 export async function skillNames() {
   if (_skillNames) return _skillNames;
   const names = new Set();
+  // Мир (включая созданные ГМом), компендиумы И навыки прямо на персонажах -
+  // кастомный навык, добавленный только актёру, тоже должен попадать в выбор
   for (const item of game.items ?? []) if (item.type === "skill") names.add(item.name);
+  for (const a of game.actors?.contents ?? [])
+    for (const item of a.items) if (item.type === "skill") names.add(item.name);
   for (const pack of game.packs ?? []) {
     if ((pack.documentName ?? pack.metadata?.type) !== "Item") continue;
     const idx = await pack.getIndex().catch(() => []);
@@ -610,7 +614,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   };
 
-  static PARTS = { book: { template: `modules/${MODULE_ID}/templates/book.hbs` } };
+  static PARTS = { book: { template: `modules/${MODULE_ID}/templates/book.hbs`, scrollable: [".rb-list", ".rb-right"] } };
 
   constructor(actor, options = {}) {
     super(options);
