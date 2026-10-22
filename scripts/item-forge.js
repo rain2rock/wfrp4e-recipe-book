@@ -62,21 +62,21 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       cleanSL: 0,
       failPool: {}     // key -> on (по умолчанию все)
     };
-    this.state = st;
+    this.forge = st;
     this.baseSL = Number(this.recipe.system.slTarget) || 1;
   }
 
   /** Требуемый УУ по правилам: изъяны половинят (каждый), затем +5 за каждое достоинство */
   computedSL() {
-    const nq = Object.values(this.state.qualities).filter((x) => x.on).length;
-    const nf = Object.values(this.state.flaws).filter((x) => x.on).length;
+    const nq = Object.values(this.forge.qualities).filter((x) => x.on).length;
+    const nf = Object.values(this.forge.flaws).filter((x) => x.on).length;
     let sl = this.baseSL;
     for (let i = 0; i < nf; i++) sl = sl / 2;
     return Math.max(Math.ceil(sl) + 5 * nq, 1);
   }
 
   async _prepareContext() {
-    const st = this.state;
+    const st = this.forge;
     const { qualities, flaws } = propLists(st.type);
     const row = (map, stateMap) => Object.entries(map).map(([key, label]) => ({
       key,
@@ -117,7 +117,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
   _onRender() {
     const root = this.element;
     root.classList.toggle("rb-theme-dark", game.settings.get(MODULE_ID, "bookTheme") === "dark");
-    const st = this.state;
+    const st = this.forge;
     const rerender = () => this.render();
 
     root.querySelector(".rb-forge-type")?.addEventListener("change", (ev) => {
@@ -191,8 +191,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     const key = target.closest(".rb-qrow")?.dataset.key;
     if (!key) return;
     await this.#openForgePicker(target.closest(".rb-qrow"), (e) => {
-      this.state.qualities[key] = {
-        ...(this.state.qualities[key] ?? { on: true }),
+      this.forge.qualities[key] = {
+        ...(this.forge.qualities[key] ?? { on: true }),
         extraName: e.name, extraImg: e.img, extraUuid: e.uuid
       };
       this.render();
@@ -202,14 +202,14 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
   /** Иконка будущего предмета - с любого предмета базы */
   static async #onPickIcon(event, target) {
     await this.#openForgePicker(target.closest(".rb-field"), (e) => {
-      this.state.img = e.img;
+      this.forge.img = e.img;
       this.render();
     });
   }
 
   /** Создать предмет мира и обновить рецепт */
   static async #onCreate() {
-    const st = this.state;
+    const st = this.forge;
     if (!st.name.trim()) return ui.notifications.warn(L("WFRPRB.Forge.NameEmpty"));
 
     const qualities = Object.entries(st.qualities).filter(([, v]) => v.on)

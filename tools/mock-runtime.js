@@ -71,6 +71,8 @@
       this.rendered = false;
     }
     get title() { return ""; }
+    // как в живом AppV2: state - только геттер (ловим коллизии имён полей с ядром)
+    get state() { return 2; }
     async render() {
       const ctx = await this._prepareContext({});
       if (!this.element) this._buildFrame();
