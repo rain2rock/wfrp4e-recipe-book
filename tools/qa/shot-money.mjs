@@ -1,0 +1,13 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1100, height: 720 } });
+await page.goto("file://" + path.join(root, "docs/book-mock.html"));
+await page.waitForSelector(".rb-root");
+await page.locator(".rb-money-row, [data-rb-tip*='Прочее сырьё']").first().hover();
+await page.waitForTimeout(500);
+await page.screenshot({ path: path.join(root, "docs", "book-money-tip.png") });
+await browser.close();
+console.log("ok");

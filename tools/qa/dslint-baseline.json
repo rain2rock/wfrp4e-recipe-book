@@ -1,0 +1,12 @@
+{
+  "styles/rb-system.css": {
+    "border-radius в px": 0,
+    "font-size в px": 0,
+    "отступ в px (4px и больше)": 0
+  },
+  "styles/recipe-book.css": {
+    "border-radius в px": 0,
+    "font-size в px": 0,
+    "отступ в px (4px и больше)": 0
+  }
+}

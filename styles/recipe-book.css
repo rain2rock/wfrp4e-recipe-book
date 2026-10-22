@@ -1,0 +1,109 @@
+/* «Книга рецептов WFRP» - вёрстка окон: разворот книги, лист рецепта, чат-карточка.
+   Все примитивы (кнопки, поля, строки, тултип, пикер) - в rb-system.css.
+   Размеры и цвета - только токенами. */
+
+.wfrp-recipe-book .window-content { padding: 0; overflow: hidden; background: var(--rb-bg); color: var(--rb-text); }
+
+/* ---------- Разворот книги ---------- */
+
+.wfrp-recipe-book .rb-root {
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  height: 100%; min-height: 0;
+  background:
+    linear-gradient(90deg, transparent 0 calc(36% - 14px), rgba(0,0,0,0.18) calc(36% - 2px), rgba(0,0,0,0.28) 36%, rgba(0,0,0,0.18) calc(36% + 2px), transparent calc(36% + 14px)),
+    radial-gradient(ellipse at 30% 20%, var(--rb-panel) 0%, var(--rb-bg) 80%);
+  font-size: var(--rb-fs-base);
+}
+
+.wfrp-recipe-book .rb-page { display: flex; flex-direction: column; min-height: 0; padding: var(--rb-space-7); }
+.wfrp-recipe-book .rb-left { border-right: 1px solid var(--rb-frame); }
+.wfrp-recipe-book .rb-right { display: flex; flex-direction: column; overflow-y: auto; }
+
+/* ---------- Левая страница: поиск, фильтры, список ---------- */
+
+.wfrp-recipe-book .rb-left .rb-search { margin-bottom: var(--rb-space-3); }
+.wfrp-recipe-book .rb-left .rb-filters { margin-bottom: var(--rb-space-3); }
+
+.wfrp-recipe-book .rb-list { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+
+.wfrp-recipe-book .rb-group-title {
+  margin-top: var(--rb-space-3);
+  font-size: var(--rb-fs-s); text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--rb-gold); border-bottom: 1px solid var(--rb-frame); padding-bottom: 2px;
+}
+.wfrp-recipe-book .rb-group-title:first-child { margin-top: 0; }
+
+.wfrp-recipe-book .rb-entry {
+  display: flex; align-items: center; gap: var(--rb-space-3);
+  width: 100%; margin: 0; padding: var(--rb-space-1) var(--rb-space-2);
+  background: none; border: 1px solid transparent; border-radius: var(--rb-radius);
+  color: var(--rb-text-dim); font-size: var(--rb-fs-base); font-family: inherit;
+  text-align: left; line-height: 1.3; cursor: pointer;
+}
+.wfrp-recipe-book .rb-entry:hover { background: var(--rb-hover); box-shadow: none; }
+.wfrp-recipe-book .rb-entry.is-selected { border-color: var(--rb-gold-soft); background: var(--rb-hover); color: var(--rb-text); }
+.wfrp-recipe-book .rb-entry img { width: var(--rb-icon-s); height: var(--rb-icon-s); object-fit: cover; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius); flex: 0 0 var(--rb-icon-s); }
+.wfrp-recipe-book .rb-entry-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wfrp-recipe-book .rb-entry.rb-ready { color: var(--rb-text); }
+.wfrp-recipe-book .rb-entry.rb-ready .rb-entry-name { font-weight: 600; }
+.wfrp-recipe-book .rb-ok-ico { color: var(--rb-good); font-size: var(--rb-fs-s); }
+
+.wfrp-recipe-book .rb-empty { color: var(--rb-muted); text-align: center; padding: var(--rb-space-7); font-style: italic; }
+.wfrp-recipe-book .rb-empty-page { margin: auto; }
+
+/* Кнопка ГМа «Новый рецепт» внизу левой страницы */
+.wfrp-recipe-book .rb-newrecipe { margin-top: var(--rb-space-3); width: 100%; }
+
+/* ---------- Правая страница: разворот рецепта ---------- */
+
+.wfrp-recipe-book .rb-head { display: flex; align-items: center; gap: var(--rb-space-4); margin-bottom: var(--rb-space-5); }
+.wfrp-recipe-book .rb-head-img {
+  width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; flex: 0 0 var(--rb-icon-l);
+  border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius-lg);
+}
+.wfrp-recipe-book .rb-head-hover { cursor: help; }
+.wfrp-recipe-book .rb-head-text { flex: 1; min-width: 0; }
+.wfrp-recipe-book .rb-head h2 { margin: 0; border: none; font-size: var(--rb-fs-xxl); color: var(--rb-text); font-weight: 700; }
+.wfrp-recipe-book .rb-head-sub { font-size: var(--rb-fs-m); color: var(--rb-muted); }
+
+.wfrp-recipe-book .rb-block { margin-bottom: var(--rb-space-5); }
+.wfrp-recipe-book .rb-desc { color: var(--rb-text-2); font-style: italic; line-height: 1.45; }
+.wfrp-recipe-book .rb-right .rb-progress { margin-bottom: var(--rb-space-2); }
+
+.wfrp-recipe-book .rb-foot { margin-top: auto; padding-top: var(--rb-space-5); display: flex; align-items: center; justify-content: flex-end; gap: var(--rb-space-3); }
+.wfrp-recipe-book .rb-problems { flex: 1; color: var(--rb-warn); font-size: var(--rb-fs-m); }
+.wfrp-recipe-book .rb-abandon:hover { color: var(--rb-bad); }
+/* Кнопки футеров - одного размера: ширина текстовых, квадрат у корзинки */
+.wfrp-recipe-book .rb-foot .rb-btn:not(.rb-abandon) { min-width: var(--rb-btn-minw); }
+.wfrp-recipe-book .rb-foot .rb-abandon { width: var(--rb-btn-h); min-width: var(--rb-btn-h); padding: 0; }
+
+/* ---------- Лист рецепта (ГМ) ---------- */
+
+.rb-sheet .window-content { background: var(--rb-bg); color: var(--rb-text); }
+.wfrp-recipe-book .rb-sheet-root { display: flex; flex-direction: column; gap: var(--rb-space-4); padding: var(--rb-space-4); overflow-y: auto; height: 100%; box-sizing: border-box; font-size: var(--rb-fs-base); }
+.wfrp-recipe-book .rb-sheet-head { display: flex; gap: var(--rb-space-4); align-items: center; }
+.wfrp-recipe-book .rb-sheet-img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius-lg); cursor: pointer; }
+.wfrp-recipe-book .rb-sheet-name { flex: 1; font-size: var(--rb-fs-xl); font-weight: 700; padding: var(--rb-space-1) var(--rb-space-3); }
+.wfrp-recipe-book .rb-sheet-count { display: inline-flex; align-items: center; gap: var(--rb-space-1); color: var(--rb-text-dim); white-space: nowrap; }
+.wfrp-recipe-book .rb-sheet-root .rb-block { margin-bottom: var(--rb-space-3); }
+.wfrp-recipe-book .rb-sheet-root .rb-row { padding: 2px 0; }
+.wfrp-recipe-book .rb-sheet-root .rb-block-title { display: flex; align-items: center; justify-content: space-between; gap: var(--rb-space-2); }
+
+/* Имя результата - поле в строке; пометка «новый предмет» */
+.wfrp-recipe-book .rb-result-name { flex: 1; min-width: 0; }
+.wfrp-recipe-book .rb-result-note { font-size: var(--rb-fs-s); font-style: italic; }
+
+/* Футер листа: отмена слева, сохранение справа, кнопки одной ширины */
+.wfrp-recipe-book .rb-sheet-foot { display: flex; align-items: center; gap: var(--rb-space-3); margin-top: auto; padding-top: var(--rb-space-3); border-top: 1px solid var(--rb-frame); }
+.wfrp-recipe-book .rb-sheet-foot-gap { flex: 1; }
+.wfrp-recipe-book .rb-sheet-foot .rb-btn { min-width: var(--rb-btn-minw); }
+
+/* ---------- Кнопка книги в шапке листа персонажа (картинка, как у paperdoll) ---------- */
+.rb-open img { width: 20px; height: 20px; object-fit: contain; border: none; vertical-align: middle; }
+
+/* ---------- Карточка в чат (токены объявлены и на .rb-chat-card) ---------- */
+.rb-chat-card { display: flex; gap: var(--rb-space-3); align-items: center; }
+.rb-chat-card img { width: 36px; height: 36px; object-fit: cover; border: 1px solid #999; border-radius: var(--rb-radius); }
+.rb-card-title { font-weight: 700; }
+.rb-card-line { font-size: var(--rb-fs-m); opacity: 0.8; }

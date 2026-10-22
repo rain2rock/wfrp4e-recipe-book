@@ -1,0 +1,312 @@
+/* ============================================================================
+   ДИЗАЙН-СИСТЕМА «Книги рецептов WFRP». Подключается ПЕРВОЙ, до стилей окон.
+   Витрина со всеми токенами и компонентами: docs/styleguide.html (npm run styleguide).
+   Палитры и подход - семейные с wfrp4e-paperdoll (pd-* -> rb-*).
+
+   Правила (см. CLAUDE.md, раздел «Дизайн-система»):
+   - отступы, зазоры и радиусы - ТОЛЬКО токенами --rb-space-* / --rb-radius*;
+   - размеры шрифтов - только шкалой --rb-fs-*;
+   - любая кнопка - класс .rb-btn (+ модификатор: --craft акцент, --quiet без подложки),
+     квадратные иконко-кнопки - .rb-add / .rb-remove;
+   - чипы-фильтры - .rb-filter, панель - .rb-filters;
+   - строки списков - .rb-row/.rb-ing, заголовки секций - .rb-block-title;
+   - размеры иконок - --rb-icon-s/l, монет - --rb-coin, кнопок - --rb-btn-h;
+   - цвета - только переменными темы (пергамент - дефолт, тёмная - .rb-theme-dark).
+   Сырые px ловит tools/qa/dslint.mjs (входит в npm run qa).
+   ============================================================================ */
+
+.wfrp-recipe-book,
+.rb-chat-card {
+  /* Шкала отступов */
+  --rb-space-1: 4px;
+  --rb-space-2: 6px;
+  --rb-space-3: 8px;
+  --rb-space-4: 10px;
+  --rb-space-5: 14px;
+  --rb-space-6: 12px;
+  --rb-space-7: 16px;
+
+  /* Радиусы */
+  --rb-radius: 4px;
+  --rb-radius-lg: 6px;
+  --rb-radius-xl: 10px;
+  --rb-radius-pill: 999px;
+
+  /* Шкала шрифтов */
+  --rb-fs-xs: 10px;
+  --rb-fs-s: 11px;
+  --rb-fs-m: 12px;
+  --rb-fs-base: 13px;
+  --rb-fs-l: 14px;
+  --rb-fs-xl: 16px;
+  --rb-fs-xxl: 20px;
+
+  /* Размеры: иконки, монеты, кнопки, числовые поля */
+  --rb-icon-s: 24px;
+  --rb-icon-l: 42px;
+  --rb-coin: 16px;
+  --rb-btn-h: 30px;
+  --rb-btn-minw: 128px;
+  --rb-btn-pad-y: 4px;
+  --rb-btn-pad-x: 10px;
+  --rb-num-w: 56px;
+  --rb-num-w-coin: 74px;
+
+  /* Тема по умолчанию - пергамент (палитра пергаментной темы paperdoll) */
+  --rb-bg: #d8d1c2;
+  --rb-bg-2: #cdc4b1;
+  --rb-panel: #e3ddd0;
+  --rb-frame: #8f846c;
+  --rb-frame-hi: #6f634c;
+  --rb-gold: #7a4c08;
+  --rb-gold-soft: #8a6a2a;
+  --rb-text: #2a2119;
+  --rb-text-dim: #5f5444;
+  --rb-text-2: #3d3326;
+  --rb-muted: #7a6e5a;
+  --rb-well: #b8b09e;
+  --rb-good: #2f7a12;
+  --rb-bad: #a32014;
+  --rb-warn: #8a4d08;
+  --rb-hover: rgba(122, 76, 8, 0.1);
+  --rb-line-soft: rgba(60, 45, 25, 0.2);
+}
+
+/* Тёмная тема (базовая палитра paperdoll) */
+.wfrp-recipe-book.rb-theme-dark {
+  --rb-bg: #0f0d0b;
+  --rb-bg-2: #1a1612;
+  --rb-panel: #15120f;
+  --rb-frame: #4a4339;
+  --rb-frame-hi: #6e6556;
+  --rb-gold: #ffd100;
+  --rb-gold-soft: #c9a45c;
+  --rb-text: #f0e6d2;
+  --rb-text-dim: #a89c86;
+  --rb-text-2: #d8ccb4;
+  --rb-muted: #8a7a5e;
+  --rb-well: #0b0907;
+  --rb-good: #9dff8a;
+  --rb-bad: #ff4f4f;
+  --rb-warn: #ffb37a;
+  --rb-hover: rgba(201, 164, 92, 0.12);
+  --rb-line-soft: rgba(201, 164, 92, 0.25);
+}
+
+/* ========================= Кнопки ========================= */
+
+/* Любая кнопка - .rb-btn: единая высота --rb-btn-h, свои паддинги и шрифты не задаются */
+.wfrp-recipe-book .rb-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--rb-space-2);
+  box-sizing: border-box; width: auto; height: auto; min-height: var(--rb-btn-h);
+  margin: 0; padding: var(--rb-btn-pad-y) var(--rb-btn-pad-x);
+  font-size: var(--rb-fs-m); line-height: 1.2; font-weight: 400; text-align: center;
+  background: var(--rb-well); border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
+  color: var(--rb-text); cursor: pointer;
+}
+.wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover); color: var(--rb-text); box-shadow: none; }
+.wfrp-recipe-book .rb-btn[disabled] { opacity: 0.5; cursor: default; }
+.wfrp-recipe-book .rb-btn i { color: var(--rb-muted); }
+.wfrp-recipe-book .rb-btn--quiet { background: none; border-color: transparent; }
+/* Акцентная кнопка главного действия окна («Создать», «Сохранить», «Выдать»):
+   тот же размер, что у всех кнопок - выделяется только рамкой и жирностью */
+.wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft); font-weight: 600; }
+
+/* Квадратные иконко-кнопки: «+» в заголовке секции и крестик удаления строки */
+.wfrp-recipe-book .rb-add,
+.wfrp-recipe-book .rb-remove {
+  width: var(--rb-icon-s); height: var(--rb-icon-s); min-height: 0; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.wfrp-recipe-book .rb-remove:hover i { color: var(--rb-bad); }
+
+/* ========================= Чипы-фильтры ========================= */
+
+.wfrp-recipe-book .rb-filters { display: flex; flex-wrap: wrap; gap: var(--rb-space-2); }
+.wfrp-recipe-book .rb-filter {
+  display: inline-flex; align-items: center; gap: var(--rb-space-1);
+  padding: 2px var(--rb-space-3); margin: 0; width: auto; line-height: 1.4;
+  font-size: var(--rb-fs-s); color: var(--rb-text-dim);
+  background: none; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius-pill); cursor: pointer;
+}
+.wfrp-recipe-book .rb-filter:hover { background: var(--rb-hover); box-shadow: none; }
+.wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text); border-color: var(--rb-gold-soft); background: var(--rb-hover); }
+.wfrp-recipe-book .rb-filter--world { border-style: dashed; }
+.wfrp-recipe-book .rb-count { opacity: 0.7; font-size: var(--rb-fs-xs); }
+
+/* ========================= Поля ввода ========================= */
+
+/* База для всех полей окна: колодец, рамка, радиус. Фокус - золотая рамка без свечения */
+.wfrp-recipe-book input[type="text"],
+.wfrp-recipe-book input[type="number"],
+.wfrp-recipe-book select,
+.wfrp-recipe-book textarea {
+  box-sizing: border-box; background: var(--rb-well); color: var(--rb-text);
+  border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
+  padding: var(--rb-space-1) var(--rb-space-2);
+  font-size: var(--rb-fs-m); font-family: inherit; height: auto;
+}
+.wfrp-recipe-book input:focus,
+.wfrp-recipe-book select:focus,
+.wfrp-recipe-book textarea:focus { outline: none; border-color: var(--rb-gold-soft); box-shadow: none; }
+
+/* Селект: свой шеврон с нормальным отступом от края */
+.wfrp-recipe-book select {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237a6e5a' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--rb-space-3) center;
+  padding-right: calc(var(--rb-space-3) * 3);
+}
+
+/* Числовое поле */
+.wfrp-recipe-book .rb-num { width: var(--rb-num-w); flex: 0 0 var(--rb-num-w); text-align: center; }
+/* Подпись единицы после числового поля («д» «ч» «м») */
+.wfrp-recipe-book .rb-unit { color: var(--rb-muted); font-size: var(--rb-fs-m); margin-right: var(--rb-space-2); }
+.wfrp-recipe-book .rb-money-fields { display: inline-flex; align-items: center; gap: var(--rb-space-2); }
+
+/* Поле с монетой внутри, прибитой к левому краю */
+.wfrp-recipe-book .rb-coinfield { position: relative; display: inline-flex; align-items: center; }
+.wfrp-recipe-book .rb-coinfield .rb-coin-img,
+.wfrp-recipe-book .rb-coinfield .rb-coin-dot {
+  position: absolute; left: var(--rb-space-2); top: 50%; transform: translateY(-50%);
+  margin: 0; pointer-events: none;
+}
+.wfrp-recipe-book .rb-coinfield .rb-num {
+  width: var(--rb-num-w-coin); flex-basis: var(--rb-num-w-coin);
+  padding-left: calc(var(--rb-space-2) + var(--rb-coin) + var(--rb-space-1)); text-align: left;
+}
+
+/* Поиск с лупой внутри */
+.wfrp-recipe-book .rb-search { position: relative; }
+.wfrp-recipe-book .rb-search i { position: absolute; left: var(--rb-space-3); top: 50%; transform: translateY(-50%); color: var(--rb-muted); font-size: var(--rb-fs-s); }
+.wfrp-recipe-book .rb-search input { width: 100%; padding-left: calc(var(--rb-space-3) * 3); }
+
+/* Строка формы: подпись слева, поле справа */
+.wfrp-recipe-book .rb-field { display: flex; align-items: center; gap: var(--rb-space-3); padding: 2px 0; }
+.wfrp-recipe-book .rb-field label { flex: 0 0 38%; color: var(--rb-text-dim); font-size: var(--rb-fs-m); }
+.wfrp-recipe-book .rb-field input[type="text"], .wfrp-recipe-book .rb-field select { flex: 1; width: 100%; }
+.wfrp-recipe-book textarea { width: 100%; }
+
+/* ========================= Секции и строки ========================= */
+
+/* Заголовок секции - капителью с золотой чертой */
+.wfrp-recipe-book .rb-block-title {
+  font-size: var(--rb-fs-s); text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--rb-gold); border-bottom: 1px solid var(--rb-frame);
+  padding-bottom: 2px; margin-bottom: var(--rb-space-2);
+}
+
+/* Строка «ключ - значение»; .rb-ing - строка предмета с иконкой и счётчиком */
+.wfrp-recipe-book .rb-row { display: flex; justify-content: space-between; align-items: center; gap: var(--rb-space-4); padding: var(--rb-space-1) 0; }
+.wfrp-recipe-book .rb-row.is-bad { color: var(--rb-bad); }
+.wfrp-recipe-book .rb-ing.is-ok .rb-ing-count { color: var(--rb-good); }
+.wfrp-recipe-book .rb-ing.is-bad .rb-ing-count { color: var(--rb-bad); font-weight: 600; }
+.wfrp-recipe-book .rb-ing-name { display: inline-flex; align-items: center; gap: var(--rb-space-2); min-width: 0; }
+.wfrp-recipe-book .rb-ing-name img { width: var(--rb-icon-s); height: var(--rb-icon-s); object-fit: cover; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius); }
+.wfrp-recipe-book .rb-dim { color: var(--rb-muted); font-weight: 400; }
+
+/* Рамка под FA-иконку в строках условий - в размер иконок предметов */
+.wfrp-recipe-book .rb-ing-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: var(--rb-icon-s); height: var(--rb-icon-s); flex: 0 0 var(--rb-icon-s);
+  border: 1px solid var(--rb-frame); border-radius: var(--rb-radius);
+  background: var(--rb-well); color: var(--rb-muted); font-size: var(--rb-fs-m);
+}
+
+/* Зона перетаскивания (лист рецепта) */
+.wfrp-recipe-book [data-dropzone] { border: 1px dashed var(--rb-frame); border-radius: var(--rb-radius-lg); padding: var(--rb-space-3); }
+.wfrp-recipe-book [data-dropzone]:hover { border-color: var(--rb-gold-soft); background: var(--rb-hover); }
+
+/* ========================= Полосы прогресса ========================= */
+
+.wfrp-recipe-book .rb-progress { height: var(--rb-space-4); border-radius: var(--rb-radius-pill); background: var(--rb-well); border: 1px solid var(--rb-frame); overflow: hidden; }
+.wfrp-recipe-book .rb-progress-fill { height: 100%; background: linear-gradient(90deg, var(--rb-gold-soft), var(--rb-gold)); }
+.wfrp-recipe-book .rb-mini-progress { flex: 0 0 48px; height: 5px; border-radius: var(--rb-radius-pill); background: var(--rb-well); overflow: hidden; }
+.wfrp-recipe-book .rb-mini-progress span { display: block; height: 100%; background: var(--rb-gold-soft); }
+
+/* ========================= Монеты ========================= */
+
+/* Номинал с числом: иконка монеты (coinIco: wfrp4e-core или с монет актёра) либо запасной кружок */
+.wfrp-recipe-book .rb-coin { white-space: nowrap; }
+.wfrp-recipe-book .rb-coin-img { width: var(--rb-coin); height: var(--rb-coin); object-fit: contain; border: none; vertical-align: middle; margin-left: 2px; }
+.wfrp-recipe-book .rb-coin-dot {
+  display: inline-block; vertical-align: middle; margin-left: 3px;
+  width: var(--rb-coin); height: var(--rb-coin); border-radius: 50%;
+  box-shadow: inset 0 -2px 2px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.45);
+}
+.wfrp-recipe-book .rb-coin-dot--gc { background: radial-gradient(circle at 35% 30%, #fff3a0, #e0b020 55%, #8a6408); }
+.wfrp-recipe-book .rb-coin-dot--ss { background: radial-gradient(circle at 35% 30%, #ffffff, #c8ccd0 55%, #6e7378); }
+.wfrp-recipe-book .rb-coin-dot--bp { background: radial-gradient(circle at 35% 30%, #ffd2a0, #c07a38 55%, #6a3a12); }
+
+/* ========================= Пикер предметов из базы ========================= */
+
+.wfrp-recipe-book .rb-picker {
+  margin-top: var(--rb-space-2); padding: var(--rb-space-2);
+  border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius-lg);
+  background: var(--rb-panel);
+}
+.wfrp-recipe-book .rb-picker-search { width: 100%; margin-bottom: var(--rb-space-2); }
+.wfrp-recipe-book .rb-picker-list { max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+.wfrp-recipe-book .rb-picker-row {
+  display: flex; align-items: center; gap: var(--rb-space-2);
+  width: 100%; margin: 0; padding: var(--rb-space-1) var(--rb-space-2);
+  background: none; border: 1px solid transparent; border-radius: var(--rb-radius);
+  color: var(--rb-text); font-size: var(--rb-fs-m); font-family: inherit; text-align: left; cursor: pointer;
+}
+.wfrp-recipe-book .rb-picker-row:hover { background: var(--rb-hover); box-shadow: none; }
+.wfrp-recipe-book .rb-picker-row img { width: 20px; height: 20px; object-fit: cover; border: 1px solid var(--rb-frame); border-radius: 3px; }
+.wfrp-recipe-book .rb-picker-empty { color: var(--rb-muted); font-size: var(--rb-fs-m); padding: var(--rb-space-2); font-style: italic; }
+
+/* ========================= Свой тултип (порт PaperdollTooltip) ========================= */
+
+.wfrp-recipe-book.rb-tooltip {
+  position: fixed;
+  z-index: 10000;
+  display: none;
+  max-width: 380px;
+  padding: var(--rb-space-3) var(--rb-space-4);
+  font-size: var(--rb-fs-l);
+  line-height: 1.4;
+  color: var(--rb-text);
+  background: var(--rb-panel);
+  border: 1px solid var(--rb-frame-hi);
+  border-radius: var(--rb-radius-lg);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+.wfrp-recipe-book.rb-tooltip.is-visible { display: block; }
+
+/* Богатый ховер предмета */
+.wfrp-recipe-book .rb-tt-head { display: flex; gap: var(--rb-space-3); align-items: flex-start; margin-bottom: var(--rb-space-2); }
+.wfrp-recipe-book .rb-tt-head > img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius); flex: 0 0 var(--rb-icon-l); }
+.wfrp-recipe-book .rb-tt-name { font-size: var(--rb-fs-xl); font-weight: 700; color: var(--rb-gold); }
+.wfrp-recipe-book .rb-tt-line { color: var(--rb-text-2); font-size: var(--rb-fs-m); }
+.wfrp-recipe-book .rb-tt-craft { border-top: 1px solid var(--rb-frame); padding-top: var(--rb-space-1); margin-top: var(--rb-space-1); }
+.wfrp-recipe-book .rb-tt-desc { margin-top: var(--rb-space-2); color: var(--rb-text-dim); font-style: italic; }
+.wfrp-recipe-book .rb-tt-desc p { margin: 0 0 var(--rb-space-1); }
+
+/* Короткая подсказка-карточка (данные - из data-rb-tip, разметка - RBTooltip.tipHtml) */
+.wfrp-recipe-book.rb-tooltip.is-tip { max-width: 320px; }
+.wfrp-recipe-book .rb-tip-head { font-weight: 700; font-size: var(--rb-fs-l); color: var(--rb-text); }
+.wfrp-recipe-book .rb-tip-head + .rb-tip-line { margin-top: var(--rb-space-1); padding-top: var(--rb-space-1); border-top: 1px solid var(--rb-line-soft); }
+.wfrp-recipe-book .rb-tip-line { color: var(--rb-text-2); }
+.wfrp-recipe-book .rb-tip-line.is-kv { display: flex; justify-content: space-between; gap: var(--rb-space-4); }
+.wfrp-recipe-book .rb-tip-line.is-kv b { font-weight: 700; color: var(--rb-text); white-space: nowrap; }
+.wfrp-recipe-book .rb-tip-head.is-kv { display: flex; justify-content: space-between; gap: var(--rb-space-4); }
+.wfrp-recipe-book .rb-tip-line.is-sub { position: relative; padding-left: var(--rb-space-6); }
+.wfrp-recipe-book .rb-tip-dot {
+  position: absolute; left: 2px; top: 0.62em;
+  width: 4px; height: 4px; border-radius: 50%; background: var(--rb-muted);
+}
+.wfrp-recipe-book .rb-tip-line.is-warn, .wfrp-recipe-book .rb-tip-line.is-warn b { color: var(--rb-bad); }
+.wfrp-recipe-book .rb-tip-section {
+  margin-top: var(--rb-space-2); padding-top: var(--rb-space-1);
+  border-top: 1px solid var(--rb-line-soft);
+  font-weight: 700; font-size: var(--rb-fs-m); color: var(--rb-text);
+}
+.wfrp-recipe-book .rb-tip-note {
+  margin-top: var(--rb-space-2); padding-top: var(--rb-space-1);
+  border-top: 1px dashed var(--rb-line-soft);
+  font-size: var(--rb-fs-m); color: var(--rb-muted); font-style: italic;
+}

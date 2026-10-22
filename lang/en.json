@@ -1,0 +1,191 @@
+{
+  "TYPES": {
+    "Item": {
+      "wfrp4e-recipe-book.recipe": "Recipe"
+    }
+  },
+  "WFRPRB": {
+    "Title": "Recipe Book",
+    "Open": "Recipe Book",
+    "Search": "Search recipe...",
+    "Filter": {
+      "all": "All",
+      "ready": "Can craft",
+      "missing": "Missing",
+      "world": "World"
+    },
+    "InWork": "In progress",
+    "InWorkOne": "In progress",
+    "Ready": "Ready to craft",
+    "Empty": "No recipes yet. A recipe is an item: drag it onto a character and it will appear in the book.",
+    "Check": "Test",
+    "SLTarget": "Required success level",
+    "SL": "SL",
+    "TalentShort": "from Talent",
+    "Ingredients": "Ingredients",
+    "NoIngredients": "No ingredients required",
+    "RawMoney": "Other raw materials",
+    "Workshop": "Workshop required",
+    "MissingLabel": "Missing",
+    "Create": "Craft",
+    "Progress": "Progress",
+    "Continue": "Continue work",
+    "OpenResult": "Open item",
+    "EditRecipe": "Edit recipe",
+    "Abandon": {
+      "Title": "Abandon project?",
+      "Hint": "Spent materials will not be returned. Abandon the unfinished work?",
+      "Button": "Abandon"
+    },
+    "Missing": {
+      "skill": "skill",
+      "ingredients": "ingredients",
+      "money": "money",
+      "tools": "tools"
+    },
+    "Craft": {
+      "CantStart": "Cannot start: missing - {what}.",
+      "TestName": "Crafting: {name}",
+      "NoSystem": "WFRP4e system not found - roll impossible."
+    },
+    "Chat": {
+      "Done": "Crafted: {name} ×{count}",
+      "Failed": "Failed: {name}",
+      "Loss": {
+        "none": "Materials were preserved.",
+        "half": "Half of the materials were ruined.",
+        "all": "All materials were ruined."
+      }
+    },
+    "Money": {
+      "gc": "GC",
+      "ss": "SS",
+      "bp": "BP",
+      "NoCoin": "The character has no coin stacks of the required denominations.",
+      "NotEnough": "Not enough money.",
+      "Name": {
+        "gc": "Gold Crown",
+        "ss": "Silver Shilling",
+        "bp": "Brass Penny"
+      }
+    },
+    "Hotkey": {
+      "Name": "Open Recipe Book",
+      "NoActor": "Select a token or assign a primary character."
+    },
+    "Settings": {
+      "Enabled": {
+        "Name": "Module enabled",
+        "Hint": "Disables the recipe book for the entire table."
+      },
+      "HighlightMoney": {
+        "Name": "Highlighting accounts for money",
+        "Hint": "If disabled, \"can craft\" only checks skill and ingredients, and money is checked at crafting time."
+      },
+      "FailLoss": {
+        "Name": "Loss on failure",
+        "Hint": "What happens to materials if the total success level drops below zero.",
+        "none": "Nothing is lost",
+        "half": "Half is lost",
+        "all": "Everything is lost"
+      },
+      "BookTheme": {
+        "Name": "Book theme",
+        "Hint": "Parchment or dark.",
+        "parchment": "Parchment",
+        "dark": "Dark"
+      },
+      "PlayerView": {
+        "Name": "GM: player view",
+        "Hint": "Show the recipe book exactly as a regular player sees it - without the World tab and recipe creation, editing or deletion."
+      }
+    },
+    "Sheet": {
+      "Label": "Recipe Sheet",
+      "DefaultName": "Recipe: {name}",
+      "Result": "Result",
+      "DropHint": "drag an item here",
+      "NoResult": "Result item name...",
+      "Skill": "Skill",
+      "SkillAlt": "Alternative skill",
+      "Difficulty": "Difficulty",
+      "Conditions": "Conditions",
+      "Tools": "Tools",
+      "Description": "Description",
+      "Remove": "Remove",
+      "PickImage": "Choose image",
+      "SearchItem": "Search the database...",
+      "NothingFound": "Nothing found",
+      "AddFromDb": "Add from database",
+      "CustomResult": "New item: it will be created on craft completion with this name and the recipe icon",
+      "Save": "Save",
+      "SaveAsNew": "Save as new",
+      "Cancel": "Cancel",
+      "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored"
+    },
+    "Difficulty": {
+      "veryEasy": "Very Easy (+60)",
+      "easy": "Easy (+40)",
+      "average": "Average (+20)",
+      "challenging": "Challenging (+0)",
+      "difficult": "Difficult (-10)",
+      "hard": "Hard (-20)",
+      "veryHard": "Very Hard (-30)"
+    },
+    "Conditions": "Conditions",
+    "Time": {
+      "Label": "Crafting time",
+      "d": "d",
+      "h": "h",
+      "m": "m"
+    },
+    "Avail": {
+      "common": "Common",
+      "scarce": "Scarce",
+      "rare": "Rare",
+      "exotic": "Exotic"
+    },
+    "Tip": {
+      "EntryReady": "Ready to craft\nAll requirements met.",
+      "EntryMissing": "Cannot craft yet\n! Missing: {what}",
+      "Check": "Trade test\nSkill «{skill}»\t{total}\nDifficulty\t{mod}\nd100 target\t{target}\n~ Roll at or under the target to succeed.",
+      "NoSkill": "No skill\nThe character lacks «{skill}» - it can be learned through advancement.",
+      "SL": "Success levels (SL)\nRequired\t{target}\n~ Successful rolls add SL. If the total drops below zero, the work is ruined.",
+      "Talent": "Craftsman has already lowered the target",
+      "Ingredient": "In stock {have} of {need}\n~ Consumed when work begins.",
+      "Money": "Raw materials\nCharacter has\t{have}\nRequired\t{need}",
+      "Time": "Crafting time\nOnly non-zero units are shown: days, hours, minutes.\n~ Does not affect rolls; guidance for the GM.",
+      "Workshop": "Workshop\nThe rules require a suitable workshop - ask your GM.",
+      "Progress": "Progress\nSL accumulated out of required. Each endeavour between adventures allows one roll.",
+      "Price": "Price",
+      "Avail": "Availability",
+      "InStock": "In stock",
+      "Need": "required",
+      "ToolNote": "Tool: the character must have it; not consumed.",
+      "MoneyLeft": "Left after crafting\t{left}",
+      "MoneyShort": "Short by\t{short}",
+      "MoneyNote": "~ Minor materials without a separate item - paid in coin."
+    },
+    "Tool": {
+      "Have": "yes",
+      "Missing": "no"
+    },
+    "NewRecipe": "New recipe",
+    "NewRecipeHint": "New recipe\nCreates a recipe item in the Items tab. Fill in the sheet and give it to a player by dragging it onto their character.",
+    "World": {
+      "Hint": "All world recipes\nGM only: give, edit or delete recipes from here.",
+      "Give": "Give to character",
+      "GiveTip": "The character learns a copy of this recipe",
+      "Edit": "Edit",
+      "Given": "«{name}» given to {actor}"
+    },
+    "Delete": {
+      "WorldTitle": "Delete world recipe?",
+      "WorldHint": "«{name}» will be deleted permanently. Learned copies remain with characters.",
+      "ActorTitle": "Remove from book?",
+      "ActorHint": "The character forgets «{name}». The world recipe (if any) remains.",
+      "WorldTip": "Delete from world",
+      "ActorTip": "Remove from book"
+    }
+  }
+}

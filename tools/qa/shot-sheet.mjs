@@ -1,0 +1,17 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 760, height: 980 } });
+await page.goto("file://" + path.join(root, "docs/book-mock.html"));
+await page.waitForSelector(".rb-root");
+await page.locator(".rb-entry", { hasText: "Противоядие" }).first().click();
+await page.waitForTimeout(80);
+await page.click("#tb-sheet");
+await page.waitForTimeout(200);
+await page.click("#rb-sheet-demo [data-action='addItem'][data-zone='ingredients']");
+await page.waitForTimeout(120);
+await page.locator("#rb-sheet-demo").screenshot({ path: path.join(root, "docs", "book-sheet.png") });
+await browser.close();
+console.log("ok");

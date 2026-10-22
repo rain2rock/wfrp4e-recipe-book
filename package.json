@@ -1,0 +1,17 @@
+{
+  "name": "wfrp4e-recipe-book",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "mock": "node tools/build-mock.mjs --out docs/book-mock.html",
+    "qa": "node tools/qa/bookchk.mjs docs/book-mock.html && node tools/qa/dslint.mjs",
+    "styleguide": "node tools/build-styleguide.mjs",
+    "dslint": "node tools/qa/dslint.mjs"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.10"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}

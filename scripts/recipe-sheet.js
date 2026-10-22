@@ -1,0 +1,256 @@
+/* Лист рецепта (для ГМа): поля + перетаскивание результата и ингредиентов.
+   При дропе результата подставляем сложность по доступности, УУ по цене,
+   сырьё = 1/4 цены - по правилам «Создание предмета» (стр. 199). */
+
+import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
+import { L, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex } from "./recipe-book.js";
+
+const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
+const ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
+
+const AVAIL_TO_DIFF = { common: "average", scarce: "challenging", rare: "difficult", exotic: "veryHard" };
+
+export function suggestFromItem(doc) {
+  const sys = doc.system ?? {};
+  const bp = priceBp(sys);
+  const avail = sys.availability?.value ?? "common";
+  return {
+    difficulty: AVAIL_TO_DIFF[avail] ?? "challenging",
+    slTarget: bp >= COIN_VALUE.gc ? 15 : bp >= COIN_VALUE.ss ? 10 : 5,
+    moneyBp: Math.floor(bp / 4)
+  };
+}
+
+export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
+  static DEFAULT_OPTIONS = {
+    classes: ["wfrp-recipe-book", "rb-sheet"],
+    position: { width: 540, height: 660 },
+    window: { resizable: true },
+    form: { submitOnChange: true, closeOnSubmit: false },
+    actions: {
+      removeIngredient: RecipeSheet.#onRemoveIngredient,
+      removeTool: RecipeSheet.#onRemoveTool,
+      addItem: RecipeSheet.#onAddItem,
+      pickImage: RecipeSheet.#onPickImage,
+      saveSheet: RecipeSheet.#onSave,
+      saveAsNew: RecipeSheet.#onSaveAsNew,
+      cancelSheet: RecipeSheet.#onCancel
+    }
+  };
+
+  static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs` } };
+
+  async _prepareContext() {
+    const sys = this.document.system;
+    // Навыки из базы (мир + компендиумы); текущее значение всегда в списке
+    const names = [...await skillNames()];
+    for (const v of [sys.skill, sys.skillAlt]) if (v && !names.includes(v)) names.unshift(v);
+    return {
+      item: this.document,
+      sys,
+      editable: this.isEditable,
+      skills: names.map((n) => ({ name: n, selected: n === sys.skill })),
+      skillsAlt: names.map((n) => ({ name: n, selected: n === sys.skillAlt })),
+      moneyGc: Math.floor((sys.moneyBp || 0) / COIN_VALUE.gc),
+      moneySs: Math.floor(((sys.moneyBp || 0) % COIN_VALUE.gc) / COIN_VALUE.ss),
+      moneyBpRest: (sys.moneyBp || 0) % COIN_VALUE.ss,
+      coinGc: coinIco("gc"), coinSs: coinIco("ss"), coinBp: coinIco("bp"),
+      difficulties: Object.keys(game.wfrp4e?.config?.difficultyLabels ?? FALLBACK_DIFFICULTIES).map((k) => ({
+        key: k,
+        label: game.wfrp4e?.config?.difficultyLabels?.[k] ? game.i18n.localize(game.wfrp4e.config.difficultyLabels[k]) : game.i18n.localize(FALLBACK_DIFFICULTIES[k]?.label ?? k),
+        selected: sys.difficulty === k
+      }))
+    };
+  }
+
+  /** Снимок на момент открытия - для «Отмены» и «Сохранить как новый» */
+  #snapshot() {
+    const o = this.document.toObject();
+    return { name: o.name, img: o.img, system: foundry.utils?.deepClone?.(o.system) ?? JSON.parse(JSON.stringify(o.system)) };
+  }
+
+  async #revert() {
+    if (!this._snap) return;
+    await this.document.update({ name: this._snap.name, img: this._snap.img, system: this._snap.system });
+  }
+
+  static async #onSave() {
+    this._snap = null;
+    await this.close();
+  }
+
+  static async #onSaveAsNew() {
+    const o = this.document.toObject();
+    const data = { name: o.name, type: o.type, img: o.img, system: o.system };
+    await this.#revert();           // исходный рецепт остаётся как был
+    this._snap = null;
+    await this.close();
+    const made = await Item.create(data);
+    made?.sheet?.render(true);
+  }
+
+  static async #onCancel() {
+    await this.#revert();
+    this._snap = null;
+    await this.close();
+  }
+
+  _onRender() {
+    const root = this.element;
+    this._snap ??= this.#snapshot();
+    // Имя результата можно вписать руками. Если имя совпадает с предметом базы -
+    // привязываем его (защита от «удалил название и вписал такое же»), иначе это
+    // полностью НОВЫЙ предмет: uuid пуст, создастся при завершении крафта
+    root.querySelector(".rb-result-name")?.addEventListener("change", async (ev) => {
+      const name = ev.currentTarget.value.trim();
+      const known = (await itemIndex()).find((i) => i.name.trim().toLowerCase() === name.toLowerCase());
+      await this.document.update(known
+        ? { "system.result": { ...this.document.system.result, name: known.name, uuid: known.uuid, img: known.img } }
+        : { "system.result.name": name, "system.result.uuid": "" });
+      this.render();
+    });
+    for (const zone of root.querySelectorAll("[data-dropzone]")) {
+      zone.addEventListener("dragover", (ev) => ev.preventDefault());
+      zone.addEventListener("drop", (ev) => this.#onDrop(ev, zone.dataset.dropzone));
+    }
+    // Деньги: три поля номиналов складываем в пенни
+    const sync = () => {
+      const v = (sel) => Number(root.querySelector(sel)?.value) || 0;
+      const bp = v(".rb-money-gc") * COIN_VALUE.gc + v(".rb-money-ss") * COIN_VALUE.ss + v(".rb-money-bp");
+      this.document.update({ "system.moneyBp": bp });
+    };
+    for (const sel of [".rb-money-gc", ".rb-money-ss", ".rb-money-bp"])
+      root.querySelector(sel)?.addEventListener("change", sync);
+  }
+
+  async #onDrop(event, zone) {
+    event.preventDefault();
+    if (!this.isEditable) return;
+    let data;
+    try { data = JSON.parse(event.dataTransfer.getData("text/plain")); } catch { return; }
+    if (data?.type !== "Item" || !data.uuid) return;
+    const doc = await fromUuid(data.uuid).catch(() => null);
+    if (!doc) return;
+    if (zone === "result") {
+      return this.#applyResult(doc);
+    } else if (zone === "tools") {
+      const list = [...this.document.system.tools];
+      if (!list.find((t) => t.name === doc.name)) list.push({ uuid: doc.uuid, name: doc.name, img: doc.img });
+      await this.document.update({ "system.tools": list });
+      this.render();
+    } else if (zone === "ingredients") {
+      const list = [...this.document.system.ingredients];
+      const found = list.find((i) => i.name === doc.name);
+      if (found) found.count += 1;
+      else list.push({ uuid: doc.uuid, name: doc.name, img: doc.img, count: 1 });
+      await this.document.update({ "system.ingredients": list });
+      this.render();
+    }
+  }
+
+  /** Результат из предмета базы: заполняет поля и подсказки по правилам (стр. 199) */
+  async #applyResult(doc) {
+    const sug = suggestFromItem(doc);
+    await this.document.update({
+      name: game.i18n.format("WFRPRB.Sheet.DefaultName", { name: doc.name }),
+      "system.result": { uuid: doc.uuid, name: doc.name, img: doc.img, count: this.document.system.result.count || 1 },
+      "system.difficulty": sug.difficulty,
+      "system.slTarget": sug.slTarget,
+      "system.moneyBp": sug.moneyBp
+    });
+    this.render();
+  }
+
+  /** Добавить найденный предмет в нужную зону */
+  async #applyPick(zone, entry) {
+    if (zone === "icon") {
+      // Иконка РЕЦЕПТА (книжки в списке); иконка результата - своя, с предмета-результата
+      await this.document.update({ img: entry.img });
+    } else if (zone === "result") {
+      const doc = await fromUuid(entry.uuid).catch(() => null);
+      if (doc) return this.#applyResult(doc);
+    } else if (zone === "ingredients") {
+      const list = [...this.document.system.ingredients];
+      const found = list.find((i) => i.name === entry.name);
+      if (found) found.count += 1;
+      else list.push({ uuid: entry.uuid, name: entry.name, img: entry.img, count: 1 });
+      await this.document.update({ "system.ingredients": list });
+    } else if (zone === "tools") {
+      const list = [...this.document.system.tools];
+      if (!list.find((t) => t.name === entry.name)) list.push({ uuid: entry.uuid, name: entry.name, img: entry.img });
+      await this.document.update({ "system.tools": list });
+    }
+    this.render();
+  }
+
+  /** Выпадающий поиск по базе: input + список, клик добавляет */
+  async #openPicker(zone, anchor) {
+    this.#closePicker();
+    const items = await itemIndex();
+    const panel = document.createElement("div");
+    panel.className = "rb-picker";
+    panel.innerHTML = `<input type="text" class="rb-picker-search" placeholder="${esc(L("WFRPRB.Sheet.SearchItem"))}"><div class="rb-picker-list"></div>`;
+    anchor.after(panel);
+    this._picker = panel;
+    const list = panel.querySelector(".rb-picker-list");
+    const input = panel.querySelector(".rb-picker-search");
+    const show = (q) => {
+      const n = q.trim().toLowerCase();
+      const match = items.filter((i) => !n || i.name.toLowerCase().includes(n)).slice(0, 30);
+      list.innerHTML = match.map((i, idx) =>
+        `<button type="button" class="rb-picker-row" data-idx="${idx}"><img src="${esc(i.img ?? "")}" alt="">${esc(i.name)}</button>`).join("")
+        || `<div class="rb-picker-empty">${esc(L("WFRPRB.Sheet.NothingFound"))}</div>`;
+      list.querySelectorAll(".rb-picker-row").forEach((row, idx) => {
+        row.addEventListener("click", () => {
+          this.#applyPick(zone, match[idx]);
+          this.#closePicker();
+        });
+      });
+    };
+    show("");
+    input.addEventListener("input", () => show(input.value));
+    input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") this.#closePicker(); });
+    setTimeout(() => {
+      this._pickerAway = (ev) => { if (!panel.contains(ev.target)) this.#closePicker(); };
+      document.addEventListener("pointerdown", this._pickerAway);
+    }, 0);
+    input.focus();
+  }
+
+  #closePicker() {
+    this._picker?.remove();
+    this._picker = null;
+    if (this._pickerAway) {
+      document.removeEventListener("pointerdown", this._pickerAway);
+      this._pickerAway = null;
+    }
+  }
+
+  static async #onAddItem(event, target) {
+    await this.#openPicker(target.dataset.zone, target.closest(".rb-block-title"));
+  }
+
+  static async #onRemoveIngredient(event, target) {
+    const list = [...this.document.system.ingredients];
+    list.splice(Number(target.dataset.index), 1);
+    await this.document.update({ "system.ingredients": list });
+    this.render();
+  }
+
+  static async #onRemoveTool(event, target) {
+    const list = [...this.document.system.tools];
+    list.splice(Number(target.dataset.index), 1);
+    await this.document.update({ "system.tools": list });
+    this.render();
+  }
+
+  async close(options) {
+    this._snap = null;
+    this.#closePicker();
+    return super.close(options);
+  }
+
+  static async #onPickImage(event, target) {
+    await this.#openPicker("icon", target.closest(".rb-sheet-head"));
+  }
+}

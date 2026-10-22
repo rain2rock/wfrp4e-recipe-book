@@ -1,0 +1,16 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
+await page.goto("file://" + path.join(root, "docs/book-mock.html"));
+await page.waitForSelector(".rb-root");
+await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "bookTheme", "dark"));
+await page.evaluate(() => [...RB.RecipeBookApp.instances.values()][0].render());
+await page.waitForTimeout(100);
+await page.locator(".rb-entry", { hasText: "Лечебная настойка" }).first().click();
+await page.waitForTimeout(100);
+await page.locator("#rb-book-hugo").screenshot({ path: path.join(root, "docs", "book-mock-dark.png") });
+await browser.close();
+console.log("dark shot ok");
