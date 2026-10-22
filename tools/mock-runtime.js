@@ -78,10 +78,13 @@
       if (!this.element) this._buildFrame();
       const content = this.element.querySelector(".window-content");
       const scrollSel = Object.values(this.constructor.PARTS ?? {}).flatMap((p) => p.scrollable ?? []);
-      const scrollKeep = scrollSel.map((s) => [s, content.querySelector(s)?.scrollTop ?? 0]);
+      // Как ядро Foundry: "" - сам корень части; селекторы ищутся ВНУТРИ корня части (не по окну)
+      const partRoot = () => content.firstElementChild;
+      const resolve = (s) => (s === "" ? partRoot() : partRoot()?.querySelector(s) ?? null);
+      const scrollKeep = scrollSel.map((s) => [s, resolve(s)?.scrollTop ?? 0]);
       const part = Object.values(this.constructor.PARTS)[0];
       content.innerHTML = templates[part.template](ctx);
-      for (const [s, top] of scrollKeep) { const el = content.querySelector(s); if (el) el.scrollTop = top; }
+      for (const [s, top] of scrollKeep) { const el = resolve(s); if (el) el.scrollTop = top; }
       this.element.querySelector(".window-title").textContent = this.title || i18n.localize(this.options.window.title ?? "");
       this.rendered = true;
       await this._onRender(ctx, {});

@@ -41,7 +41,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     }
   };
 
-  static PARTS = { forge: { template: `modules/${MODULE_ID}/templates/item-forge.hbs`, scrollable: [".rb-forge-root"] } };
+  static PARTS = { forge: { template: `modules/${MODULE_ID}/templates/item-forge.hbs`, scrollable: [""] } };
 
   /** @param {RecipeSheet} sheet лист рецепта, из которого открыт мастер */
   constructor(sheet, options = {}) {

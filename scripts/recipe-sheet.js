@@ -41,7 +41,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     }
   };
 
-  static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs`, scrollable: [".rb-sheet-root"] } };
+  static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs`, scrollable: [""] } };
 
   /** Перерисовка после update: в живом Foundry лист перерисовывает ЯДРО (DocumentSheetV2
       слушает документ) - наша вторая перерисовка гонялась с ней и сбрасывала скролл.

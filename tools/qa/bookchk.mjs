@@ -614,6 +614,14 @@ ok(await page.evaluate((f) => {
   const w = __RB_worldItems__.find((x) => x.name === "Кинжал");
   return img.getAttribute("src") === w.img;
 }, forge), "иконка предмета в мастере выбрана из базы");
+/* скролл мастера не прыгает при переключении чекбокса */
+await page.evaluate((f) => { document.querySelector(`${f} .rb-forge-root`).scrollTop = 250; }, forge);
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
+await page.waitForTimeout(200);
+const forgeScroll = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-root`).scrollTop, forge);
+ok(forgeScroll > 100, "скролл мастера сохранился после чекбокса", `(${forgeScroll})`);
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
+await page.waitForTimeout(150);
 /* крит-качество и правила брака */
 await page.click(`${forge} .rb-critrow[data-key='damaging'] .rb-prop-on`);
 await page.click(`${forge} .rb-forge-failflawed`);
