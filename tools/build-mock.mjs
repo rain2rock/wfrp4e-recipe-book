@@ -21,13 +21,14 @@ Object.assign(lang.TYPES.Item, { trapping: "Товар", weapon: "Оружие" 
 const langEn = JSON.parse(read("lang/en.json"));
 const templates = {
   "modules/wfrp4e-recipe-book/templates/book.hbs": read("templates/book.hbs"),
-  "modules/wfrp4e-recipe-book/templates/recipe-sheet.hbs": read("templates/recipe-sheet.hbs")
+  "modules/wfrp4e-recipe-book/templates/recipe-sheet.hbs": read("templates/recipe-sheet.hbs"),
+  "modules/wfrp4e-recipe-book/templates/item-forge.hbs": read("templates/item-forge.hbs")
 };
 const css = read("styles/rb-system.css") + "\n" + read("styles/recipe-book.css");
 
 const stripModules = (src) => src.replace(/^import .*$/gm, "").replace(/^export /gm, "")
   .replaceAll("${MODULE_ID}", "wfrp4e-recipe-book"); // чтобы inlineAssets увидел пути ассетов в шаблонных строках
-const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/recipe-sheet.js", "scripts/main.js"]
+const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/main.js"]
   .map((p) => stripModules(read(p)))
   .join("\n");
 

@@ -3,6 +3,7 @@
    сырьё = 1/4 цены - по правилам «Создание предмета» (стр. 199). */
 
 import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
+import { ItemForgeApp } from "./item-forge.js";
 import { L, F, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex, RecipeBookApp } from "./recipe-book.js";
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
@@ -33,6 +34,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       addItem: RecipeSheet.#onAddItem,
       pickImage: RecipeSheet.#onPickImage,
       pickResultIcon: RecipeSheet.#onPickResultIcon,
+      openForge: RecipeSheet.#onOpenForge,
       saveSheet: RecipeSheet.#onSave,
       saveAsNew: RecipeSheet.#onSaveAsNew,
       cancelSheet: RecipeSheet.#onCancel
@@ -348,6 +350,11 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   static async #onPickImage(event, target) {
     await this.#openPicker("icon", target.closest(".rb-sheet-head"));
+  }
+
+  /** Мастер «Создать предмет с нуля» */
+  static async #onOpenForge() {
+    new ItemForgeApp(this).render(true);
   }
 
   static async #onPickResultIcon(event, target) {

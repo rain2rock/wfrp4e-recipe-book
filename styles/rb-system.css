@@ -142,14 +142,20 @@
   display: inline-flex; align-items: center; gap: var(--rb-space-1);
   padding: 2px var(--rb-space-3); margin: 0; width: auto; line-height: 1.4;
   font-size: var(--rb-fs-s); color: var(--rb-text-dim);
-  background: none; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius-pill); cursor: pointer;
-  background-image: none; box-shadow: none; border-image: none;
+  cursor: pointer;
+  background: none !important;
+  background-image: none !important;
+  border: 1px solid var(--rb-frame) !important;
+  border-radius: var(--rb-radius-pill) !important;
+  border-image: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   text-transform: none; text-shadow: none; letter-spacing: normal; height: auto; min-height: 0;
 }
 .wfrp-recipe-book button.rb-filter:hover,
-.wfrp-recipe-book .rb-filter:hover { background: var(--rb-hover); box-shadow: none; }
-.wfrp-recipe-book button.rb-filter.is-active, .wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text); border-color: var(--rb-gold-soft); background: var(--rb-hover); }
-.wfrp-recipe-book .rb-filter--world { border-style: dashed; }
+.wfrp-recipe-book .rb-filter:hover { background: var(--rb-hover) !important; box-shadow: none !important; }
+.wfrp-recipe-book button.rb-filter.is-active, .wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text); border-color: var(--rb-gold-soft) !important; background: var(--rb-hover) !important; }
+.wfrp-recipe-book .rb-filter--world { border-style: dashed !important; }
 .wfrp-recipe-book .rb-count { opacity: 0.7; font-size: var(--rb-fs-xs); }
 
 /* ========================= Поля ввода ========================= */
@@ -283,10 +289,16 @@
   width: 100%; margin: 0; padding: var(--rb-space-1) var(--rb-space-2);
   background: none; border: 1px solid transparent; border-radius: var(--rb-radius);
   color: var(--rb-text); font-size: var(--rb-fs-m); font-family: inherit; text-align: left; cursor: pointer;
-  background-image: none; box-shadow: none; border-image: none;
+  background: none !important;
+  background-image: none !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--rb-radius) !important;
+  border-image: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   text-transform: none; text-shadow: none; height: auto; min-height: 0;
 }
-.wfrp-recipe-book .rb-picker-row:hover { background: var(--rb-hover); box-shadow: none; }
+.wfrp-recipe-book button.rb-picker-row:hover, .wfrp-recipe-book .rb-picker-row:hover { background: var(--rb-hover) !important; }
 .wfrp-recipe-book .rb-picker-row img { width: 20px; height: 20px; object-fit: cover; border: 1px solid var(--rb-frame); border-radius: 3px; }
 .wfrp-recipe-book .rb-picker-empty { color: var(--rb-muted); font-size: var(--rb-fs-m); padding: var(--rb-space-2); font-style: italic; }
 

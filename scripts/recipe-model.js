@@ -76,6 +76,13 @@ export function buildRecipeModel() {
       critUpgrade: new F.BooleanField({ initial: false }),
       critRefund: new F.BooleanField({ initial: false }),
       critRandom: new F.BooleanField({ initial: false }),
+      // Крит-качества (мастер «Создать с нуля»): добавляются к результату при крите
+      critQualities: new F.ArrayField(new F.ObjectField()),   // [{name, value}]
+      critQualMode: new F.StringField({ initial: "and" }),    // and - все, or - одно случайное
+      // Провал: брак вместо потери (случайный изъян) и «порог чистой работы»
+      failFlawed: new F.BooleanField({ initial: false }),
+      cleanSL: new F.NumberField({ initial: 0, min: 0, integer: true }), // 0 = выключено
+      failPool: new F.ArrayField(new F.StringField()),        // из каких изъянов выбирать
       critResult: new F.SchemaField({
         uuid: new F.StringField({ initial: "" }),
         name: new F.StringField({ initial: "" }),

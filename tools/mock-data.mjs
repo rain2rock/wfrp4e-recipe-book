@@ -1,6 +1,14 @@
 /* Тестовые данные мока: конфиг системы, персонаж «Хьюго», мировые предметы-результаты. */
 
 export const CONFIG_WFRP = {
+  itemQualities: { durable: "Прочный", fine: "Красивый", lightweight: "Облегчённый", practical: "Практичный" },
+  itemFlaws: { ugly: "Некрасивый", shoddy: "Хлипкий", unreliable: "Неудобный", bulky: "Громоздкий" },
+  weaponQualities: { accurate: "Точное", damaging: "Грозное", defensive: "Защитное", fast: "Быстрое", hack: "Разрубающее", impale: "Пронзающее" },
+  weaponFlaws: { dangerous: "Опасное", imprecise: "Неточное", slow: "Медленное", tiring: "Утомительное", undamaging: "Щадящее" },
+  armorQualities: { flexible: "Гибкая", impenetrable: "Непробиваемая" },
+  armorFlaws: { partial: "Неполная", weakpoints: "Уязвимая" },
+  propertyHasValue: { durable: true, fine: true, shoddy: false, ugly: false },
+  trappingTypes: { drugsPoisonsHerbsDraughts: "Зелья и снадобья", foodAndDrink: "Еда и напитки", toolsAndKits: "Инструменты", misc: "Разное" },
   difficultyModifiers: { veryEasy: 60, easy: 40, average: 20, challenging: 0, difficult: -10, hard: -20, veryHard: -30 },
   difficultyLabels: {
     veryEasy: "Элементарная (+60)", easy: "Лёгкая (+40)", average: "Заурядная (+20)",

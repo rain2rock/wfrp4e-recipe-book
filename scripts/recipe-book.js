@@ -322,8 +322,15 @@ export async function startCraft(actor, recipe) {
           upgrade: !!sys.critUpgrade,
           result: { uuid: sys.critResult?.uuid ?? "", name: sys.critResult?.name ?? "", img: sys.critResult?.img ?? "" },
           refund: !!sys.critRefund,
-          random: !!sys.critRandom
+          random: !!sys.critRandom,
+          qualities: (sys.critQualities ?? []).map((q) => ({ name: q.name, value: q.value ?? null })),
+          qualMode: sys.critQualMode || "and"
         } : null,
+        fail: {
+          flawed: !!sys.failFlawed,
+          cleanSL: Number(sys.cleanSL) || 0,
+          pool: [...(sys.failPool ?? [])]
+        },
         result: { uuid: sys.result.uuid, name: sys.result.name, img: sys.result.img || recipe.img, count: sys.result.count, descr: sys.description?.value ?? "" },
         moneyBp: sys.moneyBp || 0,
         spent: spentLite
@@ -339,6 +346,32 @@ export async function rollCraft(actor, test) {
     const t = await actor.setupExtendedTest(test, {});
     if (t && typeof t.roll === "function" && !t.context?.rolled) await t.roll().catch(() => null);
   } else ui.notifications.error(L("WFRPRB.Craft.NoSystem"));
+}
+
+/** Локализованное имя качества/изъяна из конфига системы (fallback - сам ключ) */
+export function propertyLabel(key) {
+  const c = game.wfrp4e?.config ?? {};
+  for (const map of [c.itemQualities, c.weaponQualities, c.armorQualities, c.itemFlaws, c.weaponFlaws, c.armorFlaws]) {
+    if (map && key in map) return game.i18n.localize(map[key]);
+  }
+  return key;
+}
+
+function propText(p) {
+  return propertyLabel(p.name) + (p.value ? ` (${p.value})` : "");
+}
+
+/** Дописать качества/изъяны в данные создаваемого предмета (формат системы: {name, value}) */
+function pushProps(obj, listKey, props) {
+  if (!props?.length) return;
+  obj.system ??= {};
+  obj.system[listKey] ??= { value: [] };
+  obj.system[listKey].value ??= [];
+  for (const p of props) {
+    const existing = obj.system[listKey].value.find((x) => x.name === p.name);
+    if (existing) existing.value = (Number(existing.value) || 0) + (Number(p.value) || 0) || existing.value;
+    else obj.system[listKey].value.push({ name: p.name, value: p.value ?? null });
+  }
 }
 
 function chatCard(actor, { icon, title, lines, img }) {
@@ -357,9 +390,11 @@ async function finishCraft(actor, test) {
   let count = data.count || 1;
   const lines = [esc(test.getFlag(FLAG, "recipeName") ?? "")];
 
+  let obj_critQualities = null;
   if (isCrit) {
     // Эффекты складываются; при critRandom из выбранных выдаётся ОДИН случайный
     let effects = [];
+    if (crit.qualities?.length) effects.push("qualities");
     if (crit.extra) effects.push("extra");
     if (crit.upgrade && (crit.result?.uuid || crit.result?.name)) effects.push("upgrade");
     if (crit.refund) effects.push("refund");
@@ -372,6 +407,11 @@ async function finishCraft(actor, test) {
       } else if (eff === "upgrade") {
         data = { ...data, ...crit.result };
         lines.push("· " + esc(F("WFRPRB.Chat.CritUpgrade", { name: crit.result.name })));
+      } else if (eff === "qualities" && crit.qualities?.length) {
+        let qs = crit.qualities;
+        if (crit.qualMode === "or" && qs.length > 1) qs = [qs[Math.floor(Math.random() * qs.length)]];
+        obj_critQualities = qs; // применим после сборки объекта
+        lines.push("· " + esc(F("WFRPRB.Chat.CritQualities", { list: qs.map(propText).join(", ") })));
       } else if (eff === "refund") {
         const spent = test.getFlag(FLAG, "spent") ?? [];
         const back = [];
@@ -399,6 +439,14 @@ async function finishCraft(actor, test) {
     };
   }
   if (obj.system?.quantity) obj.system.quantity.value = count;
+  if (typeof obj_critQualities !== "undefined" && obj_critQualities) pushProps(obj, "qualities", obj_critQualities);
+  // «Порог чистой работы»: проект завершён, но УУ ниже порога - предмет со случайным изъяном
+  const fail = test.getFlag(FLAG, "fail") ?? {};
+  if (fail.cleanSL > 0 && curSL < fail.cleanSL && fail.pool?.length) {
+    const flaw = fail.pool[Math.floor(Math.random() * fail.pool.length)];
+    pushProps(obj, "flaws", [{ name: flaw, value: null }]);
+    lines.push("! " + esc(F("WFRPRB.Chat.SloppyWork", { flaw: propertyLabel(flaw) })));
+  }
   await actor.createEmbeddedDocuments("Item", [obj]);
   chatCard(actor, {
     icon: isCrit ? "✓✓" : "✓", img: data.img || obj.img,
@@ -410,6 +458,35 @@ async function finishCraft(actor, test) {
 }
 
 async function failCraft(actor, test) {
+  // «Брак при провале»: вместо потери работы создаётся предмет со случайным изъяном
+  const fail = test.getFlag(FLAG, "fail") ?? {};
+  const data0 = test.getFlag(FLAG, "result");
+  if (fail.flawed && fail.pool?.length) {
+    let obj = null;
+    const src = data0?.uuid ? await fromUuid(data0.uuid).catch(() => null) : null;
+    if (src) {
+      obj = src.toObject();
+      delete obj._id;
+    } else {
+      obj = {
+        name: data0?.name || test.name, type: "trapping", img: data0?.img,
+        system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: data0?.descr ?? "" } }
+      };
+    }
+    if (obj.system?.quantity) obj.system.quantity.value = data0?.count || 1;
+    const flaw = fail.pool[Math.floor(Math.random() * fail.pool.length)];
+    pushProps(obj, "flaws", [{ name: flaw, value: null }]);
+    await actor.createEmbeddedDocuments("Item", [obj]);
+    chatCard(actor, {
+      icon: "✗", img: data0?.img || obj.img,
+      title: F("WFRPRB.Chat.Flawed", { name: data0?.name || obj.name }),
+      lines: [esc(F("WFRPRB.Chat.FlawedLine", { flaw: propertyLabel(flaw) }))]
+    });
+    await test.delete();
+    RecipeBookApp.renderAll();
+    return;
+  }
+
   const mode = game.settings.get(MODULE_ID, "failLoss"); // none | half | all
   const spent = test.getFlag(FLAG, "spent") ?? [];
   const moneyBp = test.getFlag(FLAG, "moneyBp") || 0;
@@ -752,10 +829,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing })
       };
     });
-    // Доп. фильтры (настройка extraFilters): по ремеслу и типу результата
-    const extraFilters = game.settings.get(MODULE_ID, "extraFilters");
+    // Доп. фильтры: у ГМа всегда, у игроков - по настройке extraFilters
+    const extraFilters = gm || game.settings.get(MODULE_ID, "extraFilters");
     let skillOptions = [];
     let typeOptions = [];
+    let ownerOptions = [];
     if (extraFilters) {
       skillOptions = [...new Set(entries.map((e) => e.skill))].sort((a, b) => a.localeCompare(b, "ru"));
       typeOptions = [...new Set(entries.map((e) => e.type))].map((t) => {
@@ -763,6 +841,15 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const label = game.i18n.localize(key);
         return { key: t, label: label === key ? t : label };
       }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
+      if (world) {
+        // Реестр: фильтр по владельцу (Мир / персонажи)
+        const seen = new Map();
+        for (const e of entries) seen.set(e.ownerId || "world", e.owner ?? worldLabel);
+        ownerOptions = [...seen.entries()].map(([key, label]) => ({ key, label, selected: this.ownerFilter === key }))
+          .sort((a, b) => (a.key === "world" ? -1 : b.key === "world" ? 1 : a.label.localeCompare(b.label, "ru")));
+        if (this.ownerFilter && !seen.has(this.ownerFilter)) this.ownerFilter = "";
+        if (this.ownerFilter) entries = entries.filter((e) => (e.ownerId || "world") === this.ownerFilter);
+      }
       if (this.skillFilter && !skillOptions.includes(this.skillFilter)) this.skillFilter = "";
       if (this.typeFilter && !typeOptions.find((t) => t.key === this.typeFilter)) this.typeFilter = "";
       if (this.skillFilter) entries = entries.filter((e) => e.skill === this.skillFilter);
@@ -883,6 +970,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       extraFilters,
       skillOptions: skillOptions.map((n) => ({ name: n, selected: n === this.skillFilter })),
       typeOptions: typeOptions.map((t) => ({ ...t, selected: t.key === this.typeFilter })),
+      ownerOptions,
       dark, groups, projects, detail, search: this.search,
       filter: this.filter, counts,
       empty: !this.recipes().length && !projects.length
@@ -911,6 +999,10 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     root.querySelector(".rb-type-filter")?.addEventListener("change", (ev) => {
       this.typeFilter = ev.currentTarget.value;
+      this.render();
+    });
+    root.querySelector(".rb-owner-filter")?.addEventListener("change", (ev) => {
+      this.ownerFilter = ev.currentTarget.value;
       this.render();
     });
     const input = root.querySelector(".rb-search input");

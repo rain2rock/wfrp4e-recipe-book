@@ -59,7 +59,11 @@
       "Crit": "Critical success (SL {sl})!",
       "CritExtra": "+{n} to quantity",
       "CritUpgrade": "upgraded result: {name}",
-      "CritRefund": "half of the materials preserved"
+      "CritRefund": "half of the materials preserved",
+      "CritQualities": "qualities: {list}",
+      "SloppyWork": "Imperfect work - flaw: {flaw}",
+      "Flawed": "Botched: {name}",
+      "FlawedLine": "The work failed, but an item emerged - with the «{flaw}» flaw"
     },
     "Money": {
       "gc": "GC",
@@ -213,7 +217,9 @@
       "AllSkills": "All trades",
       "AllTypes": "All item types",
       "SkillTip": "Filter by trade skill",
-      "TypeTip": "Filter by crafted item type"
+      "TypeTip": "Filter by crafted item type",
+      "AllOwners": "All owners",
+      "OwnerTip": "Filter by owner: world or character"
     },
     "Crit": {
       "Title": "Critical success",
@@ -232,6 +238,37 @@
       "RandomTip": "Random\nONE of the checked effects triggers, chosen at random. Players only see «special bonus» in the book.",
       "RandomNote": "one of, at random:",
       "And": " and "
+    },
+    "Forge": {
+      "Title": "Create an item from scratch",
+      "Open": "Create from scratch",
+      "Type": "Item type",
+      "TypeWeapon": "Weapon",
+      "TypeArmour": "Armour",
+      "TypeTrapping": "Trapping / potion",
+      "TypeAmmo": "Ammunition",
+      "Name": "Name",
+      "SubType": "Subtype",
+      "Qualities": "Qualities",
+      "Flaws": "Flaws",
+      "Extras": "Extra materials per quality",
+      "ExtraFor": "for «{name}»",
+      "AddIngredient": "ingredient",
+      "Money": "money (pennies)",
+      "CritQual": "On crit add qualities",
+      "QualMode": "Mode",
+      "ModeAnd": "All (AND)",
+      "ModeOr": "One at random (OR)",
+      "FailBlock": "Failure and botching",
+      "FailFlawed": "Botch on failure (flawed item instead of total loss)",
+      "CleanSL": "Clean work threshold (SL)",
+      "CleanSLOff": "0 = off",
+      "FailPool": "Possible botch flaws",
+      "Prognosis": "Recipe required SL",
+      "PrognosisTip": "By the rules: each flaw halves the target, then +5 per quality.",
+      "Create": "Create item and update recipe",
+      "NameEmpty": "Enter the item name",
+      "Created": "Item «{name}» created in the world; the recipe has been updated"
     }
   }
 }

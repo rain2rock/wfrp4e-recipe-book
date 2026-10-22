@@ -53,6 +53,14 @@ const btnCss = await page.evaluate(() => {
 });
 ok(btnCss.bw === "1px" && btnCss.shadow === "none" && btnCss.bi === "none" && btnCss.outline === "none",
   "кнопка «Создать» перебивает скин: рамка 1px, без теней и фактур", JSON.stringify(btnCss));
+const skinCss = await page.evaluate(() => {
+  const check = (el) => {
+    const s = getComputedStyle(el);
+    return s.backgroundImage === "none" && s.boxShadow === "none" && s.outlineStyle === "none" && s.borderTopWidth === "1px";
+  };
+  return { entry: check(document.querySelector(".rb-entry")), chip: check(document.querySelector(".rb-filter")) };
+});
+ok(skinCss.entry && skinCss.chip, "записи списка и чипы тоже перебивают скин", JSON.stringify(skinCss));
 
 /* --- Понятность: подсказки и богатый ховер (свой тултип, системный отключён) --- */
 ok((await $("[data-tooltip]").count()) === 0, "системные тултипы Foundry не используются");
@@ -511,11 +519,15 @@ ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый ре
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(100);
 
-/* --- Доп. фильтры по ремеслу и типу (настройка, по умолчанию выключены) --- */
-ok((await $(".rb-extra-filters").count()) === 0, "доп. фильтры по умолчанию выключены");
+/* --- Доп. фильтры: у ГМа всегда, у игрока - по настройке --- */
+ok((await $(".rb-extra-filters select").count()) === 2, "ГМ видит фильтры ремесла и типа без настройки");
+await page.click("#tb-view");
+await page.waitForTimeout(150);
+ok((await $(".rb-extra-filters").count()) === 0, "вид игрока: фильтры скрыты (настройка выключена)");
+await page.click("#tb-view");
+await page.waitForTimeout(150);
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "extraFilters", true));
 await page.waitForTimeout(150);
-ok((await $(".rb-extra-filters select").count()) === 2, "настройка включила фильтры ремесла и типа");
 await page.selectOption(".rb-skill-filter", "Ремесло (Аптекарь)");
 await page.evaluate(() => document.querySelector(".rb-skill-filter").dispatchEvent(new Event("change")));
 await page.waitForTimeout(150);
@@ -528,9 +540,26 @@ await page.evaluate(() => document.querySelector(".rb-type-filter").dispatchEven
 await page.waitForTimeout(150);
 const weaponEntries = await $(".rb-entry:not(.rb-project) .rb-entry-name").allTextContents();
 ok(weaponEntries.length === 1 && weaponEntries[0].includes("Кинжал"), "фильтр по типу: только оружие (Кинжал)", weaponEntries.join(";"));
+await page.selectOption(".rb-type-filter", "");
+await page.evaluate(() => document.querySelector(".rb-type-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(120);
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "extraFilters", false));
 await page.waitForTimeout(150);
-ok((await $(".rb-extra-filters").count()) === 0, "выключение настройки спрятало фильтры");
+ok((await $(".rb-extra-filters select").count()) === 2, "у ГМа фильтры остаются и без настройки");
+/* Реестр: фильтр по владельцу */
+await $("[data-action='filter'][data-filter='world']").click();
+await page.waitForTimeout(120);
+ok((await $(".rb-owner-filter").count()) === 1, "в реестре появился фильтр по владельцу");
+await page.selectOption(".rb-owner-filter", await page.evaluate(() => __RB_actor2__.id));
+await page.evaluate(() => document.querySelector(".rb-owner-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(150);
+const ownerEntries = await $(".rb-entry:not(.rb-project)").count();
+ok(ownerEntries === 2, "фильтр «Гюнтер»: только его рецепты (настойка + выданный талисман)", `(${ownerEntries})`);
+await page.selectOption(".rb-owner-filter", "");
+await page.evaluate(() => document.querySelector(".rb-owner-filter").dispatchEvent(new Event("change")));
+await page.waitForTimeout(120);
+await $("[data-action='filter'][data-filter='all']").click();
+await page.waitForTimeout(120);
 
 /* --- Переключатель языка модуля --- */
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "en"));
@@ -543,6 +572,123 @@ await page.waitForTimeout(200);
 ok((await text(".rb-filters")).includes("Все"), "язык ru вернулся");
 await page.evaluate(() => game.settings.set("wfrp4e-recipe-book", "lang", "auto"));
 await page.waitForTimeout(150);
+
+/* --- Мастер «Создать с нуля»: предмет мира с качествами + настройка рецепта --- */
+const forgeRec = await page.evaluate(async () => {
+  const r = await Item.create({ name: "Рецепт кузни", type: "wfrp4e-recipe-book.recipe", img: "" });
+  r.sheet.render(true);
+  return r.id;
+});
+await page.waitForTimeout(200);
+await page.click(`#rb-sheet-${forgeRec} [data-action='openForge']`);
+await page.waitForTimeout(200);
+const forge = `#rb-forge-${forgeRec}`;
+ok((await $(forge).count()) === 1, "мастер открылся отдельным окном");
+await page.fill(`${forge} .rb-forge-name`, "Пробный меч");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-name`).dispatchEvent(new Event("change")), forge);
+await page.click(`${forge} .rb-qrow[data-key='durable'] .rb-prop-on`);
+await page.waitForTimeout(150);
+await page.fill(`${forge} .rb-qrow[data-key='durable'] .rb-prop-value`, "2");
+await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='durable'] .rb-prop-value`).dispatchEvent(new Event("change")), forge);
+ok((await text(`${forge} .rb-forge-prognosis`)).includes("10"), "прогноз УУ: 5 базовых + 5 за достоинство = 10");
+/* доп. сырьё за «Прочный»: железный слиток ×2 и 12 пенни */
+await page.click(`${forge} .rb-qrow[data-key='durable'] [data-action='pickExtra']`);
+await page.waitForTimeout(120);
+await page.fill(`${forge} .rb-picker-search`, "мандраг");
+await page.waitForTimeout(120);
+await page.click(`${forge} .rb-picker-row`);
+await page.waitForTimeout(150);
+await page.fill(`${forge} .rb-qrow[data-key='durable'] .rb-extra-count`, "2");
+await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='durable'] .rb-extra-count`).dispatchEvent(new Event("change")), forge);
+await page.fill(`${forge} .rb-qrow[data-key='durable'] .rb-extra-bp`, "12");
+await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='durable'] .rb-extra-bp`).dispatchEvent(new Event("change")), forge);
+/* иконка будущего предмета - из базы */
+await page.click(`${forge} .rb-forge-img`);
+await page.waitForTimeout(120);
+await page.fill(`${forge} .rb-picker-search`, "кинжал");
+await page.waitForTimeout(120);
+await page.click(`${forge} .rb-picker-row`);
+await page.waitForTimeout(150);
+ok(await page.evaluate((f) => {
+  const img = document.querySelector(`${f} .rb-forge-img`);
+  const w = __RB_worldItems__.find((x) => x.name === "Кинжал");
+  return img.getAttribute("src") === w.img;
+}, forge), "иконка предмета в мастере выбрана из базы");
+/* крит-качество и правила брака */
+await page.click(`${forge} .rb-critrow[data-key='damaging'] .rb-prop-on`);
+await page.click(`${forge} .rb-forge-failflawed`);
+await page.waitForTimeout(150);
+await page.fill(`${forge} .rb-forge-cleansl`, "2");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-cleansl`).dispatchEvent(new Event("change")), forge);
+await page.waitForTimeout(150);
+await page.click(`${forge} [data-action='forgeCreate']`);
+await page.waitForTimeout(250);
+const forged = await page.evaluate((rid) => {
+  const item = game.items.find((i) => i.name === "Пробный меч");
+  const r = game.items.find((i) => i.id === rid);
+  return {
+    item: !!item, type: item?.type,
+    img: item?.img === __RB_worldItems__.find((x) => x.name === "Кинжал")?.img,
+    durable: item?.system.qualities.value.find((q) => q.name === "durable")?.value,
+    slTarget: r.system.slTarget,
+    iron: r.system.ingredients.find((i) => i.name === "Корень мандрагоры")?.count,
+    moneyBp: r.system.moneyBp,
+    critQ: r.system.critQualities.map((q) => q.name).join(","),
+    failFlawed: r.system.failFlawed, cleanSL: r.system.cleanSL,
+    pool: r.system.failPool.length,
+    linked: r.system.result.uuid === item?.uuid
+  };
+}, forgeRec);
+ok(forged.item && forged.type === "weapon" && forged.durable === 2 && forged.img, "создан предмет мира: оружие с «Прочный (2)» и выбранной иконкой", JSON.stringify(forged));
+ok(forged.slTarget === 10 && forged.iron === 2 && forged.moneyBp === 12, "рецепт обновлён: УУ 10, мандрагора ×2, 12 пенни");
+ok(forged.critQ === "damaging" && forged.failFlawed && forged.cleanSL === 2 && forged.pool > 0 && forged.linked,
+  "крит-качества и правила брака записаны, результат привязан");
+await page.evaluate(() => {
+  for (const el of document.querySelectorAll("[id^='rb-sheet-'],[id^='rb-forge-']")) el.querySelector("[data-mock-close]")?.click();
+});
+await page.waitForTimeout(100);
+
+/* --- Брак при провале и порог чистой работы (e2e на крафте) --- */
+await page.evaluate(async () => {
+  await __RB_actor__.createEmbeddedDocuments("Item", [{
+    name: "Рецепт: Кривой нож", type: "wfrp4e-recipe-book.recipe", img: "",
+    system: {
+      result: { uuid: "", name: "Кривой нож", img: "", count: 1 },
+      skill: "Ремесло (Аптекарь)", skillAlt: "", difficulty: "average", slTarget: 1,
+      ingredients: [], moneyBp: 0, needsWorkshop: false, tools: [],
+      critEnabled: false, critSL: 99, critExtra: false, critCount: 1, critUpgrade: false, critRefund: false, critRandom: false,
+      critQualities: [], critQualMode: "and", critResult: { uuid: "", name: "", img: "" },
+      failFlawed: true, cleanSL: 5, failPool: ["shoddy"],
+      timeDays: 0, timeHours: 0, timeMinutes: 0,
+      description: { value: "" }, gmdescription: { value: "" }
+    }
+  }]);
+});
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Кривой нож" }).first().click();
+await page.waitForTimeout(80);
+await page.evaluate(() => { window.__RB_FORCE_ROLL__ = 100; });
+await $(".rb-btn--craft").first().click();
+await page.waitForTimeout(250);
+ok(await page.evaluate(() => {
+  const it = [...__RB_actor__.items].find((i) => i.name === "Кривой нож" && i.type === "trapping");
+  return !!it && it.system.flaws.value.some((f) => f.name === "shoddy");
+}), "брак при провале: предмет создан со случайным изъяном из пула");
+await $(".rb-entry", { hasText: "Кривой нож" }).first().click();
+await page.waitForTimeout(80);
+await page.evaluate(() => { window.__RB_FORCE_ROLL__ = 42; });
+await $(".rb-btn--craft").first().click();
+await page.waitForTimeout(250);
+ok(await page.evaluate(() => {
+  const items = [...__RB_actor__.items].filter((i) => i.name === "Кривой нож" && i.type === "trapping");
+  const second = items.at(-1);
+  return items.length === 2 && second.system.flaws.value.some((f) => f.name === "shoddy");
+}), "порог чистой работы: успех с низким УУ дал предмет с изъяном");
+await page.evaluate(async () => {
+  for (const i of [...__RB_actor__.items].filter((x) => x.name === "Кривой нож" || x.name === "Рецепт: Кривой нож")) await i.delete();
+  for (const i of [...game.items].filter((x) => ["Пробный меч", "Рецепт кузни"].includes(x.name))) await i.delete();
+});
+await page.waitForTimeout(120);
 
 /* --- Скриншот для Михаила --- */
 await $(".rb-entry", { hasText: "Противоядие" }).first().click();

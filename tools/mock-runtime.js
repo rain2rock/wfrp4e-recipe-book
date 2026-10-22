@@ -141,13 +141,11 @@
           needsWorkshop: false, tools: [], timeDays: 0, timeHours: 0, timeMinutes: 0,
           description: { value: "" }, gmdescription: { value: "" }, ...(d.system ?? {})
         };
-        const made = new FakeItem(null, d);
-        game.items.push(made);
-        Hooks.call("createItem", made, {}, game.user.id);
-        return made;
       }
-      const actor = (window.__RB_actors__ ?? [])[0];
-      const [made] = await actor.createEmbeddedDocuments("Item", [d]);
+      // Как в Foundry: Item.create делает предмет МИРА (вкладка «Предметы»)
+      const made = new FakeItem(null, d);
+      game.items.push(made);
+      Hooks.call("createItem", made, {}, game.user.id);
       return made;
     }
   };

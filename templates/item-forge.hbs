@@ -1,0 +1,85 @@
+<div class="rb-forge-root">
+  <section class="rb-block">
+    <div class="rb-field"><label>{{rbL "WFRPRB.Forge.Type"}}</label>
+      <select class="rb-forge-type">{{#each types}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Forge.Name"}}</label>
+      <img class="rb-forge-img" src="{{st.img}}" alt="" data-action="pickIcon" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickImage'}}">
+      <input type="text" class="rb-forge-name" value="{{st.name}}" placeholder="{{rbL 'WFRPRB.Forge.Name'}}..."></div>
+    {{#if isTrapping}}
+      <div class="rb-field"><label>{{rbL "WFRPRB.Forge.SubType"}}</label>
+        <select class="rb-forge-subtype">{{#each trappingTypes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+    {{/if}}
+  </section>
+
+  <section class="rb-block">
+    <div class="rb-block-title">{{rbL "WFRPRB.Forge.Qualities"}}</div>
+    {{#each qRows}}
+      <div class="rb-row rb-qrow" data-key="{{key}}">
+        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+        {{#if on}}
+          <span class="rb-forge-extra">
+            <button type="button" class="rb-btn rb-btn--quiet rb-extra-pick" data-action="pickExtra">
+              {{#if extraImg}}<img src="{{extraImg}}" alt="">{{/if}}{{#if extraName}}{{extraName}}{{else}}+ {{rbL "WFRPRB.Forge.AddIngredient"}}{{/if}}
+            </button>
+            {{#if extraName}}×&nbsp;<input type="number" class="rb-num rb-num--s rb-extra-count" value="{{extraCount}}" min="1">{{/if}}
+            <label class="rb-coinfield"><i class="rb-coin-dot rb-coin-dot--bp"></i><input type="number" class="rb-num rb-extra-bp" value="{{extraBp}}" min="0" data-rb-tip="{{rbL 'WFRPRB.Forge.Money'}}"></label>
+          </span>
+        {{/if}}
+      </div>
+    {{/each}}
+  </section>
+
+  <section class="rb-block">
+    <div class="rb-block-title">{{rbL "WFRPRB.Forge.Flaws"}}</div>
+    {{#each fRows}}
+      <div class="rb-row rb-frow" data-key="{{key}}">
+        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+      </div>
+    {{/each}}
+  </section>
+
+  <section class="rb-block">
+    <div class="rb-block-title">{{rbL "WFRPRB.Forge.CritQual"}}</div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Crit.Threshold"}}</label>
+      <input type="number" class="rb-num rb-forge-critsl" value="{{st.critSL}}" min="1"></div>
+    {{#each critRows}}
+      <div class="rb-row rb-critrow" data-key="{{key}}">
+        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+      </div>
+    {{/each}}
+    {{#if critMulti}}
+      <div class="rb-field"><label>{{rbL "WFRPRB.Forge.QualMode"}}</label>
+        <select class="rb-forge-critmode">
+          <option value="and" {{#if (eq st.critMode "and")}}selected{{/if}}>{{rbL "WFRPRB.Forge.ModeAnd"}}</option>
+          <option value="or" {{#if (eq st.critMode "or")}}selected{{/if}}>{{rbL "WFRPRB.Forge.ModeOr"}}</option>
+        </select></div>
+    {{/if}}
+  </section>
+
+  <section class="rb-block">
+    <div class="rb-block-title">{{rbL "WFRPRB.Forge.FailBlock"}}</div>
+    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Forge.FailFlawed"}}</label>
+      <input type="checkbox" class="rb-forge-failflawed" {{#if st.failFlawed}}checked{{/if}}></div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Forge.CleanSL"}}</label>
+      <input type="number" class="rb-num rb-forge-cleansl" value="{{st.cleanSL}}" min="0" data-rb-tip="{{rbL 'WFRPRB.Forge.CleanSLOff'}}"></div>
+    {{#if (or st.failFlawed st.cleanSL)}}
+      <div class="rb-dim rb-forge-poollabel">{{rbL "WFRPRB.Forge.FailPool"}}:</div>
+      {{#each poolRows}}
+        <div class="rb-row rb-poolrow" data-key="{{key}}">
+          <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}</span>
+        </div>
+      {{/each}}
+    {{/if}}
+  </section>
+
+  <footer class="rb-sheet-foot">
+    <span class="rb-forge-prognosis" data-rb-tip="{{rbL 'WFRPRB.Forge.PrognosisTip'}}">
+      {{rbL "WFRPRB.Forge.Prognosis"}}: <b>{{prognosis}}</b> <span class="rb-dim">({{rbL "WFRPRB.SLTarget"}}: {{baseSL}})</span>
+    </span>
+    <span class="rb-sheet-foot-gap"></span>
+    <button type="button" class="rb-btn rb-btn--craft" data-action="forgeCreate">{{rbL "WFRPRB.Forge.Create"}}</button>
+  </footer>
+</div>

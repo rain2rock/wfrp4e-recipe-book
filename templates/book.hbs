@@ -19,6 +19,12 @@
 
     {{#if extraFilters}}
       <div class="rb-extra-filters">
+        {{#if world}}
+          <select class="rb-owner-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.OwnerTip'}}">
+            <option value="">{{rbL "WFRPRB.Extra.AllOwners"}}</option>
+            {{#each ownerOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+          </select>
+        {{/if}}
         <select class="rb-skill-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.SkillTip'}}">
           <option value="">{{rbL "WFRPRB.Extra.AllSkills"}}</option>
           {{#each skillOptions}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}

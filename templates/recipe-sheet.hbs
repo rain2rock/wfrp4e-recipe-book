@@ -6,7 +6,10 @@
 
   <section class="rb-block rb-dropzone" data-dropzone="result">
     <div class="rb-block-title"><span>{{rbL "WFRPRB.Sheet.Result"}} <span class="rb-dim">· {{rbL "WFRPRB.Sheet.DropHint"}}</span></span>
-      <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button></div>
+      <span class="rb-title-actions">
+        <button type="button" class="rb-btn rb-forge-open" data-action="openForge">{{rbL "WFRPRB.Forge.Open"}}</button>
+        <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button>
+      </span></div>
     <div class="rb-row rb-ing">
       <span class="rb-ing-name">
         <span class="rb-result-ico" data-action="pickResultIcon" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickResultIcon'}}">
