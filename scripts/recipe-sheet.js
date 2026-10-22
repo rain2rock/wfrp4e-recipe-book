@@ -41,6 +41,13 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   static PARTS = { sheet: { template: `modules/${MODULE_ID}/templates/recipe-sheet.hbs`, scrollable: [".rb-sheet-root"] } };
 
+  /** Перерисовка после update: в живом Foundry лист перерисовывает ЯДРО (DocumentSheetV2
+      слушает документ) - наша вторая перерисовка гонялась с ней и сбрасывала скролл.
+      Вручную рендерим только в моке, где автоперерисовки нет. */
+  #refresh() {
+    if (globalThis.__RB_MOCK__) this.render();
+  }
+
   /** Рецепт создан с нуля и ещё ни разу не сохранён */
   get isFresh() {
     return !!this.document.getFlag?.("wfrp4e-recipe-book", "fresh");
@@ -156,7 +163,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       await this.document.update(known
         ? { "system.result": { ...this.document.system.result, name: known.name, uuid: known.uuid, img: known.img } }
         : { "system.result.name": name, "system.result.uuid": "" });
-      this.render();
+      this.#refresh();
     });
     for (const zone of root.querySelectorAll("[data-dropzone]")) {
       zone.addEventListener("dragover", (ev) => ev.preventDefault());
@@ -164,14 +171,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     }
     // Критический успех: галка, порог, режим, количество (как деньги - пишем сами)
     root.querySelector(".rb-crit-on")?.addEventListener("change", (ev) => {
-      this.document.update({ "system.critEnabled": ev.currentTarget.checked }).then(() => this.render());
+      this.document.update({ "system.critEnabled": ev.currentTarget.checked }).then(() => this.#refresh());
     });
     root.querySelector(".rb-crit-sl")?.addEventListener("change", (ev) => {
       this.document.update({ "system.critSL": Math.max(1, Number(ev.currentTarget.value) || 1) });
     });
     for (const [sel, field] of [[".rb-crit-extra", "critExtra"], [".rb-crit-upgrade", "critUpgrade"], [".rb-crit-refund", "critRefund"], [".rb-crit-random", "critRandom"]]) {
       root.querySelector(sel)?.addEventListener("change", (ev) => {
-        this.document.update({ [`system.${field}`]: ev.currentTarget.checked }).then(() => this.render());
+        this.document.update({ [`system.${field}`]: ev.currentTarget.checked }).then(() => this.#refresh());
       });
     }
     root.querySelector(".rb-crit-count")?.addEventListener("change", (ev) => {
@@ -185,7 +192,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       const d = clamp(g(".rb-time-d")?.value, 9999);
       const h = clamp(g(".rb-time-h")?.value, 23);
       const m = clamp(g(".rb-time-m")?.value, 59);
-      this.document.update({ "system.timeDays": d, "system.timeHours": h, "system.timeMinutes": m }).then(() => this.render());
+      this.document.update({ "system.timeDays": d, "system.timeHours": h, "system.timeMinutes": m }).then(() => this.#refresh());
     };
     for (const sel of [".rb-time-d", ".rb-time-h", ".rb-time-m"])
       root.querySelector(sel)?.addEventListener("change", syncTime);
@@ -212,19 +219,19 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       return this.#applyResult(doc);
     } else if (zone === "critResult") {
       await this.document.update({ "system.critResult": { uuid: doc.uuid, name: doc.name, img: doc.img } });
-      this.render();
+      this.#refresh();
     } else if (zone === "tools") {
       const list = [...this.document.system.tools];
       if (!list.find((t) => t.name === doc.name)) list.push({ uuid: doc.uuid, name: doc.name, img: doc.img });
       await this.document.update({ "system.tools": list });
-      this.render();
+      this.#refresh();
     } else if (zone === "ingredients") {
       const list = [...this.document.system.ingredients];
       const found = list.find((i) => i.name === doc.name);
       if (found) found.count += 1;
       else list.push({ uuid: doc.uuid, name: doc.name, img: doc.img, count: 1 });
       await this.document.update({ "system.ingredients": list });
-      this.render();
+      this.#refresh();
     }
   }
 
@@ -238,7 +245,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       "system.slTarget": sug.slTarget,
       "system.moneyBp": sug.moneyBp
     });
-    this.render();
+    this.#refresh();
   }
 
   /** Добавить найденный предмет в нужную зону */
@@ -248,11 +255,11 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       await this.document.update({ img: entry.img });
     } else if (zone === "critResult") {
       await this.document.update({ "system.critResult": { uuid: entry.uuid, name: entry.name, img: entry.img } });
-      this.render();
+      this.#refresh();
     } else if (zone === "resultIcon") {
       // Иконка ПРЕДМЕТА-РЕЗУЛЬТАТА: для нового предмета её выбирают из базы
       await this.document.update({ "system.result.img": entry.img });
-      this.render();
+      this.#refresh();
     } else if (zone === "result") {
       const doc = await fromUuid(entry.uuid).catch(() => null);
       if (doc) return this.#applyResult(doc);
@@ -267,7 +274,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       if (!list.find((t) => t.name === entry.name)) list.push({ uuid: entry.uuid, name: entry.name, img: entry.img });
       await this.document.update({ "system.tools": list });
     }
-    this.render();
+    this.#refresh();
   }
 
   /** Выпадающий поиск по базе: input + список, клик добавляет */
@@ -321,14 +328,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     const list = [...this.document.system.ingredients];
     list.splice(Number(target.dataset.index), 1);
     await this.document.update({ "system.ingredients": list });
-    this.render();
+    this.#refresh();
   }
 
   static async #onRemoveTool(event, target) {
     const list = [...this.document.system.tools];
     list.splice(Number(target.dataset.index), 1);
     await this.document.update({ "system.tools": list });
-    this.render();
+    this.#refresh();
   }
 
   async close(options) {

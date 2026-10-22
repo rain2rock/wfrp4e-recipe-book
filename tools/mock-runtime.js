@@ -5,6 +5,7 @@
    (в живом Foundry их делает система WFRP4e).
    ========================================================== */
 (() => {
+  window.__RB_MOCK__ = true; // в моке нет автоперерисовки листов - модуль перерисовывает сам
   const LANG = window.__RB_LANG__;
   const lookup = (key) => key.split(".").reduce((o, p) => (o == null ? undefined : o[p]), LANG);
   const i18n = {
