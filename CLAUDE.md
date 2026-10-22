@@ -149,9 +149,21 @@ npm run qa                  # tools/qa/bookchk.mjs - 27 проверок, все
 const на верхнем уровне разных файлов (у recipe-sheet.js из-за этого RBSheetMixin, а не
 HandlebarsApplicationMixin).
 
+## Проверено на живом сервере (Foundry + wfrp4e 9.6.3 + dae + libWrapper)
+
+- Миграция системы (`Migration.migrateItemData`) бежит по ЛЮБОМУ предмету в `_preCreate`
+  и безусловно читает `system.description.value` и `system.gmdescription.value` - поэтому
+  у рецепта оба поля ОБЯЗАНЫ быть формы `{ value }` (исправлено в v0.1.3; до этого создание
+  рецепта падало с TypeError, т.е. легаси-рецептов со старой схемой на серверах нет).
+- Контракт warhammer-lib: `allApplicableEffects` зовёт `this.system.getOtherEffects()` и прочие
+  методы базовой модели - подтип ОБЯЗАН наследоваться от `warhammer.models.BaseWarhammerItemModel`
+  (глобал либы; класс собирается на init в `buildRecipeModel()`, порядок загрузки скриптов
+  модулей не гарантирован). Голый TypeDataModel не работает - на этом же ломается
+  beavers-crafting на wfrp4e (подтверждено Михаилом). Ориентир для подтипов - Forien's Armoury.
+
 ## Не проверено в живом Foundry (проверить при первой возможности)
 
-- Регистрация подтипа `documentTypes` + DataModel + registerSheet на V13/V14 и системе 9.x.
+- Регистрация подтипа: создание предмета доходит до системной миграции (значит сам подтип виден); лист и дроп - ещё не проверены.
 - Форма сигнатуры `actor.setupExtendedTest` (в системе: context.extended = uuid, бросок может
   идти через диалог - наш rollCraft пытается вызвать t.roll(), если система не бросила сама).
 - Обновляет ли система SL.current сама после броска (должна - для системных extendedTest)

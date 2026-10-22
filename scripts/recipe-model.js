@@ -29,10 +29,21 @@ export function difficultyLabel(key) {
 
 const f = () => foundry.data.fields;
 
-export class RecipeModel extends foundry.abstract.TypeDataModel {
+/* Модель собирается на init: база - BaseWarhammerItemModel из warhammer-lib
+   (глобал появляется после загрузки всех скриптов). Без неё система wfrp4e
+   падает на своих предметных методах (getOtherEffects и прочий контракт
+   warhammer-lib) - на этом ломается и beavers-crafting. */
+export let RecipeModel = null;
+
+export function buildRecipeModel() {
+  if (RecipeModel) return RecipeModel;
+  const Base = globalThis.warhammer?.models?.BaseWarhammerItemModel ?? foundry.abstract.TypeDataModel;
+  RecipeModel = class RecipeModel extends Base {
   static defineSchema() {
     const F = f();
+    const base = typeof super.defineSchema === "function" ? super.defineSchema() : {};
     return {
+      ...base,
       result: new F.SchemaField({
         uuid: new F.StringField({ initial: "" }),   // предмет-результат (компендиум или мир)
         name: new F.StringField({ initial: "" }),   // имя на случай недоступного uuid
@@ -64,4 +75,6 @@ export class RecipeModel extends foundry.abstract.TypeDataModel {
       gmdescription: new F.SchemaField({ value: new F.HTMLField({ initial: "" }) })
     };
   }
+  };
+  return RecipeModel;
 }

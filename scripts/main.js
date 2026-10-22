@@ -1,6 +1,6 @@
 /* «Книга рецептов WFRP» - init: модель, лист, настройки, клавиша, кнопка на листе, api. */
 
-import { MODULE_ID, RECIPE_TYPE, RecipeModel } from "./recipe-model.js";
+import { MODULE_ID, RECIPE_TYPE, buildRecipeModel } from "./recipe-model.js";
 import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, loadLangs, L } from "./recipe-book.js";
 import { RecipeSheet } from "./recipe-sheet.js";
 
@@ -15,7 +15,7 @@ Hooks.once("init", () => {
   Handlebars.registerHelper("rbL", (k) => L(k));
 
   // Данные и лист подтипа «Рецепт»
-  Object.assign(CONFIG.Item.dataModels, { [RECIPE_TYPE]: RecipeModel });
+  Object.assign(CONFIG.Item.dataModels, { [RECIPE_TYPE]: buildRecipeModel() });
   const DSC = foundry.applications?.apps?.DocumentSheetConfig ?? DocumentSheetConfig;
   DSC.registerSheet(Item, MODULE_ID, RecipeSheet, {
     types: [RECIPE_TYPE],
