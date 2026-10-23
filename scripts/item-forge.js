@@ -4,7 +4,7 @@
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
 import { MODULE_ID } from "./recipe-model.js";
-import { L, F, esc, itemIndex, propertyLabel, coinIco, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, itemIndex, propertyLabel, propertyTip, coinIco, RecipeBookApp } from "./recipe-book.js";
 
 const { ApplicationV2: ForgeAppBase, HandlebarsApplicationMixin: ForgeMixin } = foundry.applications.api;
 
@@ -85,14 +85,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
   async _prepareContext() {
     const st = this.forge;
     const { qualities, flaws } = propLists(st.type);
-    // Подсказка-описание качества/изъяна из конфига системы (наполняет wfrp4e-core)
-    const propTip = (key, label) => {
-      const c = game.wfrp4e?.config ?? {};
-      const raw = c.qualityDescriptions?.[key] ?? c.flawDescriptions?.[key];
-      if (!raw) return "";
-      const text = game.i18n.localize(raw).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      return text ? `${label}\n${text}` : "";
-    };
+    // Подсказка-описание качества/изъяна - общая с книгой (propertyTip)
+    const propTip = (key, label) => propertyTip(key, label);
     const row = (map, stateMap) => Object.entries(map).map(([key, label]) => {
       const loc = game.i18n.localize(label);
       return {

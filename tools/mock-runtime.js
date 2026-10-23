@@ -168,15 +168,39 @@
       api: {
         ApplicationV2,
         HandlebarsApplicationMixin: (Base) => class extends Base {},
+        // Настоящее модальное окно, как DialogV2 в Foundry: кнопки возвращают свой action.
+        // Для тестов можно подставить ответ заранее: window.__RB_DIALOG_CHOICE__ = "ok".
         DialogV2: {
-          confirm: async () => window.__RB_CONFIRM__ ?? true,
-          wait: async () => window.__RB_DIALOG_CHOICE__ ?? "keep"
+          confirm: async (cfg) => (await window.__RB_dialog__(cfg, [
+            { action: "yes", label: "Да", default: true }, { action: "no", label: "Нет" }
+          ])) === "yes",
+          wait: async (cfg) => window.__RB_dialog__(cfg, cfg.buttons ?? [{ action: "ok", label: "OK" }])
         }
       },
       sheets: { ItemSheetV2 },
       apps: { DocumentSheetConfig: { registerSheet() {} } }
     }
   };
+
+  /** Модальное окно подтверждения (мок DialogV2) */
+  window.__RB_dialog__ = (cfg, buttons) => new Promise((resolve) => {
+    const forced = window.__RB_DIALOG_CHOICE__;
+    if (forced) { window.__RB_DIALOG_CHOICE__ = undefined; return resolve(forced); }
+    const back = document.createElement("div");
+    back.className = "mock-dialog-back";
+    back.innerHTML = `
+      <div class="mock-dialog wfrp-recipe-book">
+        <header>${cfg.window?.title ?? ""}</header>
+        <section>${cfg.content ?? ""}</section>
+        <footer>${buttons.map((b, i) =>
+          `<button type="button" class="rb-btn ${b.default ? "rb-btn--primary" : "rb-btn--quiet"}" data-i="${i}">${b.label}</button>`).join("")}</footer>
+      </div>`;
+    document.body.append(back);
+    back.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => {
+      back.remove();
+      resolve(buttons[Number(btn.dataset.i)].action);
+    }));
+  });
 
   /* --- Документы --- */
 

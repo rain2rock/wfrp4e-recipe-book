@@ -421,7 +421,12 @@ ok(newSheetOpen, "лист черновика открылся сразу");
 
 /* сохранение: черновик появляется в реестре с отметкой «новый», просмотр её снимает */
 await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='saveSheet']")].at(-1)?.click());
-await page.waitForTimeout(300);
+await page.waitForTimeout(250);
+/* создан из книги игрока - спрашивает про выдачу; выбираем «не выдавать и сохранить» */
+if (await $(".mock-dialog").count()) {
+  await page.click(".mock-dialog footer button:nth-child(2)");
+  await page.waitForTimeout(250);
+}
 ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 1, "после сохранения рецепт появился в реестре");
 ok((await $(".rb-entry", { hasText: "Новый рецепт" }).locator(".rb-new-ico").count()) === 1,
   "у сохранённого рецепта есть отметка «новый»");
@@ -496,14 +501,28 @@ await $(".rb-entry", { hasText: "Талисман из коры" }).first().clic
 await page.waitForTimeout(80);
 await $("[data-action='deleteRecipe']").click();
 await page.waitForTimeout(200);
+ok((await $(".mock-dialog").count()) === 1 && (await text(".mock-dialog section")).includes("забудет"),
+  "удаление из книги спрашивает подтверждение и называет последствия");
+await page.click(".mock-dialog .rb-btn--quiet");
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => __RB_actor__.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Талисман из коры")),
+  "отмена в диалоге сохранила рецепт");
+await $("[data-action='deleteRecipe']").click();
+await page.waitForTimeout(200);
+await page.click(".mock-dialog .rb-btn--primary");
+await page.waitForTimeout(250);
 ok(await page.evaluate(() => !__RB_actor__.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Талисман из коры")),
-  "ГМ удалил рецепт из книги персонажа");
+  "подтверждение удалило рецепт из книги персонажа");
 await $("[data-action='filter'][data-filter='world']").click();
 await page.waitForTimeout(80);
 await $(".rb-entry", { hasText: "Талисман из коры" }).first().click();
 await page.waitForTimeout(80);
 await $("[data-action='deleteRecipe']").click();
 await page.waitForTimeout(200);
+ok((await text(".mock-dialog section")).includes("останутся"),
+  "удаление из мира объясняет, что копии у персонажей останутся");
+await page.click(".mock-dialog .rb-btn--primary");
+await page.waitForTimeout(250);
 ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "ГМ удалил рецепт из мира");
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(80);

@@ -33,9 +33,10 @@
     "OpenResult": "Open item",
     "EditRecipe": "Edit recipe",
     "Abandon": {
-      "Title": "Abandon project?",
-      "Hint": "Spent materials will not be returned. Abandon the unfinished work?",
-      "Button": "Abandon"
+      "Title": "Abandon the work?",
+      "Hint": "Work on «{name}» stops; it has to start over.",
+      "HintSpent": "Work on «{name}» stops. Spent materials are lost: {spent}.",
+      "Button": "Abandon work"
     },
     "Missing": {
       "skill": "the skill",
@@ -180,8 +181,7 @@
       "ToolNote": "Tool: the character must have it; not consumed.",
       "MoneyLeft": "Left after crafting\t{left}",
       "MoneyShort": "Short by\t{short}",
-      "MoneyNote": "~ Minor materials without a separate item - paid in coin.",
-      "Upgrade": "Upgrade\nFor extra materials the item gains this quality. The required SL grows by {sl}."
+      "MoneyNote": "~ Minor materials without a separate item - paid in coin."
     },
     "Tool": {
       "Have": "yes",
@@ -203,10 +203,12 @@
       "Made": "«{name}» ×{count} created in the world (Items tab)"
     },
     "Delete": {
-      "WorldTitle": "Delete world recipe?",
-      "WorldHint": "«{name}» will be deleted permanently. Learned copies remain with characters.",
-      "ActorTitle": "Remove from book?",
-      "ActorHint": "The character forgets «{name}». The world recipe (if any) remains.",
+      "WorldTitle": "Delete the recipe from the world?",
+      "WorldHint": "The «{name}» recipe disappears from the registry. Copies already learned by characters stay with them.",
+      "WorldButton": "Delete recipe",
+      "ActorTitle": "Remove the recipe from the book?",
+      "ActorHint": "{actor} forgets the «{name}» recipe. It stays in the GM registry and can be given again.",
+      "ActorButton": "Remove from book",
       "WorldTip": "Delete from world",
       "ActorTip": "Remove from book"
     },

@@ -78,6 +78,12 @@ const html = `<!DOCTYPE html>
   .mock-toast { position: fixed; right: 16px; bottom: 16px; background: #442; color: #ffd; padding: 8px 12px; border-radius: 6px; z-index: 99; font-size: 13px; animation: up .2s; }
   .mock-toast--info { background: #243; color: #dfd; }
   .mock-toast + .mock-toast { bottom: 64px; }
+  .mock-dialog-back { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: center; justify-content: center; z-index: 200; }
+  .mock-dialog { min-width: 340px; max-width: 460px; background: var(--rb-bg); color: var(--rb-text); border: 1px solid var(--rb-frame-hi); border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .mock-dialog header { padding: 8px 14px; background: #15120f; color: #f0e6d2; font-size: 13px; border-radius: 6px 6px 0 0; }
+  .mock-dialog section { padding: 14px; font-size: 13px; line-height: 1.45; }
+  .mock-dialog section p { margin: 0; }
+  .mock-dialog footer { display: flex; justify-content: flex-end; gap: 8px; padding: 0 14px 14px; }
   /* Панель мока */
   #mock-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 8px; align-items: center; padding: 6px 16px; background: #15120f; color: #a89c86; font-size: 12px; z-index: 50; }
   #mock-bar b { color: #f0e6d2; }

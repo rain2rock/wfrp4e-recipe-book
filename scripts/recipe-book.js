@@ -371,6 +371,15 @@ export function propertyLabel(key) {
   return key;
 }
 
+/** Описание качества/изъяна из конфига системы: «Название\nчто делает» (для ховеров) */
+export function propertyTip(key, label = propertyLabel(key)) {
+  const c = game.wfrp4e?.config ?? {};
+  const raw = c.qualityDescriptions?.[key] ?? c.flawDescriptions?.[key];
+  if (!raw) return label;
+  const text = game.i18n.localize(raw).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return text ? `${label}\n${text}` : label;
+}
+
 function propText(p) {
   return propertyLabel(p.name) + (p.value ? ` (${p.value})` : "");
 }
@@ -577,6 +586,22 @@ export async function itemIndex() {
   out.sort((a, b) => a.name.localeCompare(b.name, "ru"));
   _itemIndex = out;
   return out;
+}
+
+/**
+ * Подтверждение необратимого действия: заголовок-вопрос, факт последствий, именованные кнопки.
+ * Кнопка действия названа глаголом (не «Да»), отмена - всегда рядом и безопасна.
+ */
+export async function confirmAction({ title, body, confirmLabel }) {
+  const choice = await foundry.applications.api.DialogV2.wait({
+    window: { title },
+    content: `<p>${body}</p>`,
+    buttons: [
+      { action: "ok", label: confirmLabel, default: true, class: "rb-danger" },
+      { action: "cancel", label: L("WFRPRB.Sheet.Cancel") }
+    ]
+  }).catch(() => "cancel");
+  return choice === "ok";
 }
 
 /* ---------- Свой тултип (порт PaperdollTooltip из wfrp4e-paperdoll) ----------
@@ -978,7 +1003,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
               ...(u.ingredients ?? []).map((i) => `${esc(i.name)}${i.count > 1 ? ` ×${i.count}` : ""}`),
               u.moneyBp ? moneyHtml(u.moneyBp) : ""
             ].filter(Boolean).join(", "),
-            tip: F("WFRPRB.Tip.Upgrade", { sl: u.slBonus })
+            // В подсказке - ЧТО ДАЁТ качество (цена и +УУ уже видны в самой строке)
+            tip: propertyTip(u.quality, u.name || propertyLabel(u.quality))
           })),
           moneyTip: (() => {
             const cost = st.costBp;
@@ -1134,10 +1160,17 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static async #onAbandon(event, target) {
     const test = this.actor.items.get(target.dataset.id);
     if (!test) return;
-    const yes = await foundry.applications.api.DialogV2.confirm({
-      window: { title: L("WFRPRB.Abandon.Title") },
-      content: `<p>${L("WFRPRB.Abandon.Hint")}</p>`
-    }).catch(() => false);
+    const spent = (test.getFlag(FLAG, "spent") ?? []).map((sp) => `${esc(sp.name)}${sp.count > 1 ? ` ×${sp.count}` : ""}`);
+    const moneyBp = test.getFlag(FLAG, "moneyBp") || 0;
+    if (moneyBp) spent.push(moneyText(moneyBp));
+    const name = esc(test.getFlag(FLAG, "result")?.name ?? test.name);
+    const yes = await confirmAction({
+      title: L("WFRPRB.Abandon.Title"),
+      body: spent.length
+        ? F("WFRPRB.Abandon.HintSpent", { name, spent: spent.join(", ") })
+        : F("WFRPRB.Abandon.Hint", { name }),
+      confirmLabel: L("WFRPRB.Abandon.Button")
+    });
     if (yes) { await test.delete(); this.render(); }
   }
 
@@ -1227,10 +1260,13 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const r = this.selectedRecipe();
     if (!r) return;
     const world = this.selected?.kind === "wrecipe";
-    const yes = await foundry.applications.api.DialogV2.confirm({
-      window: { title: L(world ? "WFRPRB.Delete.WorldTitle" : "WFRPRB.Delete.ActorTitle") },
-      content: `<p>${F(world ? "WFRPRB.Delete.WorldHint" : "WFRPRB.Delete.ActorHint", { name: esc(r.name) })}</p>`
-    }).catch(() => false);
+    const name = esc(r.system.result?.name || r.name);
+    const owner = esc(this.selectedOwner()?.name ?? this.actor?.name ?? "");
+    const yes = await confirmAction({
+      title: L(world ? "WFRPRB.Delete.WorldTitle" : "WFRPRB.Delete.ActorTitle"),
+      body: F(world ? "WFRPRB.Delete.WorldHint" : "WFRPRB.Delete.ActorHint", { name, actor: owner }),
+      confirmLabel: L(world ? "WFRPRB.Delete.WorldButton" : "WFRPRB.Delete.ActorButton")
+    });
     if (!yes) return;
     await r.delete();
     this.selected = null;
