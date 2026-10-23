@@ -150,7 +150,16 @@
   width: 100%; align-self: stretch; box-sizing: border-box;
   flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
 }
-.wfrp-recipe-book .rb-forge-root .rb-row { padding: 2px 0; }
+/* Строки свойств: фиксированная высота, чтобы включение доп. контента справа
+   (пикер сырья, поле количества) не сдвигало соседние чекбоксы */
+.wfrp-recipe-book .rb-forge-root .rb-row { padding: 0; min-height: 30px; }
+.wfrp-recipe-book .rb-qrow, .wfrp-recipe-book .rb-frow,
+.wfrp-recipe-book .rb-critrow, .wfrp-recipe-book .rb-poolrow { min-height: 30px; }
+/* Сам доп. контент внутрь строки не распирает её */
+.wfrp-recipe-book .rb-forge-extra { height: 26px; }
+.wfrp-recipe-book .rb-forge-extra .rb-num,
+.wfrp-recipe-book .rb-forge-root .rb-num--s { height: 24px !important; }
+.wfrp-recipe-book button.rb-extra-pick { min-height: 24px; height: 24px; }
 .wfrp-recipe-book .rb-forge-root .rb-ing-name { gap: var(--rb-space-2); }
 .wfrp-recipe-book .rb-num--s { width: 44px; flex-basis: 44px; }
 .wfrp-recipe-book .rb-forge-extra { display: inline-flex; align-items: center; gap: var(--rb-space-2); min-width: 0; }

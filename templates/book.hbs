@@ -158,10 +158,10 @@
           <div class="rb-block-title">{{rbL "WFRPRB.Upgrades"}} <span class="rb-dim">· {{rbL "WFRPRB.UpgradesHint"}}</span></div>
           {{#each detail.upgrades}}
             <div class="rb-row rb-ing rb-upgrade {{#if on}}is-on{{/if}}" data-rb-tip="{{tip}}">
-              <span class="rb-ing-name">
+              <label class="rb-ing-name">
                 <input type="checkbox" data-action="toggleUpgrade" data-quality="{{quality}}" {{#if on}}checked{{/if}}>
-                {{name}} <span class="rb-dim">+{{slBonus}} {{rbL "WFRPRB.SL"}}</span>
-              </span>
+                <span class="rb-prop-label">{{name}} <span class="rb-dim">+{{slBonus}} {{rbL "WFRPRB.SL"}}</span></span>
+              </label>
               <span class="rb-ing-count">{{{costHtml}}}</span>
             </div>
           {{/each}}

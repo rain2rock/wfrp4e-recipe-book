@@ -77,8 +77,8 @@
 
   <section class="rb-block">
     <div class="rb-block-title">{{rbL "WFRPRB.Conditions"}}</div>
-    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Workshop"}}</label>
-      <input type="checkbox" name="system.needsWorkshop" {{#if sys.needsWorkshop}}checked{{/if}}></div>
+    <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Workshop"}}</span>
+      <input type="checkbox" name="system.needsWorkshop" {{#if sys.needsWorkshop}}checked{{/if}}></label>
     <div class="rb-field"><label>{{rbL "WFRPRB.Time.Label"}}</label>
       <span class="rb-money-fields">
         <input type="number" class="rb-num rb-time-d" value="{{sys.timeDays}}" min="0"><span class="rb-unit">{{rbL "WFRPRB.Time.d"}}</span>
@@ -89,18 +89,18 @@
 
   <section class="rb-block">
     <div class="rb-block-title">{{rbL "WFRPRB.Crit.Title"}}</div>
-    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.Enable"}}</label>
-      <input type="checkbox" class="rb-crit-on" {{#if sys.critEnabled}}checked{{/if}}></div>
+    <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Crit.Enable"}}</span>
+      <input type="checkbox" class="rb-crit-on" {{#if sys.critEnabled}}checked{{/if}}></label>
     {{#if sys.critEnabled}}
       <div class="rb-field"><label>{{rbL "WFRPRB.Crit.Threshold"}}</label>
         <input type="number" class="rb-num rb-crit-sl" value="{{sys.critSL}}" min="1"></div>
 
-      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeExtra"}}</label>
-        <input type="checkbox" class="rb-crit-extra" {{#if sys.critExtra}}checked{{/if}}>
+      <div class="rb-field rb-field-check"><label class="rb-check-label"><span>{{rbL "WFRPRB.Crit.ModeExtra"}}</span>
+        <input type="checkbox" class="rb-crit-extra" {{#if sys.critExtra}}checked{{/if}}></label>
         {{#if sys.critExtra}}<input type="number" class="rb-num rb-crit-count" value="{{sys.critCount}}" min="1" data-rb-tip="{{rbL 'WFRPRB.Crit.ExtraCount'}}">{{/if}}</div>
 
-      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeUpgrade"}}</label>
-        <input type="checkbox" class="rb-crit-upgrade" {{#if sys.critUpgrade}}checked{{/if}}></div>
+      <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Crit.ModeUpgrade"}}</span>
+        <input type="checkbox" class="rb-crit-upgrade" {{#if sys.critUpgrade}}checked{{/if}}></label>
       {{#if sys.critUpgrade}}
         <div class="rb-field"><label>{{rbL "WFRPRB.Crit.UpgradeItem"}}</label>
           <span class="rb-crit-item" data-dropzone="critResult" data-rb-tip="{{rbL 'WFRPRB.Sheet.DropHint'}}">
@@ -111,12 +111,12 @@
         </div>
       {{/if}}
 
-      <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.ModeRefund"}}</label>
-        <input type="checkbox" class="rb-crit-refund" {{#if sys.critRefund}}checked{{/if}}></div>
+      <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Crit.ModeRefund"}}</span>
+        <input type="checkbox" class="rb-crit-refund" {{#if sys.critRefund}}checked{{/if}}></label>
 
       {{#if critMulti}}
-        <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Crit.Random"}}</label>
-          <input type="checkbox" class="rb-crit-random" {{#if sys.critRandom}}checked{{/if}} data-rb-tip="{{rbL 'WFRPRB.Crit.RandomTip'}}"></div>
+        <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Crit.Random"}}</span>
+          <input type="checkbox" class="rb-crit-random" {{#if sys.critRandom}}checked{{/if}} data-rb-tip="{{rbL 'WFRPRB.Crit.RandomTip'}}"></label>
       {{/if}}
     {{/if}}
   </section>

@@ -39,8 +39,8 @@
   <section class="rb-block">
     {{#each qRows}}
       <div class="rb-row rb-qrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
         {{#if on}}
           <span class="rb-forge-extra">
             <button type="button" class="rb-btn rb-btn--quiet rb-extra-pick" data-action="pickExtra">
@@ -59,8 +59,8 @@
   <section class="rb-block">
     {{#each fRows}}
       <div class="rb-row rb-frow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
       </div>
     {{/each}}
   </section>
@@ -73,8 +73,8 @@
       <input type="number" class="rb-num rb-forge-critsl" value="{{st.critSL}}" min="1"></div>
     {{#each critRows}}
       <div class="rb-row rb-critrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}</span>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
       </div>
     {{/each}}
     {{#if critMulti}}
@@ -90,15 +90,15 @@
   {{#if (eq st.tab "fail")}}
   <section class="rb-block">
     <div class="rb-dim rb-forge-tabnote">{{rbL "WFRPRB.Forge.FailNote"}}</div>
-    <div class="rb-field rb-field-check"><label>{{rbL "WFRPRB.Forge.FailFlawed"}}</label>
-      <input type="checkbox" class="rb-forge-failflawed" {{#if st.failFlawed}}checked{{/if}}></div>
+    <label class="rb-field rb-field-check"><span>{{rbL "WFRPRB.Forge.FailFlawed"}}</span>
+      <input type="checkbox" class="rb-forge-failflawed" {{#if st.failFlawed}}checked{{/if}}></label>
     <div class="rb-field"><label>{{rbL "WFRPRB.Forge.CleanSL"}}</label>
       <input type="number" class="rb-num rb-forge-cleansl" value="{{st.cleanSL}}" min="0" data-rb-tip="{{rbL 'WFRPRB.Forge.CleanSLOff'}}"></div>
     {{#if (or st.failFlawed st.cleanSL)}}
       <div class="rb-dim rb-forge-poollabel">{{rbL "WFRPRB.Forge.FailPool"}}:</div>
       {{#each poolRows}}
         <div class="rb-row rb-poolrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-          <span class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{label}}</span>
+          <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
         </div>
       {{/each}}
     {{/if}}

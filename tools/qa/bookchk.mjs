@@ -498,6 +498,15 @@ await page.waitForTimeout(120);
 const demoUps = await $(".rb-upgrade").count();
 ok(demoUps === 2 && (await text(".rb-right")).includes("Слиток мифрила"),
   "в моке есть рецепт с двумя улучшениями (мифрил и железо)", `(${demoUps})`);
+/* клик по подписи (не по самому чекбоксу) должен переключать */
+await page.click(".rb-upgrade .rb-prop-label");
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => document.querySelector(".rb-upgrade input[type=checkbox]").checked),
+  "клик по тексту улучшения включает его");
+await page.click(".rb-upgrade .rb-prop-label");
+await page.waitForTimeout(200);
+ok(!(await page.evaluate(() => document.querySelector(".rb-upgrade input[type=checkbox]").checked)),
+  "повторный клик по тексту выключает");
 
 /* --- Улучшения: игрок видит цену, выбирает и получает качество --- */
 await page.evaluate(async () => {
@@ -753,6 +762,27 @@ const focusFit = await page.evaluate((f) => {
 ok(focusFit.inside && focusFit.off <= 0, "обводка фокуса не выходит за прокручиваемую область", JSON.stringify(focusFit));
 const forgeImgW = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-img`).getBoundingClientRect().width, forge);
 ok(Math.abs(forgeImgW - 150) < 3, "иконка-карточка 144px (+рамка)", `(${forgeImgW}px)`);
+/* высота строк свойств не скачет при включении доп. контента */
+const rowH = async () => page.evaluate((f) => {
+  const rows = [...document.querySelectorAll(`${f} .rb-qrow`)].slice(0, 3);
+  return rows.map((r) => Math.round(r.getBoundingClientRect().height));
+}, forge);
+const hBefore = await rowH();
+await page.click(`${forge} .rb-qrow[data-key='accurate'] .rb-prop-label`);
+await page.waitForTimeout(200);
+const hAfter = await rowH();
+ok(JSON.stringify(hBefore) === JSON.stringify(hAfter),
+  "включение качества не меняет высоту строк - соседние чекбоксы не прыгают", `${hBefore} -> ${hAfter}`);
+await page.click(`${forge} .rb-qrow[data-key='accurate'] .rb-prop-label`);
+await page.waitForTimeout(150);
+
+/* в мастере тоже: подпись качества кликабельна */
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-label`);
+await page.waitForTimeout(200);
+ok(await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='fine'] .rb-prop-on`).checked, forge),
+  "клик по тексту качества в мастере включает его");
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-label`);
+await page.waitForTimeout(200);
 ok((await text(`${forge} .rb-tab.is-active`)).includes("Достоинства") &&
    (await text(`${forge} [data-tab='qualities'] .rb-tab-count`)) === "1",
   "каунтер на табе достоинств: 1 включено");
