@@ -292,6 +292,7 @@
     "NoResults": "Nothing matches the current filters.",
     "ResetFilters": "Reset filters",
     "Upgrades": "Upgrades",
-    "UpgradesHint": "for extra materials"
+    "UpgradesHint": "for extra materials",
+    "NewBadge": "New recipe\nNot opened yet."
   }
 }

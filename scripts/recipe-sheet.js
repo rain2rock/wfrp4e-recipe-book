@@ -123,6 +123,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
         }
       }
       await this.document.unsetFlag("wfrp4e-recipe-book", "fresh");
+      await this.document.setFlag("wfrp4e-recipe-book", "isNew", true);
     }
     this._snap = null;
     await this.close();
@@ -349,7 +350,10 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   async close(options) {
     // Закрытие крестиком = сохранить: свежий рецепт перестаёт быть «свежим»
-    if (!this._deleted && this.isFresh) await this.document.unsetFlag?.("wfrp4e-recipe-book", "fresh");
+    if (!this._deleted && this.isFresh) {
+      await this.document.unsetFlag?.("wfrp4e-recipe-book", "fresh");
+      await this.document.setFlag?.("wfrp4e-recipe-book", "isNew", true);
+    }
     this._snap = null;
     this.#closePicker();
     return super.close(options);

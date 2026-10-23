@@ -54,6 +54,7 @@
           <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rb-tip="{{tooltip}}">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
+            {{#if isNew}}<i class="fa-solid fa-certificate rb-new-ico" data-rb-tip="{{rbL 'WFRPRB.NewBadge'}}"></i>{{/if}}
             {{#if inWork}}<span class="rb-badge">{{rbL "WFRPRB.InWorkBadge"}}</span>{{/if}}
             {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
           </button>

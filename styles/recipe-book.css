@@ -213,3 +213,6 @@
 .wfrp-recipe-book .rb-upgrade .rb-ing-count { color: var(--rb-text-dim); }
 .wfrp-recipe-book .rb-upgrade.is-on .rb-ing-name { color: var(--rb-text); font-weight: 600; }
 .wfrp-recipe-book .rb-upgrade.is-on .rb-ing-count { color: var(--rb-gold); }
+
+/* Отметка «новый рецепт» рядом с галкой достаточности ресурсов */
+.wfrp-recipe-book .rb-new-ico { color: var(--rb-gold); font-size: var(--rb-fs-s); flex: 0 0 auto; }

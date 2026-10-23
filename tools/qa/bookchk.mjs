@@ -409,20 +409,35 @@ await page.waitForTimeout(100);
 await $("[data-action='createRecipe']").click();
 await page.waitForTimeout(250);
 ok((await $(".rb-filter--world.is-active").count()) === 1, "после создания книга на вкладке «Мир»");
-ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 1, "новый рецепт виден во вкладке «Мир»");
-ok((await $(".rb-group-title", { hasText: "Мир" }).count()) === 1, "реестр: мировые рецепты в группе «Мир»");
+ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 0,
+  "черновик НЕ показывается в списке, пока не сохранён");
 ok((await $(".rb-group-title", { hasText: "Гюнтер" }).count()) === 1 &&
    (await $(".rb-entry", { hasText: "Лечебная настойка" }).count()) === 2,
   "реестр: видны копии у персонажей - две версии настойки");
-ok(await page.evaluate(() => game.items.some((i) => i.name === "Новый рецепт")), "рецепт создан именно в мире, не на актёре");
+ok(await page.evaluate(() => game.items.some((i) => i.name === "Новый рецепт")), "черновик создан в мире, не на актёре");
 const newSheetOpen = await page.evaluate(() =>
   [...document.querySelectorAll(".rb-sheet-root")].some((el) => el.closest(".window-app")));
-ok(newSheetOpen, "лист нового рецепта открылся сразу");
+ok(newSheetOpen, "лист черновика открылся сразу");
+
+/* сохранение: черновик появляется в реестре с отметкой «новый», просмотр её снимает */
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='saveSheet']")].at(-1)?.click());
+await page.waitForTimeout(300);
+ok((await $(".rb-entry", { hasText: "Новый рецепт" }).count()) === 1, "после сохранения рецепт появился в реестре");
+ok((await $(".rb-entry", { hasText: "Новый рецепт" }).locator(".rb-new-ico").count()) === 1,
+  "у сохранённого рецепта есть отметка «новый»");
+await $(".rb-entry", { hasText: "Новый рецепт" }).first().click();
+await page.waitForTimeout(300);
+ok((await $(".rb-entry", { hasText: "Новый рецепт" }).locator(".rb-new-ico").count()) === 0,
+  "после просмотра отметка «новый» снята");
+ok((await $(".rb-group-title", { hasText: "Мир" }).count()) === 1, "реестр: мировые рецепты в группе «Мир»");
+await $("[data-action='createRecipe']").click();
+await page.waitForTimeout(250);
 ok(await page.evaluate(() => {
-  const sheets = [...document.querySelectorAll("[id^='rb-sheet-']")];
-  const el = sheets.at(-1);
+  const el = [...document.querySelectorAll("[id^='rb-sheet-']")].at(-1);
   return !!el?.querySelector("[data-action='saveSheet']") && !el?.querySelector("[data-action='saveAsNew']");
-}), "у рецепта с нуля - только «Сохранить», без «Сохранить как новый»");
+}), "у черновика - только «Сохранить», без «Сохранить как новый»");
+await page.evaluate(() => [...document.querySelectorAll("[id^='rb-sheet-'] [data-action='cancelSheet']")].at(-1)?.click());
+await page.waitForTimeout(250);
 
 /* «Отмена» при создании с нуля удаляет недосозданный рецепт */
 await $("[data-action='createRecipe']").click();
@@ -445,7 +460,8 @@ await page.evaluate(async () => {
     "system.moneyBp": 0, "system.ingredients": [], "system.tools": []
   });
 });
-await $(".rb-entry", { hasText: "Новый рецепт" }).first().click();
+/* после правки рецепта список сразу показывает имя результата */
+await $(".rb-entry", { hasText: "Талисман из коры" }).first().click();
 await page.waitForTimeout(100);
 ok((await $("[data-action='giveRecipe']").count()) === 1 && (await $("[data-action='deleteRecipe']").count()) === 1,
   "у рецепта мира кнопки «выдать» и «удалить»");

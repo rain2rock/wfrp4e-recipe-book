@@ -217,8 +217,16 @@
     getFlag(scope, key) {
       return key.split(".").reduce((o, p) => (o == null ? undefined : o[p]), this.flags?.[scope]);
     }
+    async setFlag(scope, key, value) {
+      this.flags ??= {};
+      this.flags[scope] ??= {};
+      this.flags[scope][key] = value;
+      Hooks.call("updateItem", this, {}, {}, game.user.id);
+      return this;
+    }
     async unsetFlag(scope, key) {
       if (this.flags?.[scope]) delete this.flags[scope][key];
+      Hooks.call("updateItem", this, {}, {}, game.user.id);
       return this;
     }
     toObject() {

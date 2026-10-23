@@ -537,6 +537,11 @@ async function failCraft(actor, test) {
 export function watchCrafting() {
   Hooks.on("updateItem", (item, changes, options, userId) => {
     if (userId && userId !== game.user.id) return;
+    // Правки рецептов и запасов обновляют книгу (сохранение черновика, смена полей, трата сырья)
+    if (item.type === RECIPE_TYPE || (item.actor && isStock(item))) {
+      RecipeBookApp.renderAll();
+      return;
+    }
     if (item.type !== "extendedTest" || !item.actor || !item.getFlag(FLAG, "result")) return;
     const cur = Number(item.system.SL?.current) || 0;
     const target = Number(item.system.SL?.target) || 0;
@@ -761,13 +766,18 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     return super.close(options);
   }
 
-  recipes() {
-    return (this.actor?.items ?? []).filter((i) => i.type === RECIPE_TYPE);
+  /** Черновик - созданный, но ещё не сохранённый рецепт: в списках его нет */
+  static isDraft(item) {
+    return !!item.getFlag?.(MODULE_ID, "fresh");
   }
 
-  /** Рецепты мира (вкладка «Мир», только ГМ) */
+  recipes() {
+    return (this.actor?.items ?? []).filter((i) => i.type === RECIPE_TYPE && !RecipeBookApp.isDraft(i));
+  }
+
+  /** Рецепты мира (вкладка «Реестр», только ГМ) */
   worldRecipes() {
-    return (game.items ?? []).filter((i) => i.type === RECIPE_TYPE);
+    return (game.items ?? []).filter((i) => i.type === RECIPE_TYPE && !RecipeBookApp.isDraft(i));
   }
 
   /** Рецепт по выбору: с открытого актёра, из мира или с другого персонажа (реестр ГМа) */
@@ -857,6 +867,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         skill: st.skillUsed || unusual, type: resType(r), ready: st.ready, missing,
         owner: owner?.name ?? null, ownerId: owner?.id ?? "",
         inWork: !world && projects.some((pj) => pj.recipeUuid === r.uuid),
+        isNew: !!r.getFlag(MODULE_ID, "isNew"),
         kind: world ? (owner ? "arecipe" : "wrecipe") : "recipe",
         group: world ? (owner?.name ?? worldLabel) : (st.skillUsed || unusual),
         groupRank: world && !owner ? 0 : 1,
@@ -934,6 +945,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const r = this.selectedRecipe();
       const statusActor = this.selectedOwner();
       if (r) {
+        // Открыли разворот - рецепт больше не «новый» (снимаем один раз)
+        if (r.getFlag(MODULE_ID, "isNew") && !this._seen?.has(r.id)) {
+          (this._seen ??= new Set()).add(r.id);
+          r.unsetFlag(MODULE_ID, "isNew").catch(() => null);
+        }
         const picked = this.picked[r.id] ?? [];
         const st = recipeStatus(statusActor, r, { picked });
         const res = r.system.result ?? {};
@@ -1174,6 +1190,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   async #giveTo(actor, recipe) {
     const obj = recipe.toObject();
     delete obj._id;
+    // Игрок увидит пометку «новый», пока не откроет рецепт
+    obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { ...(obj.flags?.[MODULE_ID] ?? {}), isNew: true, fresh: false } };
     const [made] = await actor.createEmbeddedDocuments("Item", [obj]);
     ui.notifications.info(F("WFRPRB.World.Given", { name: recipe.name, actor: actor.name }));
     if (actor.id === this.actor.id) {
@@ -1230,8 +1248,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     });
     if (!item) return;
     this.filter = "world";
-    this.selected = { kind: "wrecipe", id: item.id };
     this.render();
-    item.sheet?.render(true);
+    item.sheet?.render(true);   // черновик появится в реестре только после «Сохранить»
   }
 }
