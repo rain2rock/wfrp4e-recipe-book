@@ -1,4 +1,5 @@
 <div class="rb-sheet-root">
+  <div class="rb-sheet-scroll">
   <header class="rb-sheet-head">
     <img class="rb-sheet-img" src="{{item.img}}" alt="" data-action="pickImage" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickImage'}}">
     <input class="rb-sheet-name" type="text" name="name" value="{{item.name}}" {{#unless editable}}disabled{{/unless}}>
@@ -125,6 +126,7 @@
     <textarea name="system.description.value" rows="4">{{sys.description.value}}</textarea>
   </section>
 
+  </div>
   {{#if editable}}
   <footer class="rb-sheet-foot">
     <button type="button" class="rb-btn rb-btn--quiet" data-action="cancelSheet">{{rbL "WFRPRB.Sheet.Cancel"}}</button>

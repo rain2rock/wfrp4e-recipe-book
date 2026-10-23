@@ -38,15 +38,15 @@
       "Button": "Abandon"
     },
     "Missing": {
-      "skill": "skill",
+      "skill": "the skill",
       "ingredients": "ingredients",
-      "money": "money",
-      "tools": "tools"
+      "tools": "tools",
+      "money": "money"
     },
     "Craft": {
-      "CantStart": "Cannot start: missing - {what}.",
+      "CantStart": "Missing: {what}.",
       "TestName": "Crafting: {name}",
-      "NoSystem": "WFRP4e system not found - roll impossible."
+      "NoSystem": "WFRP4e system not found. Rolling is impossible."
     },
     "Chat": {
       "Done": "Crafted: {name} ×{count}",
@@ -69,7 +69,7 @@
       "gc": "GC",
       "ss": "SS",
       "bp": "BP",
-      "NoCoin": "The character has no coin stacks of the required denominations.",
+      "NoCoin": "The character has no coins of the required denominations.",
       "NotEnough": "Not enough money.",
       "Name": {
         "gc": "Gold Crown",
@@ -125,7 +125,7 @@
       "Tools": "Tools",
       "Description": "Description",
       "Remove": "Remove",
-      "PickImage": "Choose image",
+      "PickImage": "Replace the recipe icon",
       "SearchItem": "Search the database...",
       "NothingFound": "Nothing found",
       "AddFromDb": "Add from database",
@@ -134,7 +134,7 @@
       "SaveAsNew": "Save as new",
       "Cancel": "Cancel",
       "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored",
-      "PickResultIcon": "Pick the result item icon",
+      "PickResultIcon": "Replace the result icon",
       "SkillSearch": "Start typing to search..."
     },
     "Difficulty": {
@@ -196,7 +196,7 @@
       "ThisBook": "this book",
       "NoPlayers": "No one to give to: no player-owned characters found.",
       "Source": "World",
-      "Make": "Make in world",
+      "Make": "Create in world",
       "MakeTip": "Create the result item in the Items tab - no character, no roll",
       "Made": "«{name}» ×{count} created in the world (Items tab)"
     },
@@ -237,7 +237,7 @@
       "NoUpgrade": "Pick the upgraded item",
       "Label": "Crit",
       "Line": "SL ≥ {sl} - {effect}",
-      "Tip": "Critical success\nIf enough SL is accumulated by completion, the result is improved.",
+      "Tip": "Critical success\nIf the SL accumulated on completion meets the threshold, the bonus triggers.",
       "Random": "Grant one bonus at random",
       "RandomTip": "Random\nONE of the checked effects triggers, chosen at random. Players only see «special bonus» in the book.",
       "RandomNote": "one of, at random:",
@@ -274,7 +274,18 @@
       "NameEmpty": "Enter the item name",
       "Created": "Item «{name}» created in the world; the recipe has been updated",
       "Weight": "Weight",
-      "Price": "Base price"
-    }
+      "Price": "Base price",
+      "CritNote": "These qualities are added to the item only on a critical success.",
+      "FailNote": "What happens when the work goes poorly.",
+      "TabCrit": "Crit",
+      "TabFail": "Failure",
+      "Replace": "Replace icon"
+    },
+    "Target": "d100 roll target",
+    "NoSkillShort": "no skill",
+    "Invested": "Invested",
+    "PriceShort": "cost:",
+    "InWorkBadge": "in progress",
+    "EmptyRight": "Pick a recipe on the left to open its spread here."
   }
 }

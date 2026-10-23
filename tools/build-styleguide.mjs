@@ -42,14 +42,14 @@ ${section(
 )}
 ${section(
   "Кнопки",
-  "Любая кнопка - .rb-btn, единая высота --rb-btn-h. Один размер текста у ВСЕХ кнопок; --craft - акцент главного действия (золотая рамка + жирный), --quiet - без подложки. В футерах текстовые кнопки получают min-width: --rb-btn-minw. Квадратные иконко-кнопки: .rb-add («+» в заголовке секции), .rb-remove (крестик строки, при наведении краснеет).",
-  `<button type="button" class="rb-btn rb-btn--craft"><i class="fa-solid fa-dice-d20"></i> Создать</button>
+  "Любая кнопка - .rb-btn, единая высота --rb-btn-h. Один размер текста у ВСЕХ кнопок; --primary - акцент главного действия (золотая рамка + жирный; --craft - синоним), --quiet - без подложки. В футерах текстовые кнопки получают min-width: --rb-btn-minw. Квадратные иконко-кнопки: .rb-add («+» в заголовке секции), .rb-remove (крестик строки, при наведении краснеет).",
+  `<button type="button" class="rb-btn rb-btn--primary"><i class="fa-solid fa-dice-d20"></i> Изготовить</button>
    <button type="button" class="rb-btn">Изменить</button>
    <button type="button" class="rb-btn rb-btn--quiet">Отмена</button>
    <button type="button" class="rb-btn" disabled>Недоступно</button>
    <button type="button" class="rb-btn rb-btn--quiet rb-add"><i class="fa-solid fa-plus"></i></button>
    <button type="button" class="rb-btn rb-btn--quiet rb-remove"><i class="fa-solid fa-xmark"></i></button>`,
-  ".rb-btn(--craft|--quiet)[disabled], .rb-add, .rb-remove"
+  ".rb-btn(--primary|--craft|--quiet)[disabled], .rb-add, .rb-remove"
 )}
 ${section(
   "Чипы-фильтры",
@@ -101,6 +101,23 @@ ${section(
      <button type="button" class="rb-entry rb-project"><img src="${ICON("6a4a2a", "Д")}" alt=""><span class="rb-entry-name">Дорожный паёк ×5</span><span class="rb-mini-progress"><span style="width: 40%"></span></span></button>
    </div>`,
   ".rb-group-title, .rb-entry(.rb-ready|.is-selected), .rb-entry-name, .rb-ok-ico, .rb-mini-progress"
+)}
+${section(
+  "Акцент-значение и бейдж",
+  "Крупное значение строки - .rb-target-num (цель броска); бейдж состояния - .rb-badge («в работе» у рецепта с активным проектом).",
+  `<div style="width: 360px">
+     <div class="rb-row rb-target-row"><span>Цель броска d100</span><span class="rb-target-num">65</span></div>
+     <div class="rb-row"><span class="rb-entry-name">Дорожный паёк ×5</span><span class="rb-badge">в работе</span></div>
+   </div>`,
+  ".rb-target-num, .rb-target-row(.is-bad), .rb-badge"
+)}
+${section(
+  "Сворачиваемая секция",
+  "details.rb-fold: summary в стиле заголовка секции с маркером справа. В мастере «Создать с нуля» так свёрнуты крит и брак.",
+  `<details class="rb-fold" open style="width: 360px"><summary class="rb-block-title rb-fold-sum">⚡ При крите добавить качества <span class="rb-dim">(добавятся только при крите)</span></summary>
+     <section class="rb-block"><div class="rb-row rb-ing"><span class="rb-ing-name"><input type="checkbox" checked> Грозное</span></div></section>
+   </details>`,
+  "details.rb-fold, summary.rb-fold-sum"
 )}
 ${section(
   "Полоса прогресса",

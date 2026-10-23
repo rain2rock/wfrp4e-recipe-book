@@ -44,6 +44,7 @@
   /* Размеры: иконки, монеты, кнопки, числовые поля */
   --rb-icon-s: 24px;
   --rb-icon-l: 42px;
+  --rb-icon-xl: 144px;
   --rb-coin: 16px;
   --rb-btn-h: 30px;
   --rb-btn-minw: 128px;
@@ -63,11 +64,11 @@
   --rb-text: #2a2119;
   --rb-text-dim: #5f5444;
   --rb-text-2: #3d3326;
-  --rb-muted: #7a6e5a;
+  --rb-muted: #4e4434;   /* AA: 6.3 на фоне, 4.4 на колодце (было 3.3/2.3) */
   --rb-well: #b8b09e;
-  --rb-good: #2f7a12;
+  --rb-good: #266310;    /* AA: 4.8 (было 3.5) */
   --rb-bad: #a32014;
-  --rb-warn: #8a4d08;
+  --rb-warn: #7d4507;    /* AA: 5.1 (было 4.4) */
   --rb-hover: rgba(122, 76, 8, 0.1);
   --rb-line-soft: rgba(60, 45, 25, 0.2);
 }
@@ -120,8 +121,10 @@
 .wfrp-recipe-book button.rb-btn[disabled], .wfrp-recipe-book .rb-btn[disabled] { opacity: 0.5; cursor: default; }
 .wfrp-recipe-book .rb-btn i { color: var(--rb-muted); }
 .wfrp-recipe-book button.rb-btn--quiet, .wfrp-recipe-book .rb-btn--quiet { background: none !important; border-color: transparent !important; }
-/* Акцентная кнопка главного действия окна («Создать», «Сохранить», «Выдать»):
-   тот же размер, что у всех кнопок - выделяется только рамкой и жирностью */
+/* Акцентная кнопка главного действия окна («Изготовить», «Сохранить», «Выдать»):
+   тот же размер, что у всех кнопок - выделяется только рамкой и жирностью.
+   Каноническое имя - --primary (по функции); --craft - исторический синоним. */
+.wfrp-recipe-book button.rb-btn--primary, .wfrp-recipe-book .rb-btn--primary,
 .wfrp-recipe-book button.rb-btn--craft, .wfrp-recipe-book .rb-btn--craft { border-color: var(--rb-gold-soft) !important; font-weight: 600; }
 
 /* Квадратные иконко-кнопки: «+» в заголовке секции и крестик удаления строки */
@@ -140,7 +143,7 @@
 .wfrp-recipe-book button.rb-filter,
 .wfrp-recipe-book .rb-filter {
   display: inline-flex; align-items: center; gap: var(--rb-space-1);
-  padding: 2px var(--rb-space-3); margin: 0; width: auto; line-height: 1.4;
+  padding: var(--rb-space-1) var(--rb-space-4); margin: 0; width: auto; line-height: 1.4;
   font-size: var(--rb-fs-s); color: var(--rb-text-dim);
   cursor: pointer;
   background: none !important;
@@ -388,4 +391,56 @@
 .wfrp-recipe-book .rb-tt-head > img {
   width: var(--rb-icon-l) !important; height: var(--rb-icon-l) !important;
 }
-.wfrp-recipe-book .rb-forge-img { width: var(--rb-icon-s) !important; height: var(--rb-icon-s) !important; }
+.wfrp-recipe-book .rb-forge-img { width: var(--rb-icon-xl) !important; height: var(--rb-icon-xl) !important; }
+
+/* Видимый фокус с клавиатуры (доступность): золотая обводка, не ломает мышиные клики */
+.wfrp-recipe-book button:focus-visible,
+.wfrp-recipe-book input:focus-visible,
+.wfrp-recipe-book select:focus-visible,
+.wfrp-recipe-book [data-action]:focus-visible {
+  outline: 2px solid var(--rb-gold-soft) !important;
+  outline-offset: 1px;
+}
+
+/* ========================= Примитивы из ревью ========================= */
+
+/* Крупное значение-акцент в строке («Цель броска d100») */
+.wfrp-recipe-book .rb-target-num { font-size: var(--rb-fs-xxl); font-weight: 700; color: var(--rb-gold); line-height: 1.1; }
+.wfrp-recipe-book .rb-target-row.is-bad .rb-target-num { color: var(--rb-bad); }
+
+/* Бейдж-пилюля состояния («в работе») */
+.wfrp-recipe-book .rb-badge {
+  flex: 0 0 auto; padding: 0 var(--rb-space-2);
+  font-size: var(--rb-fs-xs); color: var(--rb-muted);
+  border: 1px solid var(--rb-frame); border-radius: var(--rb-radius-pill);
+}
+
+/* Сворачиваемая секция формы: summary в стиле заголовка секции, маркер справа */
+.wfrp-recipe-book details.rb-fold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: var(--rb-space-2); }
+.wfrp-recipe-book details.rb-fold > summary::-webkit-details-marker { display: none; }
+.wfrp-recipe-book details.rb-fold > summary::after { content: "▸"; margin-left: auto; color: var(--rb-muted); }
+.wfrp-recipe-book details.rb-fold[open] > summary::after { content: "▾"; }
+.wfrp-recipe-book details.rb-fold .rb-block { margin-top: var(--rb-space-2); }
+
+/* ========================= Табы ========================= */
+.wfrp-recipe-book .rb-tabs { display: flex; gap: var(--rb-space-1); border-bottom: 1px solid var(--rb-frame); }
+.wfrp-recipe-book button.rb-tab,
+.wfrp-recipe-book .rb-tab {
+  display: inline-flex; align-items: center; gap: var(--rb-space-2);
+  margin: 0; padding: var(--rb-space-2) var(--rb-space-4); width: auto; height: auto; min-height: 0;
+  font-size: var(--rb-fs-m); color: var(--rb-text-dim); cursor: pointer;
+  background: none !important; background-image: none !important;
+  border: none !important; border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important; box-shadow: none !important; outline: none !important;
+  text-transform: none; text-shadow: none; letter-spacing: normal;
+}
+.wfrp-recipe-book button.rb-tab:hover, .wfrp-recipe-book .rb-tab:hover { color: var(--rb-text); background: var(--rb-hover) !important; }
+.wfrp-recipe-book button.rb-tab.is-active, .wfrp-recipe-book .rb-tab.is-active {
+  color: var(--rb-text); font-weight: 600;
+  border-bottom-color: var(--rb-gold) !important;
+}
+.wfrp-recipe-book .rb-tab-count {
+  min-width: var(--rb-fs-l); padding: 0 var(--rb-space-1);
+  font-size: var(--rb-fs-xs); font-weight: 700; text-align: center;
+  color: var(--rb-bg); background: var(--rb-gold-soft); border-radius: var(--rb-radius-pill);
+}

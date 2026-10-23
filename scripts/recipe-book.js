@@ -592,6 +592,9 @@ export class RBTooltip {
     if (!el?.classList.contains("is-visible")) return;
     const pad = 16;
     const { innerWidth: vw } = window;
+    // Сначала в нулевую позицию: у правого края fixed-элемент сжимается, и замер врёт
+    el.style.left = "0px";
+    el.style.top = "0px";
     const rect = el.getBoundingClientRect();
     let x = event.clientX + pad;
     let y = event.clientY + pad;
@@ -693,7 +696,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   };
 
-  static PARTS = { book: { template: `modules/${MODULE_ID}/templates/book.hbs`, scrollable: [".rb-list", ".rb-right"] } };
+  static PARTS = { book: { template: `modules/${MODULE_ID}/templates/book.hbs`, scrollable: [".rb-list", ".rb-right-scroll"] } };
 
   constructor(actor, options = {}) {
     super(options);
@@ -788,11 +791,17 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const target = Number(t.system.SL?.target) || 1;
       const cur = Math.max(Number(t.system.SL?.current) || 0, 0);
       const res = t.getFlag(FLAG, "result");
+      const skillItem = findSkill(this.actor, t.system.test?.value);
+      const moneyBp = t.getFlag(FLAG, "moneyBp") || 0;
       return {
         id: t.id, img: res?.img || t.img, name: res?.name || t.name, count: res?.count || 1,
         cur: Number(t.system.SL?.current) || 0, target,
         pct: Math.min(Math.round((cur / target) * 100), 100),
-        skill: t.system.test?.value ?? ""
+        skill: t.system.test?.value ?? "",
+        rollTarget: (skillItem ? Number(skillItem.system.total?.value) || 0 : 0) + difficultyMod(t.system.difficulty?.value),
+        recipeUuid: t.getFlag(FLAG, "recipeUuid") ?? "",
+        spent: t.getFlag(FLAG, "spent") ?? [],
+        moneyHtml: moneyBp ? moneyHtml(moneyBp) : ""
       };
     });
 
@@ -825,6 +834,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         resultName: res.name || r.name, count: res.count ?? 1,
         skill: st.skillUsed || unusual, type: resType(r), ready: st.ready, missing,
         owner: owner?.name ?? null, ownerId: owner?.id ?? "",
+        inWork: !world && projects.some((pj) => pj.recipeUuid === r.uuid),
         kind: world ? (owner ? "arecipe" : "wrecipe") : "recipe",
         group: world ? (owner?.name ?? worldLabel) : (st.skillUsed || unusual),
         groupRank: world && !owner ? 0 : 1,

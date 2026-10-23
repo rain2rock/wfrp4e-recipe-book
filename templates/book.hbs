@@ -13,23 +13,23 @@
         {{rbL "WFRPRB.Filter.missing"}}</button>
       {{#if gm}}
         <button type="button" class="rb-filter rb-filter--world {{#if (eq filter 'world')}}is-active{{/if}}" data-action="filter" data-filter="world" data-rb-tip="{{rbL 'WFRPRB.World.Hint'}}">
-          {{rbL "WFRPRB.Filter.world"}} <span class="rb-count">{{counts.world}}</span></button>
+          <i class="fa-solid fa-book-atlas"></i> {{rbL "WFRPRB.Filter.world"}} <span class="rb-count">{{counts.world}}</span></button>
       {{/if}}
     </div>
 
     {{#if extraFilters}}
       <div class="rb-extra-filters">
         {{#if world}}
-          <select class="rb-owner-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.OwnerTip'}}">
+          <select class="rb-owner-filter">
             <option value="">{{rbL "WFRPRB.Extra.AllOwners"}}</option>
             {{#each ownerOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
           </select>
         {{/if}}
-        <select class="rb-skill-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.SkillTip'}}">
+        <select class="rb-skill-filter">
           <option value="">{{rbL "WFRPRB.Extra.AllSkills"}}</option>
           {{#each skillOptions}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
         </select>
-        <select class="rb-type-filter" data-rb-tip="{{rbL 'WFRPRB.Extra.TypeTip'}}">
+        <select class="rb-type-filter">
           <option value="">{{rbL "WFRPRB.Extra.AllTypes"}}</option>
           {{#each typeOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
         </select>
@@ -54,6 +54,7 @@
           <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rb-tip="{{tooltip}}">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
+            {{#if inWork}}<span class="rb-badge">{{rbL "WFRPRB.InWorkBadge"}}</span>{{/if}}
             {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
           </button>
         {{/each}}
@@ -71,6 +72,7 @@
   <main class="rb-page rb-right">
     {{#if detail}}
       {{#if (eq detail.kind "recipe")}}
+      <div class="rb-right-scroll">
         <header class="rb-head">
           <span data-rbtt="result" class="rb-head-hover">
             <img class="rb-head-img" src="{{detail.result.img}}" alt="">
@@ -97,12 +99,13 @@
 
         <section class="rb-block">
           <div class="rb-block-title">{{rbL "WFRPRB.Check"}}</div>
-          <div class="rb-row {{#unless detail.hasSkill}}is-bad{{/unless}}" data-rb-tip="{{detail.checkTip}}">
-            <span>{{detail.skillUsed}}{{#if detail.skillAlt}} <span class="rb-dim">/ {{detail.skillAlt}}</span>{{/if}}</span>
-            <span>
-              {{#if detail.hasSkill}}{{detail.skillTotal}} · {{detail.diffLabel}} → <b>{{detail.target}}</b>
-              {{else}}{{rbL "WFRPRB.Missing.skill"}}{{/if}}
-            </span>
+          <div class="rb-row rb-target-row {{#unless detail.hasSkill}}is-bad{{/unless}}" data-rb-tip="{{detail.checkTip}}">
+            <span>{{rbL "WFRPRB.Target"}}</span>
+            <span class="rb-target-num">{{#if detail.hasSkill}}{{detail.target}}{{else}}—{{/if}}</span>
+          </div>
+          <div class="rb-row rb-dim" data-rb-tip="{{detail.checkTip}}">
+            <span>{{detail.skillUsed}}{{#if detail.skillAlt}} / {{detail.skillAlt}}{{/if}}</span>
+            <span>{{#if detail.hasSkill}}{{detail.skillTotal}} · {{detail.diffLabel}}{{else}}{{rbL "WFRPRB.NoSkillShort"}}{{/if}}</span>
           </div>
           <div class="rb-row" data-rb-tip="{{detail.slTip}}">
             <span>{{rbL "WFRPRB.SLTarget"}}</span>
@@ -136,7 +139,7 @@
           {{#if detail.moneyBp}}
             <div class="rb-row rb-ing {{#if detail.moneyOk}}is-ok{{else}}is-bad{{/if}}" data-rb-tip="{{detail.moneyTip}}">
               <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{rbL "WFRPRB.RawMoney"}}</span>
-              <span class="rb-ing-count">{{{detail.moneyHtml}}}</span>
+              <span class="rb-ing-count"><span class="rb-dim">{{rbL "WFRPRB.PriceShort"}}</span>&nbsp;{{{detail.moneyHtml}}}</span>
             </div>
           {{/if}}
           {{#unless detail.ingredients.length}}{{#unless detail.moneyBp}}
@@ -177,6 +180,7 @@
         {{/if}}
 
         {{#if detail.description}}<section class="rb-block rb-desc">{{{detail.description}}}</section>{{/if}}
+      </div>
 
         <footer class="rb-foot">
           {{#if detail.world}}
@@ -201,6 +205,7 @@
       {{/if}}
 
       {{#if (eq detail.kind "project")}}
+      <div class="rb-right-scroll">
         <header class="rb-head">
           <img class="rb-head-img" src="{{detail.img}}" alt="">
           <div class="rb-head-text">
@@ -211,14 +216,36 @@
         <section class="rb-block">
           <div class="rb-progress"><div class="rb-progress-fill" style="width:{{detail.pct}}%"></div></div>
           <div class="rb-row" data-rb-tip="{{rbL 'WFRPRB.Tip.Progress'}}"><span>{{rbL "WFRPRB.Progress"}}</span><span><b>{{detail.cur}}</b> / {{detail.target}} {{rbL "WFRPRB.SL"}}</span></div>
+          <div class="rb-row rb-target-row" data-rb-tip="{{rbL 'WFRPRB.Tip.Check'}}">
+            <span>{{rbL "WFRPRB.Target"}}</span>
+            <span class="rb-target-num">{{detail.rollTarget}}</span>
+          </div>
         </section>
+        {{#if detail.spent.length}}
+        <section class="rb-block">
+          <div class="rb-block-title">{{rbL "WFRPRB.Invested"}}</div>
+          {{#each detail.spent}}
+            <div class="rb-row rb-ing">
+              <span class="rb-ing-name">{{#if img}}<img src="{{img}}" alt="">{{/if}}{{name}}</span>
+              <span class="rb-ing-count">×{{count}}</span>
+            </div>
+          {{/each}}
+          {{#if detail.moneyHtml}}
+            <div class="rb-row rb-ing">
+              <span class="rb-ing-name"><img src="modules/wfrp4e-recipe-book/assets/icons/raw-materials.png" alt="">{{rbL "WFRPRB.RawMoney"}}</span>
+              <span class="rb-ing-count">{{{detail.moneyHtml}}}</span>
+            </div>
+          {{/if}}
+        </section>
+        {{/if}}
+      </div>
         <footer class="rb-foot">
           <button type="button" class="rb-btn rb-btn--quiet rb-abandon" data-action="abandon" data-id="{{detail.id}}" data-rb-tip="{{rbL 'WFRPRB.Abandon.Button'}}"><i class="fa-solid fa-trash"></i></button>
           <button type="button" class="rb-btn rb-btn--craft" data-action="continueTest" data-id="{{detail.id}}"><i class="fa-solid fa-dice-d20"></i> {{rbL "WFRPRB.Continue"}}</button>
         </footer>
       {{/if}}
     {{else}}
-      <div class="rb-empty rb-empty-page">{{rbL "WFRPRB.Empty"}}</div>
+      <div class="rb-empty rb-empty-page">{{rbL "WFRPRB.EmptyRight"}}</div>
     {{/if}}
   </main>
 </div>

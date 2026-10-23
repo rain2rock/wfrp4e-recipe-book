@@ -131,7 +131,7 @@ ok(tt.includes("Раритетный") && tt.includes("перчатках"),
 await page.mouse.move(5, 5);
 ok((await $(".rb-ing.is-bad", { hasText: "Перегонный куб" }).count()) === 1, "недостающий инструмент подсвечен красным");
 ok((await text(".rb-right")).includes("1мес 8д 15ч 10м"), "38 дней показываются игроку как 1мес 8д 15ч 10м");
-ok(((await $(".rb-entry", { hasText: "Противоядие" }).first().getAttribute("data-rb-tip")) ?? "").includes("инструменты"),
+ok(((await $(".rb-entry", { hasText: "Противоядие" }).first().getAttribute("data-rb-tip")) ?? "").includes("инструментов"),
   "в причинах недоступности есть инструменты");
 
 /* Лист ГМа: навыки дропдауном из базы, минуты времени */
@@ -256,12 +256,12 @@ ok(await page.evaluate(() => {
 
 /* Переключение чекбокса не сбрасывает скролл листа наверх */
 await page.evaluate(() => {
-  const r = document.querySelector("#rb-sheet-demo .rb-sheet-root");
+  const r = document.querySelector("#rb-sheet-demo .rb-sheet-scroll");
   r.scrollTop = 300;
 });
 await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-crit-on")?.click());
 await page.waitForTimeout(250);
-const scrollKept = await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-sheet-root").scrollTop);
+const scrollKept = await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-sheet-scroll").scrollTop);
 ok(scrollKept > 150, "скролл листа сохранился после переключения чекбокса", `(${scrollKept})`);
 await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-crit-on")?.click());
 await page.waitForTimeout(200);
@@ -299,7 +299,7 @@ ok(after.potion === 2, "крит (УУ 6 ≥ 6): настойка создана
 ok(after.chat.includes("Критический успех"), "карточка крита в чате");
 ok(after.tests === 0, "проект закрыт после успеха");
 ok(after.moneyBp === 582 - 15, "деньги списаны: 582 − 15", `(${after.moneyBp})`);
-ok(after.chat.includes("Создано"), "карточка «Создано» в чате");
+ok(after.chat.includes("Изготовлено"), "карточка «Изготовлено» в чате");
 
 /* --- Провал: возврат половины (настройка по умолчанию half) --- */
 await $(".rb-entry", { hasText: "Успокоительный отвар" }).first().click();
@@ -568,6 +568,7 @@ ok((await $(".rb-extra-filters select").count()) === 2, "у ГМа фильтр�
 await $("[data-action='filter'][data-filter='world']").click();
 await page.waitForTimeout(120);
 ok((await $(".rb-owner-filter").count()) === 1, "в реестре появился фильтр по владельцу");
+ok((await $(".rb-extra-filters select[data-rb-tip]").count()) === 0, "у дропдаунов фильтров нет тултипов - не мешают спискам");
 /* ГМ создаёт предмет в мир по мировому рецепту, без персонажа */
 await page.evaluate(async () => { await Item.create({ name: "Рецепт мира", type: "wfrp4e-recipe-book.recipe", img: "",
   system: { result: { uuid: "Item.res-heal", name: "Лечебная настойка", img: "", count: 3 }, skill: "Ремесло (Аптекарь)", slTarget: 5,
@@ -647,7 +648,7 @@ await page.evaluate((f) => document.querySelector(`${f} .rb-forge-gc`).dispatchE
 await page.fill(`${forge} .rb-forge-ss`, "4");
 await page.evaluate((f) => document.querySelector(`${f} .rb-forge-ss`).dispatchEvent(new Event("change")), forge);
 /* иконка будущего предмета - из базы */
-await page.click(`${forge} .rb-forge-img`);
+await page.click(`${forge} .rb-forge-imgwrap`);
 await page.waitForTimeout(120);
 await page.fill(`${forge} .rb-picker-search`, "кинжал");
 await page.waitForTimeout(120);
@@ -658,26 +659,36 @@ ok(await page.evaluate((f) => {
   const w = __RB_worldItems__.find((x) => x.name === "Кинжал");
   return img.getAttribute("src") === w.img;
 }, forge), "иконка предмета в мастере выбрана из базы");
-/* скролл мастера не прыгает при переключении чекбокса */
-await page.evaluate((f) => { document.querySelector(`${f} .rb-forge-root`).scrollTop = 250; }, forge);
-await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
-await page.waitForTimeout(200);
-const forgeScroll = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-root`).scrollTop, forge);
-ok(forgeScroll > 100, "скролл мастера сохранился после чекбокса", `(${forgeScroll})`);
 const cbSize = await page.evaluate((f) => {
   const cb = document.querySelector(`${f} input[type=checkbox]`);
   return cb ? cb.getBoundingClientRect().width : 0;
 }, forge);
 ok(cbSize > 0 && cbSize <= 18, "чекбоксы прижаты против скина ядра", `(${cbSize}px)`);
-await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
-await page.waitForTimeout(150);
-/* крит-качество и правила брака */
+/* табы и каунтеры */
+ok((await $(`${forge} .rb-tab`).count()) === 4, "мастер разбит на 4 таба");
+ok((await $(`${forge} .rb-forge-replace`).count()) === 1, "у иконки есть оверлей «Заменить»");
+const forgeImgW = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-img`).getBoundingClientRect().width, forge);
+ok(Math.abs(forgeImgW - 150) < 3, "иконка-карточка 144px (+рамка)", `(${forgeImgW}px)`);
+ok((await text(`${forge} .rb-tab.is-active`)).includes("Достоинства") &&
+   (await text(`${forge} [data-tab='qualities'] .rb-tab-count`)) === "1",
+  "каунтер на табе достоинств: 1 включено");
+/* тултип-описание качества */
+ok(((await page.getAttribute(`${forge} .rb-qrow[data-key='durable']`, "data-rb-tip")) ?? "").includes("ыдерживает"),
+  "у качества есть тултип с описанием эффекта");
+/* крит и провал - в своих табах */
+await page.click(`${forge} [data-tab='crit']`);
+await page.waitForTimeout(120);
 await page.click(`${forge} .rb-critrow[data-key='damaging'] .rb-prop-on`);
+await page.waitForTimeout(120);
+ok((await text(`${forge} [data-tab='crit'] .rb-tab-count`)) === "1", "каунтер на табе крита: 1");
+await page.click(`${forge} [data-tab='fail']`);
+await page.waitForTimeout(120);
 await page.click(`${forge} .rb-forge-failflawed`);
 await page.waitForTimeout(150);
 await page.fill(`${forge} .rb-forge-cleansl`, "2");
 await page.evaluate((f) => document.querySelector(`${f} .rb-forge-cleansl`).dispatchEvent(new Event("change")), forge);
 await page.waitForTimeout(150);
+ok((await text(`${forge} [data-tab='fail'] .rb-tab-count`)) === "2", "каунтер на табе провала: 2 (брак + порог)");
 await page.click(`${forge} [data-action='forgeCreate']`);
 await page.waitForTimeout(250);
 const forged = await page.evaluate((rid) => {

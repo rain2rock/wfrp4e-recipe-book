@@ -36,12 +36,13 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     position: { width: 560, height: 720 },
     actions: {
       pickExtra: ItemForgeApp.#onPickExtra,
+      selectTab: ItemForgeApp.#onSelectTab,
       pickIcon: ItemForgeApp.#onPickIcon,
       forgeCreate: ItemForgeApp.#onCreate
     }
   };
 
-  static PARTS = { forge: { template: `modules/${MODULE_ID}/templates/item-forge.hbs`, scrollable: [""] } };
+  static PARTS = { forge: { template: `modules/${MODULE_ID}/templates/item-forge.hbs`, scrollable: [".rb-forge-scroll"] } };
 
   /** @param {RecipeSheet} sheet лист рецепта, из которого открыт мастер */
   constructor(sheet, options = {}) {
@@ -62,7 +63,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       critSL: Number(this.recipe.system.critSL) || 8,
       failFlawed: false,
       cleanSL: 0,
-      failPool: {}     // key -> on (по умолчанию все)
+      failPool: {},    // key -> on (по умолчанию все)
+      tab: "qualities" // активный таб: qualities | flaws | crit | fail
     };
     this.forge = st;
     this.baseSL = Number(this.recipe.system.slTarget) || 1;
@@ -80,13 +82,25 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
   async _prepareContext() {
     const st = this.forge;
     const { qualities, flaws } = propLists(st.type);
-    const row = (map, stateMap) => Object.entries(map).map(([key, label]) => ({
-      key,
-      label: game.i18n.localize(label),
-      hasValue: hasValue(key),
-      on: !!stateMap[key]?.on,
-      value: stateMap[key]?.value ?? 1
-    })).sort((a, b) => a.label.localeCompare(b.label, "ru"));
+    // Подсказка-описание качества/изъяна из конфига системы (наполняет wfrp4e-core)
+    const propTip = (key, label) => {
+      const c = game.wfrp4e?.config ?? {};
+      const raw = c.qualityDescriptions?.[key] ?? c.flawDescriptions?.[key];
+      if (!raw) return "";
+      const text = game.i18n.localize(raw).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      return text ? `${label}\n${text}` : "";
+    };
+    const row = (map, stateMap) => Object.entries(map).map(([key, label]) => {
+      const loc = game.i18n.localize(label);
+      return {
+        key,
+        label: loc,
+        tip: propTip(key, loc),
+        hasValue: hasValue(key),
+        on: !!stateMap[key]?.on,
+        value: stateMap[key]?.value ?? 1
+      };
+    }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
 
     const qRows = row(qualities, st.qualities).map((r) => ({
       ...r,
@@ -97,10 +111,10 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     }));
     const fRows = row(flaws, st.flaws);
     // Пул изъянов брака: по умолчанию все отмечены
-    const poolRows = Object.entries(flaws).map(([key, label]) => ({
-      key, label: game.i18n.localize(label),
-      on: st.failPool[key] ?? true
-    })).sort((a, b) => a.label.localeCompare(b.label, "ru"));
+    const poolRows = Object.entries(flaws).map(([key, label]) => {
+      const loc = game.i18n.localize(label);
+      return { key, label: loc, tip: propTip(key, loc), on: st.failPool[key] ?? true };
+    }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
     const critRows = row(qualities, st.critQualities);
 
     return {
@@ -111,6 +125,12 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       isTrapping: st.type === "trapping",
       qRows, fRows, critRows, poolRows,
       critMulti: Object.values(st.critQualities).filter((x) => x.on).length > 1,
+      counts: {
+        q: Object.values(st.qualities).filter((x) => x.on).length,
+        f: Object.values(st.flaws).filter((x) => x.on).length,
+        c: Object.values(st.critQualities).filter((x) => x.on).length,
+        x: (st.failFlawed ? 1 : 0) + (st.cleanSL > 0 ? 1 : 0)
+      },
       baseSL: this.baseSL,
       prognosis: this.computedSL(),
       coinGc: coinIco("gc"), coinSs: coinIco("ss"), coinBp: coinIco("bp")
@@ -166,6 +186,11 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     root.querySelector(".rb-forge-cleansl")?.addEventListener("change", (ev) => { st.cleanSL = Math.max(0, Number(ev.currentTarget.value) || 0); rerender(); });
   }
 
+  static #onSelectTab(event, target) {
+    this.forge.tab = target.dataset.tab;
+    this.render();
+  }
+
   /** Общий выпадающий пикер по базе: клик по строке -> cb(entry) */
   async #openForgePicker(anchor, cb) {
     const items = await itemIndex();
@@ -208,7 +233,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
 
   /** Иконка будущего предмета - с любого предмета базы */
   static async #onPickIcon(event, target) {
-    await this.#openForgePicker(target.closest(".rb-field"), (e) => {
+    await this.#openForgePicker(target.closest(".rb-forge-head"), (e) => {
       this.forge.img = e.img;
       this.render();
     });
