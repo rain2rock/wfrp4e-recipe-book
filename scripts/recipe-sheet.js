@@ -114,10 +114,11 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
         if (choice === "give") {
           const obj = this.document.toObject();
           delete obj._id;
-          if (obj.flags?.["wfrp4e-recipe-book"]) {
-            delete obj.flags["wfrp4e-recipe-book"].fresh;
-            delete obj.flags["wfrp4e-recipe-book"].forActor;
-          }
+          obj.flags ??= {};
+          obj.flags["wfrp4e-recipe-book"] = {
+            ...(obj.flags["wfrp4e-recipe-book"] ?? {}),
+            fresh: false, forActor: undefined, isNew: true, source: this.document.uuid
+          };
           await actor.createEmbeddedDocuments("Item", [obj]);
           ui.notifications.info(F("WFRPRB.World.Given", { name: this.document.name, actor: actor.name }));
         }

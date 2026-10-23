@@ -470,6 +470,10 @@ await $(".rb-entry", { hasText: "Талисман из коры" }).first().clic
 await page.waitForTimeout(100);
 ok((await $("[data-action='giveRecipe']").count()) === 1 && (await $("[data-action='deleteRecipe']").count()) === 1,
   "у рецепта мира кнопки «выдать» и «удалить»");
+ok((await $(".rb-foot [data-action='openRecipe']").count()) === 0 && (await $(".rb-head [data-action='openRecipe']").count()) === 1,
+  "«Изменить» только в шапке, без дубля в футере");
+ok((await $(".rb-foot [data-action='deleteRecipe']").count()) === 0 && (await $(".rb-head [data-action='deleteRecipe']").count()) === 1,
+  "корзинка ГМа - в шапке рядом с карандашом");
 await $("[data-action='giveRecipe']").click();
 await page.waitForTimeout(150);
 ok((await $(".rb-give-picker .rb-picker-row").count()) === 2, "выдача: только персонажи игроков (двое)");
@@ -519,11 +523,37 @@ await $(".rb-entry", { hasText: "Талисман из коры" }).first().clic
 await page.waitForTimeout(80);
 await $("[data-action='deleteRecipe']").click();
 await page.waitForTimeout(200);
-ok((await text(".mock-dialog section")).includes("останутся"),
-  "удаление из мира объясняет, что копии у персонажей останутся");
-await page.click(".mock-dialog .rb-btn--primary");
+ok((await text(".mock-dialog section")).includes("Выученные копии"),
+  "удаление из мира показывает, у кого есть копии");
+ok((await $(".mock-dialog [data-act='all']").count()) === 1 && (await $(".mock-dialog [data-act='world']").count()) === 1,
+  "в диалоге есть выбор: удалить везде или только из реестра");
+await page.click(".mock-dialog [data-act='world']");
 await page.waitForTimeout(250);
-ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "ГМ удалил рецепт из мира");
+ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "рецепт удалён из реестра");
+ok(await page.evaluate(() => __RB_actor2__.items.some((i) => i.system?.result?.name === "Талисман из коры")),
+  "«только из реестра» не тронул копию у персонажа");
+
+/* --- «Удалить везде»: рецепт и все выданные копии --- */
+await page.evaluate(async () => {
+  const w = await Item.create({ name: "Рецепт на снос", type: "wfrp4e-recipe-book.recipe", img: "",
+    system: { result: { uuid: "", name: "Хлам", img: "", count: 1 }, skill: "Ремесло (Аптекарь)", slTarget: 1,
+      ingredients: [], moneyBp: 0, tools: [], upgrades: [], critQualities: [], failPool: [],
+      description: { value: "" }, gmdescription: { value: "" } } });
+  const copy = w.toObject();
+  delete copy._id;
+  copy.flags = { "wfrp4e-recipe-book": { source: w.uuid } };
+  await __RB_actor2__.createEmbeddedDocuments("Item", [copy]);
+});
+await page.waitForTimeout(200);
+await $(".rb-entry", { hasText: "Хлам" }).first().click();
+await page.waitForTimeout(150);
+await $("[data-action='deleteRecipe']").click();
+await page.waitForTimeout(200);
+await page.click(".mock-dialog [data-act='all']");
+await page.waitForTimeout(300);
+ok(await page.evaluate(() => !game.items.some((i) => i.name === "Рецепт на снос")), "«удалить везде»: рецепт убран из реестра");
+ok(await page.evaluate(() => !__RB_actor2__.items.some((i) => i.system?.result?.name === "Хлам")),
+  "«удалить везде»: копия у персонажа тоже удалена");
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(80);
 

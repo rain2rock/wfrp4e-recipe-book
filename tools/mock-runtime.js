@@ -193,7 +193,7 @@
         <header>${cfg.window?.title ?? ""}</header>
         <section>${cfg.content ?? ""}</section>
         <footer>${buttons.map((b, i) =>
-          `<button type="button" class="rb-btn ${b.default ? "rb-btn--primary" : "rb-btn--quiet"}" data-i="${i}">${b.label}</button>`).join("")}</footer>
+          `<button type="button" class="rb-btn ${b.default ? "rb-btn--primary" : "rb-btn--quiet"}" data-i="${i}" data-act="${b.action}">${b.label}</button>`).join("")}</footer>
       </div>`;
     document.body.append(back);
     back.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => {

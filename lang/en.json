@@ -210,7 +210,11 @@
       "ActorHint": "{actor} forgets the «{name}» recipe. It stays in the GM registry and can be given again.",
       "ActorButton": "Remove from book",
       "WorldTip": "Delete from world",
-      "ActorTip": "Remove from book"
+      "ActorTip": "Remove from book",
+      "WorldHintCopies": "The «{name}» recipe disappears from the registry. Learned copies exist on {count} characters: {actors}.",
+      "Everywhere": "Delete everywhere",
+      "WorldOnly": "Registry only",
+      "DoneAll": "«{name}» deleted from the registry and from {count} characters"
     },
     "Group": {
       "Unusual": "Unusual"

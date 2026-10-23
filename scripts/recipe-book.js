@@ -592,6 +592,18 @@ export async function itemIndex() {
  * Подтверждение необратимого действия: заголовок-вопрос, факт последствий, именованные кнопки.
  * Кнопка действия названа глаголом (не «Да»), отмена - всегда рядом и безопасна.
  */
+/** Диалог с произвольным набором именованных действий; возвращает ключ выбранного */
+export async function askAction({ title, body, options }) {
+  return foundry.applications.api.DialogV2.wait({
+    window: { title },
+    content: `<p>${body}</p>`,
+    buttons: [
+      ...options.map((o, i) => ({ action: o.action, label: o.label, default: i === 0, class: o.danger ? "rb-danger" : "" })),
+      { action: "cancel", label: L("WFRPRB.Sheet.Cancel") }
+    ]
+  }).catch(() => "cancel");
+}
+
 export async function confirmAction({ title, body, confirmLabel }) {
   const choice = await foundry.applications.api.DialogV2.wait({
     window: { title },
@@ -803,6 +815,20 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   /** Рецепты мира (вкладка «Реестр», только ГМ) */
   worldRecipes() {
     return (game.items ?? []).filter((i) => i.type === RECIPE_TYPE && !RecipeBookApp.isDraft(i));
+  }
+
+  /** Копии мирового рецепта у персонажей: по флагу источника, иначе по имени (старые выдачи) */
+  copiesOf(recipe) {
+    const out = [];
+    for (const a of game.actors?.contents ?? []) {
+      if (a.type !== "character") continue;
+      for (const it of a.items) {
+        if (it.type !== RECIPE_TYPE) continue;
+        const src = it.getFlag(MODULE_ID, "source");
+        if (src === recipe.uuid || (!src && it.name === recipe.name)) out.push({ actor: a, item: it });
+      }
+    }
+    return out;
   }
 
   /** Рецепт по выбору: с открытого актёра, из мира или с другого персонажа (реестр ГМа) */
@@ -1224,7 +1250,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const obj = recipe.toObject();
     delete obj._id;
     // Игрок увидит пометку «новый», пока не откроет рецепт
-    obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { ...(obj.flags?.[MODULE_ID] ?? {}), isNew: true, fresh: false } };
+    obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { ...(obj.flags?.[MODULE_ID] ?? {}), isNew: true, fresh: false, source: recipe.uuid } };
     const [made] = await actor.createEmbeddedDocuments("Item", [obj]);
     ui.notifications.info(F("WFRPRB.World.Given", { name: recipe.name, actor: actor.name }));
     if (actor.id === this.actor.id) {
@@ -1262,10 +1288,44 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const world = this.selected?.kind === "wrecipe";
     const name = esc(r.system.result?.name || r.name);
     const owner = esc(this.selectedOwner()?.name ?? this.actor?.name ?? "");
+
+    if (world) {
+      const copies = this.copiesOf(r);
+      const choice = copies.length
+        ? await askAction({
+            title: L("WFRPRB.Delete.WorldTitle"),
+            body: F("WFRPRB.Delete.WorldHintCopies", {
+              name, count: copies.length,
+              actors: esc([...new Set(copies.map((c) => c.actor.name))].join(", "))
+            }),
+            options: [
+              { action: "all", label: L("WFRPRB.Delete.Everywhere"), danger: true },
+              { action: "world", label: L("WFRPRB.Delete.WorldOnly") }
+            ]
+          })
+        : (await confirmAction({
+            title: L("WFRPRB.Delete.WorldTitle"),
+            body: F("WFRPRB.Delete.WorldHint", { name }),
+            confirmLabel: L("WFRPRB.Delete.WorldButton")
+          })) ? "world" : "cancel";
+      if (choice === "cancel") return;
+      if (choice === "all") {
+        // Сначала копии у персонажей, затем сам рецепт мира
+        const byActor = new Map();
+        for (const c of copies) byActor.set(c.actor, [...(byActor.get(c.actor) ?? []), c.item.id]);
+        for (const [a, ids] of byActor) await a.deleteEmbeddedDocuments("Item", ids);
+        ui.notifications.info(F("WFRPRB.Delete.DoneAll", { name, count: copies.length }));
+      }
+      await r.delete();
+      this.selected = null;
+      this.render();
+      return;
+    }
+
     const yes = await confirmAction({
-      title: L(world ? "WFRPRB.Delete.WorldTitle" : "WFRPRB.Delete.ActorTitle"),
-      body: F(world ? "WFRPRB.Delete.WorldHint" : "WFRPRB.Delete.ActorHint", { name, actor: owner }),
-      confirmLabel: L(world ? "WFRPRB.Delete.WorldButton" : "WFRPRB.Delete.ActorButton")
+      title: L("WFRPRB.Delete.ActorTitle"),
+      body: F("WFRPRB.Delete.ActorHint", { name, actor: owner }),
+      confirmLabel: L("WFRPRB.Delete.ActorButton")
     });
     if (!yes) return;
     await r.delete();
