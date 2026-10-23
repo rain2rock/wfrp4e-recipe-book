@@ -328,6 +328,14 @@
       "RecipeName": "Recipe name",
       "ResultCount": "How many are produced",
       "PropLevel": "Quality level"
+    },
+    "Welcome": {
+      "Title": "WFRP Recipe Book is ready",
+      "Intro": "The module adds recipe-based crafting: the system rolls, the module tracks recipes, materials and results.",
+      "Step1": "Module settings → «Create starter trade recipes»: ready recipes, materials and items.",
+      "Step2": "Your own recipe: the «Create recipe» button in an item sheet header, or «+ New recipe» in the book.",
+      "Step3": "Give a recipe to a character - they open the book with B or the button on their sheet.",
+      "Foot": "Shown once. To repeat: api.showWelcome() in the console."
     }
   }
 }

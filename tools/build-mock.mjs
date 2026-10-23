@@ -29,7 +29,7 @@ const css = read("styles/rb-system.css") + "\n" + read("styles/recipe-book.css")
 
 const stripModules = (src) => src.replace(/^import .*$/gm, "").replace(/^export /gm, "")
   .replaceAll("${MODULE_ID}", "wfrp4e-recipe-book"); // чтобы inlineAssets увидел пути ассетов в шаблонных строках
-const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/recipe-from-item.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
+const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/recipe-from-item.js", "scripts/welcome.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
   .map((p) => stripModules(read(p)))
   .join("\n");
 
@@ -150,6 +150,7 @@ window.__RB_actor__ = actor;
 window.__RB_actor2__ = __RB_makeActor__(${inlineAssets(json(ACTOR2))});
 __RB_makeActor__(${json(ACTOR_NPC)});
 game.user.character = actor;
+Hooks.call("ready");   // в Foundry это делает ядро; нам нужно для приветствия
 game.modules.get("wfrp4e-recipe-book").api.open(actor);
 
 document.getElementById("tb-theme").addEventListener("click", () => {

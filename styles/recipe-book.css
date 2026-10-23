@@ -236,3 +236,11 @@
 /* Карточка-подсказка рецепта: нехватка - красным, итоговая строка приглушена */
 .wfrp-recipe-book .rb-tt-bad { color: var(--rb-bad); }
 .wfrp-recipe-book .rb-tt-status { margin-top: var(--rb-space-1); color: var(--rb-muted); font-style: italic; }
+
+/* ---------- Приветственная карточка в чате ---------- */
+.rb-welcome { font-size: var(--rb-fs-base); line-height: 1.45; }
+.rb-welcome-head { display: flex; align-items: center; gap: var(--rb-space-3); margin-bottom: var(--rb-space-2); }
+.rb-welcome-head img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-frame); border-radius: var(--rb-radius); }
+.rb-welcome-steps { margin: var(--rb-space-2) 0 0; padding-left: var(--rb-space-7); }
+.rb-welcome-steps li { margin-bottom: 3px; }
+.rb-welcome-foot { margin-top: var(--rb-space-2); font-size: var(--rb-fs-m); opacity: 0.75; font-style: italic; }

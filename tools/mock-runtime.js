@@ -425,6 +425,7 @@
   window.__RB_chat__ = chatLog;
   window.ChatMessage = {
     getSpeaker: ({ actor } = {}) => ({ alias: actor?.name }),
+    getWhisperRecipients: () => [game.user],
     create: async (d) => {
       chatLog.push(d);
       const box = document.getElementById("mock-chat");

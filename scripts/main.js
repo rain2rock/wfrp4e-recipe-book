@@ -5,6 +5,7 @@ import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, load
 import { RecipeSheet } from "./recipe-sheet.js";
 import { StarterRecipesApp, installStarter } from "./starter-install.js";
 import { createRecipeFromItem, canMakeRecipe } from "./recipe-from-item.js";
+import { welcomeOnce, showWelcome } from "./welcome.js";
 
 const SUPPORTED_TYPES = ["character", "npc", "creature"];
 
@@ -23,6 +24,11 @@ Hooks.once("init", () => {
     types: [RECIPE_TYPE],
     makeDefault: true,
     label: "WFRPRB.Sheet.Label"
+  });
+
+  // Приветствие показывается один раз на мир
+  game.settings.register(MODULE_ID, "welcomeShown", {
+    scope: "world", config: false, type: Boolean, default: false
   });
 
   // Кнопка ГМа: поставить стартовые рецепты профессий
@@ -132,7 +138,13 @@ Hooks.once("init", () => {
   watchCrafting();
 
   // Доступ из макросов: game.modules.get("wfrp4e-recipe-book").api.open(actor)
-  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, installStarter, createRecipeFromItem, RecipeBookApp };
+  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, installStarter, createRecipeFromItem, showWelcome, RecipeBookApp };
+});
+
+/* Первый запуск: приветствие ГМу с первыми шагами */
+Hooks.once("ready", () => {
+  if (game.system.id !== "wfrp4e") return;
+  welcomeOnce().catch((err) => console.warn(`${MODULE_ID} | welcome`, err));
 });
 
 /* Кнопка «Создать рецепт» в шапке листа ЛЮБОГО предмета (только ГМ).

@@ -24,6 +24,20 @@ await page.waitForSelector(".wfrp-recipe-book .rb-root");
 const $ = (sel, opts) => page.locator(sel, opts);
 const text = async (sel) => (await $(sel).first().textContent())?.trim() ?? "";
 
+/* --- Приветствие: один раз на мир, только ГМу --- */
+const welcome = await page.evaluate(() => {
+  const msgs = __RB_chat__.filter((m) => String(m.content).includes("rb-welcome"));
+  return { count: msgs.length, text: msgs[0]?.content ?? "", whisper: (msgs[0]?.whisper ?? []).length };
+});
+ok(welcome.count === 1, "приветствие показано один раз", `(${welcome.count})`);
+ok(welcome.text.includes("Создать стартовые рецепты") && welcome.text.includes("B"),
+  "в приветствии первые шаги: стартовые рецепты и как открыть книгу");
+ok(welcome.whisper > 0, "приветствие шепчется ГМу, игроки его не видят");
+await page.evaluate(() => Hooks.call("ready"));
+await page.waitForTimeout(200);
+ok(await page.evaluate(() => __RB_chat__.filter((m) => String(m.content).includes("rb-welcome")).length === 1),
+  "повторный запуск мира не дублирует приветствие");
+
 /* --- Список и подсветка --- */
 ok((await $(".rb-entry:not(.rb-project)").count()) === 6, "в списке 6 рецептов");
 ok((await $(".rb-group-title").count()) >= 3, "рецепты сгруппированы по ремёслам");
