@@ -40,7 +40,7 @@
     {{#each qRows}}
       <div class="rb-row rb-qrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
         <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
         {{#if on}}
           <span class="rb-forge-extra">
             <button type="button" class="rb-btn rb-btn--quiet rb-extra-pick" data-action="pickExtra">
@@ -60,7 +60,7 @@
     {{#each fRows}}
       <div class="rb-row rb-frow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
         <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
       </div>
     {{/each}}
   </section>
@@ -74,7 +74,7 @@
     {{#each critRows}}
       <div class="rb-row rb-critrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
         <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
-          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1">{{/if}}
+          {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
       </div>
     {{/each}}
     {{#if critMulti}}

@@ -4,23 +4,11 @@
 
 import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
 import { ItemForgeApp } from "./item-forge.js";
-import { L, F, esc, COIN_VALUE, coinIco, priceBp, skillNames, itemIndex, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, COIN_VALUE, coinIco, skillNames, itemIndex, openItemPicker, RecipeBookApp } from "./recipe-book.js";
+import { suggestFromItem } from "./recipe-from-item.js";
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
 const ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
-
-const AVAIL_TO_DIFF = { common: "average", scarce: "challenging", rare: "difficult", exotic: "veryHard" };
-
-export function suggestFromItem(doc) {
-  const sys = doc.system ?? {};
-  const bp = priceBp(sys);
-  const avail = sys.availability?.value ?? "common";
-  return {
-    difficulty: AVAIL_TO_DIFF[avail] ?? "challenging",
-    slTarget: bp >= COIN_VALUE.gc ? 15 : bp >= COIN_VALUE.ss ? 10 : 5,
-    moneyBp: Math.floor(bp / 4)
-  };
-}
 
 export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   static DEFAULT_OPTIONS = {
@@ -288,38 +276,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     this.#refresh();
   }
 
-  /** Выпадающий поиск по базе: input + список, клик добавляет */
+  /** Выпадающий поиск по базе - общий помощник ядра */
   async #openPicker(zone, anchor) {
     this.#closePicker();
-    const items = await itemIndex();
-    const panel = document.createElement("div");
-    panel.className = "rb-picker";
-    panel.innerHTML = `<input type="text" class="rb-picker-search" placeholder="${esc(L("WFRPRB.Sheet.SearchItem"))}"><div class="rb-picker-list"></div>`;
-    anchor.after(panel);
-    this._picker = panel;
-    const list = panel.querySelector(".rb-picker-list");
-    const input = panel.querySelector(".rb-picker-search");
-    const show = (q) => {
-      const n = q.trim().toLowerCase();
-      const match = items.filter((i) => !n || i.name.toLowerCase().includes(n)).slice(0, 30);
-      list.innerHTML = match.map((i, idx) =>
-        `<button type="button" class="rb-picker-row" data-idx="${idx}"><img src="${esc(i.img ?? "")}" alt="">${esc(i.name)}</button>`).join("")
-        || `<div class="rb-picker-empty">${esc(L("WFRPRB.Sheet.NothingFound"))}</div>`;
-      list.querySelectorAll(".rb-picker-row").forEach((row, idx) => {
-        row.addEventListener("click", () => {
-          this.#applyPick(zone, match[idx]);
-          this.#closePicker();
-        });
-      });
-    };
-    show("");
-    input.addEventListener("input", () => show(input.value));
-    input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") this.#closePicker(); });
+    this._picker = await openItemPicker(anchor, (entry) => { this._picker = null; this.#applyPick(zone, entry); });
     setTimeout(() => {
-      this._pickerAway = (ev) => { if (!panel.contains(ev.target)) this.#closePicker(); };
+      this._pickerAway = (ev) => { if (!this._picker?.contains(ev.target)) this.#closePicker(); };
       document.addEventListener("pointerdown", this._pickerAway);
     }, 0);
-    input.focus();
   }
 
   #closePicker() {

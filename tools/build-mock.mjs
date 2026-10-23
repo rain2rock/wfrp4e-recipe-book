@@ -29,7 +29,7 @@ const css = read("styles/rb-system.css") + "\n" + read("styles/recipe-book.css")
 
 const stripModules = (src) => src.replace(/^import .*$/gm, "").replace(/^export /gm, "")
   .replaceAll("${MODULE_ID}", "wfrp4e-recipe-book"); // чтобы inlineAssets увидел пути ассетов в шаблонных строках
-const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
+const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/recipe-from-item.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
   .map((p) => stripModules(read(p)))
   .join("\n");
 
@@ -90,9 +90,10 @@ const html = `<!DOCTYPE html>
   /* Панель мока */
   #mock-bar { position: fixed; top: 0; left: 0; right: 0; display: flex; gap: 8px; align-items: center; padding: 6px 16px; background: #15120f; color: #a89c86; font-size: 12px; z-index: 50; }
   #mock-bar b { color: #f0e6d2; }
-  #mock-bar button { background: #0b0907; color: #d8ccb4; border: 1px solid #4a4339; border-radius: 4px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
-  #mock-bar button:hover { background: #241e16; }
+  #mock-bar > button { background: #0b0907; color: #d8ccb4; border: 1px solid #4a4339; border-radius: 4px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  #mock-bar > button:hover { background: #241e16; }
   #mock-bar .mock-hint { margin-left: auto; opacity: .7; }
+  #mock-bar .rb-picker-host { position: absolute; top: 40px; width: 320px; z-index: 60; }
   body { padding-top: 48px; }
 </style>
 <style>${css}</style>
@@ -105,6 +106,7 @@ const html = `<!DOCTYPE html>
   <button id="tb-sheet">Лист рецепта (ГМ)</button>
   <button id="tb-view">Вид: ГМ / игрок</button>
   <button id="tb-starter">Стартовые рецепты (ГМ)</button>
+  <button id="tb-fromitem">Рецепт из предмета (ГМ)</button>
   <button id="tb-reset">Сбросить всё</button>
   <span class="mock-hint">кубы эмулируются (в Foundry бросает система); перетаскивание на лист ГМа в моке не работает</span>
 </div>
@@ -166,6 +168,13 @@ document.getElementById("tb-view").addEventListener("click", () => {
   game.settings.set("wfrp4e-recipe-book", "playerView", !game.settings.get("wfrp4e-recipe-book", "playerView"));
 });
 document.getElementById("tb-starter").addEventListener("click", () => new StarterRecipesApp().render(true));
+// В Foundry это кнопка в шапке листа предмета; в моке листов системы нет - зовём ту же функцию через пикер
+document.getElementById("tb-fromitem").addEventListener("click", (ev) => {
+  openItemPicker(ev.currentTarget, async (entry) => {
+    const doc = await fromUuid(entry.uuid);
+    if (doc) createRecipeFromItem(doc);
+  });
+});
 document.getElementById("tb-reset").addEventListener("click", () => location.reload());
 </script>
 </body>

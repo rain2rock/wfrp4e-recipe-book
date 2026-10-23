@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "mock": "node tools/build-mock.mjs --out docs/book-mock.html",
-    "qa": "node tools/qa/bookchk.mjs docs/book-mock.html && node tools/qa/dslint.mjs",
+    "qa": "node tools/qa/bookchk.mjs docs/book-mock.html && node tools/qa/uicheck.mjs docs/book-mock.html && node tools/qa/dslint.mjs",
     "styleguide": "node tools/build-styleguide.mjs",
-    "dslint": "node tools/qa/dslint.mjs"
+    "dslint": "node tools/qa/dslint.mjs",
+    "uicheck": "node tools/qa/uicheck.mjs docs/book-mock.html"
   },
   "dependencies": {
     "handlebars": "^4.7.10"

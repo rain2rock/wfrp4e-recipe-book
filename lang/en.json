@@ -181,7 +181,8 @@
       "ToolNote": "Tool: the character must have it; not consumed.",
       "MoneyLeft": "Left after crafting\t{left}",
       "MoneyShort": "Short by\t{short}",
-      "MoneyNote": "~ Minor materials without a separate item - paid in coin."
+      "MoneyNote": "~ Minor materials without a separate item - paid in coin.",
+      "Weight": "Weight"
     },
     "Tool": {
       "Have": "yes",
@@ -312,7 +313,21 @@
       "PickSome": "Pick at least one profession.",
       "Done": "Done: {recipes} recipes, {items} items, {skipped} skipped",
       "FolderItems": "Recipe Book - materials and goods",
-      "FolderRecipes": "Recipe Book - recipes"
+      "FolderRecipes": "Recipe Book - recipes",
+      "Expand": "Show profession recipes",
+      "Chosen": "Selected"
+    },
+    "FromItem": {
+      "Button": "Create recipe",
+      "GMOnly": "Only the GM can create recipes.",
+      "Unsupported": "A recipe cannot be made from this item.",
+      "Created": "Recipe for «{name}» created - fill in the skill and ingredients.",
+      "Exists": "A recipe for «{name}» already exists - opened for editing."
+    },
+    "A11y": {
+      "RecipeName": "Recipe name",
+      "ResultCount": "How many are produced",
+      "PropLevel": "Quality level"
     }
   }
 }

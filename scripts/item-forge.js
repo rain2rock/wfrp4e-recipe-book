@@ -4,7 +4,7 @@
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
 import { MODULE_ID } from "./recipe-model.js";
-import { L, F, esc, itemIndex, propertyLabel, propertyTip, coinIco, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, RecipeBookApp } from "./recipe-book.js";
 
 const { ApplicationV2: ForgeAppBase, HandlebarsApplicationMixin: ForgeMixin } = foundry.applications.api;
 
@@ -188,31 +188,9 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     this.render();
   }
 
-  /** Общий выпадающий пикер по базе: клик по строке -> cb(entry) */
+  /** Выпадающий пикер по базе - общий с книгой (openItemPicker) */
   async #openForgePicker(anchor, cb) {
-    const items = await itemIndex();
-    this.element.querySelector(".rb-picker")?.remove();
-    const panel = document.createElement("div");
-    panel.className = "rb-picker";
-    panel.innerHTML = `<input type="text" class="rb-picker-search" placeholder="${esc(L("WFRPRB.Sheet.SearchItem"))}"><div class="rb-picker-list"></div>`;
-    anchor.after(panel);
-    const list = panel.querySelector(".rb-picker-list");
-    const input = panel.querySelector(".rb-picker-search");
-    const show = (q) => {
-      const n = q.trim().toLowerCase();
-      const match = items.filter((i) => !n || i.name.toLowerCase().includes(n)).slice(0, 30);
-      list.innerHTML = match.map((i, idx) =>
-        `<button type="button" class="rb-picker-row" data-idx="${idx}"><img src="${esc(i.img ?? "")}" alt="">${esc(i.name)}</button>`).join("");
-      list.querySelectorAll(".rb-picker-row").forEach((rowEl, idx) => {
-        rowEl.addEventListener("click", () => {
-          panel.remove();
-          cb(match[idx]);
-        });
-      });
-    };
-    show("");
-    input.addEventListener("input", () => show(input.value));
-    input.focus();
+    return openItemPicker(anchor, cb);
   }
 
   /** Пикер ингредиента для доп. сырья качества */

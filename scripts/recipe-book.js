@@ -733,6 +733,40 @@ export class RBTooltip {
   }
 }
 
+/**
+ * Выпадающий поиск по базе предметов: вставляет панель после anchor, вызывает cb(entry).
+ * Используют мастер «Создать с нуля», лист рецепта и кнопка «рецепт из предмета».
+ */
+export async function openItemPicker(anchor, cb, { filter = null } = {}) {
+  anchor?.parentElement?.querySelector(".rb-picker-host")?.remove();
+  const all = await itemIndex();
+  const items = filter ? all.filter(filter) : all;
+  // Панель носит класс окна модуля с собой: её могут вставлять и вне наших окон,
+  // а все стили (включая размеры картинок) привязаны к .wfrp-recipe-book
+  const host = document.createElement("div");
+  const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark" ? " rb-theme-dark" : "";
+  host.className = `wfrp-recipe-book rb-picker-host${dark}`;
+  host.innerHTML = `<div class="rb-picker"><input type="text" class="rb-picker-search" placeholder="${esc(L("WFRPRB.Sheet.SearchItem"))}"><div class="rb-picker-list"></div></div>`;
+  const panel = host.querySelector(".rb-picker");
+  anchor.after(host);
+  const list = panel.querySelector(".rb-picker-list");
+  const input = panel.querySelector(".rb-picker-search");
+  const show = (q) => {
+    const n = norm(q);
+    const match = items.filter((i) => !n || norm(i.name).includes(n)).slice(0, 30);
+    list.innerHTML = match.length
+      ? match.map((i, idx) => `<button type="button" class="rb-picker-row" data-idx="${idx}"><img src="${esc(i.img ?? "")}" alt="">${esc(i.name)}</button>`).join("")
+      : `<div class="rb-picker-empty">${esc(L("WFRPRB.Sheet.NothingFound"))}</div>`;
+    list.querySelectorAll(".rb-picker-row").forEach((row, idx) =>
+      row.addEventListener("click", () => { host.remove(); cb(match[idx]); }));
+  };
+  show("");
+  input.addEventListener("input", () => show(input.value));
+  input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") host.remove(); });
+  input.focus();
+  return host;
+}
+
 /* ---------- Книга ---------- */
 
 export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -911,6 +945,16 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const st = recipeStatus(world ? (owner ?? this.actor) : this.actor, r);
       const missing = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
       const res = r.system.result ?? {};
+      // Параметры готового предмета - как в подсказках paperdoll
+      const doc = res.uuid ? (globalThis.fromUuidSync?.(res.uuid) ?? null) : null;
+      const dsys = doc?.system ?? {};
+      const dbp = doc ? priceBp(dsys) : 0;
+      const typeKey = `TYPES.Item.${doc?.type ?? "trapping"}`;
+      const props = [
+        ...(dsys.qualities?.value ?? []).map((q) => propertyLabel(q.name) + (q.value ? ` (${q.value})` : "")),
+        ...(dsys.flaws?.value ?? []).map((q) => propertyLabel(q.name) + (q.value ? ` (${q.value})` : ""))
+      ];
+      const dd = Number(r.system.timeDays) || 0, dh = Number(r.system.timeHours) || 0, dm = Number(r.system.timeMinutes) || 0;
       return {
         // В списке - иконка ПРЕДМЕТА-РЕЗУЛЬТАТА (что получится); иконка рецепта - запасная
         id: r.id, name: r.name, img: res.img || r.img,
@@ -922,7 +966,25 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         kind: world ? (owner ? "arecipe" : "wrecipe") : "recipe",
         group: world ? (owner?.name ?? worldLabel) : (st.skillUsed || unusual),
         groupRank: world && !owner ? 0 : 1,
-        tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing })
+        tooltip: st.ready ? L("WFRPRB.Tip.EntryReady") : F("WFRPRB.Tip.EntryMissing", { what: missing }),
+        tt: {
+          img: res.img || r.img,
+          name: res.name || r.name,
+          count: res.count ?? 1,
+          typeLabel: game.i18n.has(typeKey) ? L(typeKey) : "",
+          priceHtml: dbp ? moneyHtml(dbp) : "",
+          avail: availLabel(dsys.availability?.value),
+          enc: dsys.encumbrance?.value ?? null,
+          props: props.join(", "),
+          skill: st.skillUsed || "",
+          hasSkill: !!st.skillItem,
+          target: st.target,
+          slTarget: st.slTarget,
+          time: fmtTime(dd, dh, dm),
+          ingredients: st.ingredients.map((i) => ({ name: i.name, have: i.have, count: i.count, ok: i.ok })),
+          ready: st.ready,
+          missing
+        }
       };
     });
     // Доп. фильтры: у ГМа всегда, у игроков - по настройке extraFilters

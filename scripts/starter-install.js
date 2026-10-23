@@ -3,7 +3,7 @@
    Повторный запуск безопасен: предметы ищутся по имени и переиспользуются. */
 
 import { MODULE_ID, RECIPE_TYPE } from "./recipe-model.js";
-import { L, F, RecipeBookApp } from "./recipe-book.js";
+import { L, F, moneyText, COIN_VALUE, RBTooltip, RecipeBookApp } from "./recipe-book.js";
 import { STARTER_CATALOGUE } from "./starter-data.js";
 
 const { ApplicationV2: StarterBase, HandlebarsApplicationMixin: StarterMixin } = foundry.applications.api;
@@ -39,13 +39,23 @@ function itemData(src, { type, trappingType, folder }) {
   return { name: src.name, type, img: img(src.img), folder: folder?.id ?? null, system };
 }
 
+/** Идентификатор рецепта в выборе: «профессия::название» */
+export const recipeId = (profKey, name) => `${profKey}::${name}`;
+
 /**
- * Поставить выбранные профессии.
- * @param {string[]} keys ключи профессий каталога
+ * Поставить выбранные рецепты.
+ * @param {string[]} selection элементы «профессия::рецепт» либо ключи профессий (вся профессия)
  * @returns {Promise<{recipes:number, items:number, skipped:number}>}
  */
-export async function installStarter(keys) {
-  const picked = STARTER_CATALOGUE.filter((p) => keys.includes(p.key));
+export async function installStarter(selection) {
+  const wanted = new Set(selection);
+  const picked = STARTER_CATALOGUE
+    .map((p) => {
+      const whole = wanted.has(p.key);
+      const recipes = p.recipes.filter((r) => whole || wanted.has(recipeId(p.key, r.name)));
+      return recipes.length ? { ...p, recipes } : null;
+    })
+    .filter(Boolean);
   const stuffFolder = await ensureFolder(L("WFRPRB.Starter.FolderItems"));
   const recipeFolder = await ensureFolder(L("WFRPRB.Starter.FolderRecipes"));
   let madeItems = 0;
@@ -53,9 +63,14 @@ export async function installStarter(keys) {
   let skipped = 0;
 
   for (const prof of picked) {
-    // 1. Сырьё профессии
+    // 1. Сырьё, нужное выбранным рецептам (вместе с сырьём их улучшений)
+    const needed = new Set();
+    for (const r of prof.recipes) {
+      for (const i of r.ingredients ?? []) needed.add(i.name);
+      for (const u of r.upgrades ?? []) if (u.ingredientName) needed.add(u.ingredientName);
+    }
     const stock = {};
-    for (const ing of prof.ingredients) {
+    for (const ing of prof.ingredients.filter((i) => needed.has(i.name))) {
       let doc = findItem(ing.name, "trapping");
       if (!doc) {
         doc = await Item.create(itemData(ing, { type: "trapping", trappingType: "misc", folder: stuffFolder }));
@@ -122,6 +137,29 @@ export async function installStarter(keys) {
   return { recipes: madeRecipes, items: madeItems, skipped };
 }
 
+/** Подсказка-карточка рецепта каталога: что получится и чего это стоит */
+function recipeTip(prof, rec) {
+  const bp = (rec.price?.gc ?? 0) * COIN_VALUE.gc + (rec.price?.ss ?? 0) * COIN_VALUE.ss + (rec.price?.bp ?? 0);
+  const time = [rec.timeDays && `${rec.timeDays}${L("WFRPRB.Time.d")}`, rec.timeHours && `${rec.timeHours}${L("WFRPRB.Time.h")}`,
+    rec.timeMinutes && `${rec.timeMinutes}${L("WFRPRB.Time.m")}`].filter(Boolean).join(" ");
+  const typeKey = `TYPES.Item.${rec.type}`;
+  const lines = [
+    `${rec.name}${rec.count > 1 ? ` ×${rec.count}` : ""}`,
+    `${L("WFRPRB.Check")}	${prof.skill}`,
+    `${L("WFRPRB.SLTarget")}	${rec.slTarget}`,
+    `${L("WFRPRB.Tip.Price")}	${moneyText(bp)}`,
+    rec.enc ? `${L("WFRPRB.Tip.Weight")}	${rec.enc}` : "",
+    game.i18n.has(typeKey) ? `${L("WFRPRB.Forge.Type")}	${L(typeKey)}` : "",
+    time ? `${L("WFRPRB.Time.Label")}	${time}` : "",
+    `## ${L("WFRPRB.Ingredients")}`,
+    ...(rec.ingredients ?? []).map((i) => `· ${i.name} ×${i.count}`),
+    (rec.upgrades ?? []).length ? `## ${L("WFRPRB.Upgrades")}` : "",
+    ...(rec.upgrades ?? []).map((u) => `· ${u.ingredientName ?? ""}${u.ingredientName && u.count > 1 ? ` ×${u.count}` : ""}`.trim()),
+    rec.description ? `~ ${rec.description}` : ""
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
 /** Окно выбора профессий (вызывается из настроек модуля) */
 export class StarterRecipesApp extends StarterMixin(StarterBase) {
   static DEFAULT_OPTIONS = {
@@ -129,44 +167,89 @@ export class StarterRecipesApp extends StarterMixin(StarterBase) {
     classes: ["wfrp-recipe-book", "rb-starter"],
     window: { title: "WFRPRB.Starter.Title", resizable: true },
     position: { width: 480, height: 560 },
-    actions: { install: StarterRecipesApp.#onInstall, toggleAll: StarterRecipesApp.#onToggleAll }
+    actions: {
+      install: StarterRecipesApp.#onInstall,
+      toggleAll: StarterRecipesApp.#onToggleAll,
+      toggleProf: StarterRecipesApp.#onToggleProf
+    }
   };
 
   static PARTS = { starter: { template: `modules/${MODULE_ID}/templates/starter.hbs`, scrollable: [".rb-starter-scroll"] } };
 
   constructor(options = {}) {
     super(options);
-    this.picked = new Set(STARTER_CATALOGUE.map((p) => p.key));
+    // Выбор хранится по рецептам: «профессия::рецепт»
+    this.picked = new Set(STARTER_CATALOGUE.flatMap((p) => p.recipes.map((r) => recipeId(p.key, r.name))));
+    this.open = new Set();   // раскрытые профессии
+  }
+
+  get allIds() {
+    return STARTER_CATALOGUE.flatMap((p) => p.recipes.map((r) => recipeId(p.key, r.name)));
   }
 
   async _prepareContext() {
-    return {
-      professions: STARTER_CATALOGUE.map((p) => ({
-        key: p.key, label: p.label, skill: p.skill,
-        on: this.picked.has(p.key),
-        recipes: p.recipes.map((r) => r.name).join(", "),
-        installed: p.recipes.every((r) => !!findItem(F("WFRPRB.Sheet.DefaultName", { name: r.name }), RECIPE_TYPE))
-      })),
-      total: [...this.picked].length
-    };
+    const professions = STARTER_CATALOGUE.map((p) => {
+      const recipes = p.recipes.map((r) => ({
+        id: recipeId(p.key, r.name),
+        name: r.name,
+        on: this.picked.has(recipeId(p.key, r.name)),
+        installed: !!findItem(F("WFRPRB.Sheet.DefaultName", { name: r.name }), RECIPE_TYPE),
+        tip: recipeTip(p, r)
+      }));
+      const chosen = recipes.filter((r) => r.on).length;
+      return {
+        key: p.key, label: p.label, skill: p.skill, recipes,
+        list: p.recipes.map((r) => r.name).join(", "),
+        open: this.open.has(p.key),
+        on: chosen > 0, some: chosen > 0 && chosen < recipes.length,
+        chosen, count: recipes.length,
+        installed: recipes.every((r) => r.installed)
+      };
+    });
+    return { professions, total: this.picked.size };
   }
 
   _onRender() {
     const root = this.element;
     root.classList.toggle("rb-theme-dark", game.settings.get(MODULE_ID, "bookTheme") === "dark");
-    for (const el of root.querySelectorAll(".rb-starter-row input")) {
+    RBTooltip.adoptTips();
+
+    // Галка профессии: включает/выключает все её рецепты, частичный выбор - промежуточное состояние
+    for (const el of root.querySelectorAll(".rb-starter-row > .rb-ing-name input")) {
+      const row = el.closest(".rb-starter-row");
+      const prof = STARTER_CATALOGUE.find((p) => p.key === row.dataset.key);
+      const ids = prof.recipes.map((r) => recipeId(prof.key, r.name));
+      const partial = row.dataset.some === "true";
+      el.indeterminate = partial;
       el.addEventListener("change", (ev) => {
-        const key = ev.currentTarget.closest(".rb-starter-row").dataset.key;
-        if (ev.currentTarget.checked) this.picked.add(key);
-        else this.picked.delete(key);
+        // Частичный выбор по клику ДОБИРАЕТ всю профессию (стандартное поведение три-состояния)
+        const selectAll = partial || ev.currentTarget.checked;
+        if (selectAll) for (const id of ids) this.picked.add(id);
+        else for (const id of ids) this.picked.delete(id);
+        this.render();
+      });
+    }
+    // Галка отдельного рецепта
+    for (const el of root.querySelectorAll(".rb-starter-recipe input")) {
+      el.addEventListener("change", (ev) => {
+        const id = ev.currentTarget.closest(".rb-starter-recipe").dataset.id;
+        if (ev.currentTarget.checked) this.picked.add(id);
+        else this.picked.delete(id);
         this.render();
       });
     }
   }
 
+  static #onToggleProf(event, target) {
+    const key = target.closest(".rb-starter-row").dataset.key;
+    if (this.open.has(key)) this.open.delete(key);
+    else this.open.add(key);
+    this.render();
+  }
+
   static #onToggleAll() {
-    if (this.picked.size === STARTER_CATALOGUE.length) this.picked.clear();
-    else this.picked = new Set(STARTER_CATALOGUE.map((p) => p.key));
+    if (this.picked.size === this.allIds.length) this.picked.clear();
+    else this.picked = new Set(this.allIds);
     this.render();
   }
 

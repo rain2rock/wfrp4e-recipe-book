@@ -20,16 +20,16 @@
     {{#if extraFilters}}
       <div class="rb-extra-filters">
         {{#if world}}
-          <select class="rb-owner-filter">
+          <select class="rb-owner-filter" aria-label="{{rbL 'WFRPRB.Extra.OwnerTip'}}">
             <option value="">{{rbL "WFRPRB.Extra.AllOwners"}}</option>
             {{#each ownerOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
           </select>
         {{/if}}
-        <select class="rb-skill-filter">
+        <select class="rb-skill-filter" aria-label="{{rbL 'WFRPRB.Extra.SkillTip'}}">
           <option value="">{{rbL "WFRPRB.Extra.AllSkills"}}</option>
           {{#each skillOptions}}<option value="{{name}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
         </select>
-        <select class="rb-type-filter">
+        <select class="rb-type-filter" aria-label="{{rbL 'WFRPRB.Extra.TypeTip'}}">
           <option value="">{{rbL "WFRPRB.Extra.AllTypes"}}</option>
           {{#each typeOptions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
         </select>
@@ -51,10 +51,30 @@
       {{#each groups}}
         <div class="rb-group-title">{{skill}}</div>
         {{#each entries}}
-          <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rb-tip="{{tooltip}}">
+          <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rbtt="recipe">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
-            {{#if isNew}}<i class="fa-solid fa-certificate rb-new-ico" data-rb-tip="{{rbL 'WFRPRB.NewBadge'}}"></i>{{/if}}
+            {{#if isNew}}<i class="fa-solid fa-certificate rb-new-ico"></i>{{/if}}
+            <div class="rb-tt-src" hidden>
+              <div class="rb-tt-head">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}
+                <div>
+                  <div class="rb-tt-name">{{tt.name}}{{#if (gt tt.count 1)}} ×{{tt.count}}{{/if}}</div>
+                  {{#if tt.typeLabel}}<div class="rb-tt-line">{{tt.typeLabel}}</div>{{/if}}
+                  {{#if tt.priceHtml}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Price"}}: {{{tt.priceHtml}}}</div>{{/if}}
+                  {{#if tt.avail}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Avail"}}: {{tt.avail}}</div>{{/if}}
+                </div>
+              </div>
+              {{#if tt.props}}<div class="rb-tt-line">{{tt.props}}</div>{{/if}}
+              {{#if tt.enc}}<div class="rb-tt-line">{{rbL "WFRPRB.Tip.Weight"}}: {{tt.enc}}</div>{{/if}}
+              <div class="rb-tt-line rb-tt-craft">
+                {{tt.skill}}{{#if tt.hasSkill}} → {{tt.target}}{{else}} <span class="rb-dim">({{rbL "WFRPRB.NoSkillShort"}})</span>{{/if}}
+                · {{rbL "WFRPRB.SL"}} {{tt.slTarget}}{{#if tt.time}} · {{tt.time}}{{/if}}
+              </div>
+              {{#each tt.ingredients}}
+                <div class="rb-tt-line {{#unless ok}}rb-tt-bad{{/unless}}">· {{name}} {{have}} / {{count}}</div>
+              {{/each}}
+              <div class="rb-tt-line rb-tt-status">{{#if tt.ready}}{{rbL "WFRPRB.Tip.EntryReady"}}{{else}}{{rbL "WFRPRB.MissingLabel"}}: {{tt.missing}}{{/if}}</div>
+            </div>
             {{#if inWork}}<span class="rb-badge">{{rbL "WFRPRB.InWorkBadge"}}</span>{{/if}}
             {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
           </button>

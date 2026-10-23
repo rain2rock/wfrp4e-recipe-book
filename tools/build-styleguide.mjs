@@ -42,14 +42,15 @@ ${section(
 )}
 ${section(
   "Кнопки",
-  "Любая кнопка - .rb-btn, единая высота --rb-btn-h. Один размер текста у ВСЕХ кнопок; --primary - акцент главного действия (золотая рамка + жирный; --craft - синоним), --quiet - без подложки. В футерах текстовые кнопки получают min-width: --rb-btn-minw. Квадратные иконко-кнопки: .rb-add («+» в заголовке секции), .rb-remove (крестик строки, при наведении краснеет).",
+  "Любая кнопка - .rb-btn, единая высота --rb-btn-h. Один размер текста у ВСЕХ кнопок; --primary - акцент главного действия (золотая рамка + жирный; --craft - синоним), --quiet - без подложки, --sm - единственный разрешённый уменьшенный размер (заголовки секций). В футерах текстовые кнопки получают min-width: --rb-btn-minw. Квадратные иконко-кнопки: .rb-add («+» в заголовке секции), .rb-remove (крестик строки, при наведении краснеет).",
   `<button type="button" class="rb-btn rb-btn--primary"><i class="fa-solid fa-dice-d20"></i> Изготовить</button>
    <button type="button" class="rb-btn">Изменить</button>
    <button type="button" class="rb-btn rb-btn--quiet">Отмена</button>
+   <button type="button" class="rb-btn rb-btn--sm">Создать с нуля</button>
    <button type="button" class="rb-btn" disabled>Недоступно</button>
    <button type="button" class="rb-btn rb-btn--quiet rb-add"><i class="fa-solid fa-plus"></i></button>
    <button type="button" class="rb-btn rb-btn--quiet rb-remove"><i class="fa-solid fa-xmark"></i></button>`,
-  ".rb-btn(--primary|--craft|--quiet)[disabled], .rb-add, .rb-remove"
+  ".rb-btn(--primary|--craft|--quiet|--sm)[disabled], .rb-add, .rb-remove"
 )}
 ${section(
   "Чипы-фильтры",

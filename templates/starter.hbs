@@ -2,19 +2,39 @@
   <div class="rb-starter-scroll">
     <p class="rb-dim rb-starter-intro">{{rbL "WFRPRB.Starter.Intro"}}</p>
     {{#each professions}}
-      <div class="rb-row rb-ing rb-starter-row" data-key="{{key}}">
-        <label class="rb-ing-name">
-          <input type="checkbox" {{#if on}}checked{{/if}}>
-          <span class="rb-prop-label"><b>{{label}}</b> <span class="rb-dim">· {{skill}}</span><br>
-            <span class="rb-dim rb-starter-list">{{recipes}}</span></span>
-        </label>
-        {{#if installed}}<span class="rb-badge">{{rbL "WFRPRB.Starter.Installed"}}</span>{{/if}}
+      <div class="rb-starter-prof {{#if open}}is-open{{/if}}">
+        <div class="rb-row rb-ing rb-starter-row" data-key="{{key}}" data-some="{{some}}">
+          <label class="rb-ing-name">
+            <input type="checkbox" {{#if on}}checked{{/if}}>
+            <span class="rb-prop-label"><b>{{label}}</b> <span class="rb-dim">· {{skill}}</span></span>
+          </label>
+          <span class="rb-starter-meta">
+            {{#if installed}}<span class="rb-badge">{{rbL "WFRPRB.Starter.Installed"}}</span>{{/if}}
+            <span class="rb-dim rb-starter-count">{{chosen}} / {{count}}</span>
+            <button type="button" class="rb-btn rb-btn--quiet rb-fold-btn" data-action="toggleProf"
+              data-rb-tip="{{rbL 'WFRPRB.Starter.Expand'}}"><i class="fa-solid fa-chevron-{{#if open}}up{{else}}down{{/if}}"></i></button>
+          </span>
+        </div>
+        {{#if open}}
+          <div class="rb-starter-recipes">
+            {{#each recipes}}
+              <div class="rb-row rb-ing rb-starter-recipe" data-id="{{id}}" data-rb-tip="{{tip}}">
+                <label class="rb-ing-name">
+                  <input type="checkbox" {{#if on}}checked{{/if}}>
+                  <span class="rb-prop-label">{{name}}</span>
+                </label>
+                {{#if installed}}<span class="rb-badge">{{rbL "WFRPRB.Starter.Installed"}}</span>{{/if}}
+              </div>
+            {{/each}}
+          </div>
+        {{/if}}
       </div>
     {{/each}}
   </div>
   <footer class="rb-sheet-foot">
     <button type="button" class="rb-btn rb-btn--quiet" data-action="toggleAll">{{rbL "WFRPRB.Starter.ToggleAll"}}</button>
     <span class="rb-sheet-foot-gap"></span>
+    <span class="rb-dim rb-starter-total">{{rbL "WFRPRB.Starter.Chosen"}}: {{total}}</span>
     <button type="button" class="rb-btn rb-btn--primary" data-action="install">{{rbL "WFRPRB.Starter.Install"}}</button>
   </footer>
 </div>

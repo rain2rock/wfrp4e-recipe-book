@@ -33,6 +33,16 @@ ok(readyNames.some((n) => n.includes("Лечебная настойка")), "н�
 ok(!readyNames.some((n) => n.includes("Кинжал")), "кинжал без навыка не подсвечен");
 ok(!readyNames.some((n) => n.includes("Противоядие")), "противоядие без мандрагоры не подсвечено");
 
+/* карточка рецепта в списке: параметры готового предмета, как в paperdoll */
+await $(".rb-entry", { hasText: "Гномий клинок" }).first().hover();
+await page.waitForTimeout(150);
+const entryTip = await page.evaluate(() => document.getElementById("rb-tooltip")?.textContent ?? "");
+ok(entryTip.includes("Гномий клинок") && entryTip.includes("Цена") && entryTip.includes("Доступность") &&
+   entryTip.includes("Ремесло (Кузнец)") && entryTip.includes("Железный слиток"),
+  "ховер записи показывает цену, доступность, проверку и сырьё", entryTip.replace(/\s+/g, " ").slice(0, 120));
+await page.mouse.move(5, 5);
+await page.waitForTimeout(80);
+
 /* --- Рецепт без навыка: кнопка выключена, причина названа --- */
 await $(".rb-entry", { hasText: "Кинжал" }).first().click();
 await page.waitForTimeout(50);
@@ -81,8 +91,8 @@ ok(contentBg === "rgb(216, 209, 194)", "фон окна - наш пергаме�
 
 /* --- Понятность: подсказки и богатый ховер (свой тултип, системный отключён) --- */
 ok((await $("[data-tooltip]").count()) === 0, "системные тултипы Foundry не используются");
-ok((await $(".rb-entry", { hasText: "Кинжал" }).first().getAttribute("data-rb-tip") ?? "").includes("навык"),
-  "подсказка на записи: почему кинжал недоступен");
+ok(((await $(".rb-entry", { hasText: "Кинжал" }).first().locator(".rb-tt-status").textContent()) ?? "").includes("навык"),
+  "карточка записи: почему кинжал недоступен");
 ok((await $("[data-rb-tip*='d100']").count()) >= 1, "строка проверки объясняет бросок d100");
 ok((await $("[data-rb-tip*='Уровни успеха']").count()) >= 1, "строка УУ объясняет накопление");
 
@@ -139,7 +149,7 @@ ok(tt.includes("Раритетный") && tt.includes("перчатках"),
 await page.mouse.move(5, 5);
 ok((await $(".rb-ing.is-bad", { hasText: "Перегонный куб" }).count()) === 1, "недостающий инструмент подсвечен красным");
 ok((await text(".rb-right")).includes("1мес 8д 15ч 10м"), "38 дней показываются игроку как 1мес 8д 15ч 10м");
-ok(((await $(".rb-entry", { hasText: "Противоядие" }).first().getAttribute("data-rb-tip")) ?? "").includes("инструментов"),
+ok(((await $(".rb-entry", { hasText: "Противоядие" }).first().locator(".rb-tt-status").textContent()) ?? "").includes("инструментов"),
   "в причинах недоступности есть инструменты");
 
 /* Лист ГМа: навыки дропдауном из базы, минуты времени */
@@ -946,12 +956,31 @@ await page.waitForTimeout(120);
 await page.click("#tb-starter");
 await page.waitForTimeout(250);
 ok((await $("#rb-starter .rb-starter-row").count()) === 7, "окно стартовых рецептов: 7 профессий");
-await page.evaluate(() => {
-  // оставим только аптекаря - проверим выборочную установку
-  const rows = [...document.querySelectorAll("#rb-starter .rb-starter-row")];
-  for (const r of rows.slice(1)) r.querySelector("input").click();
+/* раскрытие профессии показывает её рецепты */
+ok((await $("#rb-starter .rb-starter-recipe").count()) === 0, "списки рецептов свёрнуты по умолчанию");
+await page.click("#rb-starter .rb-starter-row[data-key='apothecary'] [data-action='toggleProf']");
+await page.waitForTimeout(250);
+ok((await $("#rb-starter .rb-starter-recipe").count()) === 3, "раскрытая профессия показала свои 3 рецепта");
+/* ховер по рецепту показывает параметры будущего предмета */
+await $("#rb-starter .rb-starter-recipe").first().hover();
+await page.waitForTimeout(450);
+const starterTip = await page.evaluate(() => document.getElementById("rb-tooltip")?.textContent ?? "");
+ok(starterTip.includes("Цена") && starterTip.includes("Ремесло (Аптекарь)") && starterTip.includes("Ингредиенты"),
+  "ховер рецепта в окне показывает цену, навык и ингредиенты", starterTip.replace(/\s+/g, " ").slice(0, 100));
+await page.mouse.move(5, 5);
+await page.waitForTimeout(100);
+/* снимаем всё и берём ровно один рецепт аптекаря */
+await page.click("#rb-starter [data-action='toggleAll']");
+await page.waitForTimeout(250);
+ok((await text("#rb-starter .rb-starter-total")).includes("0"), "«снять всё» очистило выбор");
+await page.click("#rb-starter .rb-starter-recipe:nth-child(2) input");
+await page.waitForTimeout(250);
+const partial = await page.evaluate(() => {
+  const row = document.querySelector("#rb-starter .rb-starter-row[data-key='apothecary']");
+  return { some: row.dataset.some, indeterminate: row.querySelector("input").indeterminate, count: row.querySelector(".rb-starter-count").textContent.trim() };
 });
-await page.waitForTimeout(400);
+ok(partial.some === "true" && partial.indeterminate && partial.count === "1 / 3",
+  "частичный выбор: галка профессии в промежуточном состоянии, счётчик 1 / 3", JSON.stringify(partial));
 await page.click("#rb-starter [data-action='install']");
 await page.waitForTimeout(600);
 const starter = await page.evaluate(() => {
@@ -968,7 +997,7 @@ const starter = await page.evaluate(() => {
     resDesc: (result?.system.description?.value ?? "").length > 10
   };
 });
-ok(starter.count >= 3 && !starter.hasOther, "поставлены рецепты только выбранной профессии", JSON.stringify({c: starter.count, other: starter.hasOther}));
+ok(starter.count === 1 && !starter.hasOther, "поставлен ровно один выбранный рецепт", JSON.stringify({c: starter.count, other: starter.hasOther}));
 ok(starter.ingOk, "сырьё рецептов - настоящие предметы мира (есть uuid и иконка)");
 ok(starter.resType === "trapping" && starter.resTrap === "drugsPoisonsHerbsDraughts",
   "результат - зелье нужного подтипа (применяется кликом в paperdoll)", JSON.stringify(starter));
@@ -979,7 +1008,65 @@ await page.click("#rb-starter [data-action='install']");
 await page.waitForTimeout(500);
 ok(await page.evaluate((n) => game.items.filter((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Аптекарь)").length === n, starter.count),
   "повторная установка не создаёт дубли");
+/* теперь ставим всю профессию - добавятся только недостающие */
+await page.click("#rb-starter .rb-starter-row[data-key='apothecary'] > .rb-ing-name input");
+await page.waitForTimeout(250);
+await page.click("#rb-starter [data-action='install']");
+await page.waitForTimeout(600);
+ok(await page.evaluate(() => game.items.filter((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Аптекарь)").length === 3),
+  "выбор всей профессии доставил остальные рецепты");
 await page.evaluate(() => document.querySelector("#rb-starter [data-mock-close]")?.click());
+await page.waitForTimeout(150);
+
+/* --- Кнопка ГМа «Создать рецепт» из предмета --- */
+await page.click("#tb-fromitem");
+await page.waitForTimeout(200);
+ok((await $("#mock-bar .rb-picker").count()) === 1, "пикер предметов открылся из панели");
+const pickerImg = await page.evaluate(() => {
+  const img = document.querySelector("#mock-bar .rb-picker-row img");
+  const list = document.querySelector("#mock-bar .rb-picker-list");
+  return { w: img ? Math.round(img.getBoundingClientRect().width) : 0, maxH: getComputedStyle(list).maxHeight };
+});
+const pickerType = await page.evaluate(() => {
+  const row = document.querySelector("#mock-bar .rb-picker-row");
+  const s = getComputedStyle(row);
+  return { fs: s.fontSize, color: s.color };
+});
+ok(pickerType.fs === "12px" && pickerType.color === "rgb(42, 33, 25)",
+  "в пикере свой кегль и цвет, чужие стили не перебивают", JSON.stringify(pickerType));
+ok(pickerImg.w === 26 && pickerImg.maxH === "220px",
+  "пикер вне окна модуля стилизован (иконка 24px с рамкой, список с прокруткой)", JSON.stringify(pickerImg));
+await page.fill("#mock-bar .rb-picker-search", "перегонный");
+await page.waitForTimeout(150);
+await page.click("#mock-bar .rb-picker-row");
+await page.waitForTimeout(400);
+const fromItem = await page.evaluate(() => {
+  const r = game.items.find((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Перегонный куб");
+  const src = __RB_worldItems__.find((w) => w.name === "Перегонный куб");
+  return r ? {
+    name: r.name, linked: r.system.result.uuid === src.uuid,
+    difficulty: r.system.difficulty, slTarget: r.system.slTarget, moneyBp: r.system.moneyBp,
+    descr: (r.system.description?.value ?? "").includes("змеевиком"),
+    sheet: !!document.querySelector(`#rb-sheet-${r.id}`)
+  } : null;
+});
+ok(fromItem && fromItem.linked && fromItem.name.includes("Перегонный куб"),
+  "рецепт создан из предмета и привязан к нему", JSON.stringify(fromItem));
+ok(fromItem.difficulty === "challenging" && fromItem.slTarget === 15 && fromItem.moneyBp === 60,
+  "подставлены правила: редкий → серьёзная, цена 1 зк → УУ 15, сырьё 60 п", JSON.stringify(fromItem));
+ok(fromItem.descr && fromItem.sheet, "описание предмета перенесено, лист рецепта открыт сразу");
+/* повторное создание не плодит дубли */
+await page.evaluate(() => document.querySelector("[id^='rb-sheet-'] [data-mock-close]")?.click());
+await page.waitForTimeout(150);
+await page.click("#tb-fromitem");
+await page.waitForTimeout(200);
+await page.fill("#mock-bar .rb-picker-search", "перегонный");
+await page.waitForTimeout(150);
+await page.click("#mock-bar .rb-picker-row");
+await page.waitForTimeout(300);
+ok(await page.evaluate(() => game.items.filter((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.result?.name === "Перегонный куб").length === 1),
+  "повторный вызов открывает существующий рецепт, а не создаёт второй");
+await page.evaluate(() => document.querySelector("[id^='rb-sheet-'] [data-mock-close]")?.click());
 await page.waitForTimeout(150);
 
 /* --- Скриншот для Михаила --- */

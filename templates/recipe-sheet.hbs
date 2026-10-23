@@ -2,13 +2,13 @@
   <div class="rb-sheet-scroll">
   <header class="rb-sheet-head">
     <img class="rb-sheet-img" src="{{item.img}}" alt="" data-action="pickImage" data-rb-tip="{{rbL 'WFRPRB.Sheet.PickImage'}}">
-    <input class="rb-sheet-name" type="text" name="name" value="{{item.name}}" {{#unless editable}}disabled{{/unless}}>
+    <input class="rb-sheet-name" type="text" name="name" value="{{item.name}}" placeholder="{{rbL 'WFRPRB.A11y.RecipeName'}}" aria-label="{{rbL 'WFRPRB.A11y.RecipeName'}}" {{#unless editable}}disabled{{/unless}}>
   </header>
 
   <section class="rb-block rb-dropzone" data-dropzone="result">
     <div class="rb-block-title"><span>{{rbL "WFRPRB.Sheet.Result"}} <span class="rb-dim">· {{rbL "WFRPRB.Sheet.DropHint"}}</span></span>
       <span class="rb-title-actions">
-        <button type="button" class="rb-btn rb-forge-open" data-action="openForge">{{rbL "WFRPRB.Forge.Open"}}</button>
+        <button type="button" class="rb-btn rb-btn--sm rb-forge-open" data-action="openForge">{{rbL "WFRPRB.Forge.Open"}}</button>
         <button type="button" class="rb-btn rb-btn--quiet rb-add" data-action="addItem" data-zone="result" data-rb-tip="{{rbL 'WFRPRB.Sheet.AddFromDb'}}"><i class="fa-solid fa-plus"></i></button>
       </span></div>
     <div class="rb-row rb-ing">
@@ -17,7 +17,7 @@
           {{#if sys.result.img}}<img src="{{sys.result.img}}" alt="">{{else}}<span class="rb-ing-ico"><i class="fa-solid fa-bullseye"></i></span>{{/if}}
         </span>
         <input type="text" class="rb-result-name" value="{{sys.result.name}}" placeholder="{{rbL 'WFRPRB.Sheet.NoResult'}}" {{#unless editable}}disabled{{/unless}}></span>
-      <span class="rb-sheet-count">×&nbsp;<input type="number" name="system.result.count" value="{{sys.result.count}}" min="1" step="1" class="rb-num"></span>
+      <span class="rb-sheet-count">×&nbsp;<input type="number" name="system.result.count" value="{{sys.result.count}}" min="1" step="1" class="rb-num" aria-label="{{rbL 'WFRPRB.A11y.ResultCount'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.ResultCount'}}"></span>
     </div>
     {{#unless sys.result.uuid}}{{#if sys.result.name}}
       <div class="rb-row rb-dim rb-result-note">{{rbL "WFRPRB.Sheet.CustomResult"}}</div>

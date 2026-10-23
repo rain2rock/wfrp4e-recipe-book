@@ -167,7 +167,7 @@
 .wfrp-recipe-book .rb-forge-poollabel { font-size: var(--rb-fs-s); margin-top: var(--rb-space-1); }
 .wfrp-recipe-book .rb-forge-prognosis { color: var(--rb-text-dim); font-size: var(--rb-fs-m); }
 .wfrp-recipe-book .rb-title-actions { display: inline-flex; align-items: center; gap: var(--rb-space-2); }
-.wfrp-recipe-book .rb-title-actions .rb-forge-open { min-height: 0; padding: 1px var(--rb-space-3); font-size: var(--rb-fs-s); }
+
 
 /* Шапка мастера: крупная иконка-карточка слева, поля справа */
 .wfrp-recipe-book .rb-forge-head { display: flex; gap: var(--rb-space-5); align-items: flex-start; }
@@ -224,4 +224,15 @@
 .wfrp-recipe-book .rb-starter-intro { margin: 0 0 var(--rb-space-3); font-size: var(--rb-fs-m); font-style: italic; }
 .wfrp-recipe-book .rb-starter-row { align-items: flex-start; min-height: 0; padding: var(--rb-space-2) 0; border-bottom: 1px solid var(--rb-frame); }
 .wfrp-recipe-book .rb-starter-row .rb-ing-name { align-items: flex-start; }
-.wfrp-recipe-book .rb-starter-list { font-size: var(--rb-fs-s); }
+.wfrp-recipe-book .rb-starter-prof { border-bottom: 1px solid var(--rb-frame); }
+.wfrp-recipe-book .rb-starter-row { border-bottom: none; }
+.wfrp-recipe-book .rb-starter-meta { display: inline-flex; align-items: center; gap: var(--rb-space-2); flex: 0 0 auto; }
+.wfrp-recipe-book .rb-starter-count { font-size: var(--rb-fs-s); }
+.wfrp-recipe-book .rb-fold-btn { width: var(--rb-icon-s); height: var(--rb-icon-s); min-height: 0; padding: 0; }
+.wfrp-recipe-book .rb-starter-recipes { padding: 0 0 var(--rb-space-2) var(--rb-space-7); }
+.wfrp-recipe-book .rb-starter-recipe { min-height: 0; padding: 2px 0; }
+.wfrp-recipe-book .rb-starter-total { font-size: var(--rb-fs-m); }
+
+/* Карточка-подсказка рецепта: нехватка - красным, итоговая строка приглушена */
+.wfrp-recipe-book .rb-tt-bad { color: var(--rb-bad); }
+.wfrp-recipe-book .rb-tt-status { margin-top: var(--rb-space-1); color: var(--rb-muted); font-style: italic; }

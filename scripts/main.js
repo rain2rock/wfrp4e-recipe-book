@@ -4,6 +4,7 @@ import { MODULE_ID, RECIPE_TYPE, buildRecipeModel } from "./recipe-model.js";
 import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, loadLangs, L } from "./recipe-book.js";
 import { RecipeSheet } from "./recipe-sheet.js";
 import { StarterRecipesApp, installStarter } from "./starter-install.js";
+import { createRecipeFromItem, canMakeRecipe } from "./recipe-from-item.js";
 
 const SUPPORTED_TYPES = ["character", "npc", "creature"];
 
@@ -131,8 +132,37 @@ Hooks.once("init", () => {
   watchCrafting();
 
   // Доступ из макросов: game.modules.get("wfrp4e-recipe-book").api.open(actor)
-  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, installStarter, RecipeBookApp };
+  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, installStarter, createRecipeFromItem, RecipeBookApp };
 });
+
+/* Кнопка «Создать рецепт» в шапке листа ЛЮБОГО предмета (только ГМ).
+   Хук renderItemSheetV2 + запасной renderItemSheet - для листов на ApplicationV1. */
+function addItemSheetButton(app, element) {
+  if (game.system.id !== "wfrp4e" || !game.settings.get(MODULE_ID, "enabled")) return;
+  if (!game.user.isGM) return;
+  const item = app.document ?? app.item;
+  if (!item || !canMakeRecipe(item)) return;
+  const header = app.window?.header ?? element?.querySelector?.(".window-header");
+  if (!header || header.querySelector(".rb-make-recipe")) return;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "header-control icon fa-solid fa-book-medical rb-make-recipe";
+  const label = game.i18n.localize("WFRPRB.FromItem.Button");
+  btn.dataset.tooltip = label;
+  btn.setAttribute("aria-label", label);
+  btn.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+    createRecipeFromItem(item);
+  });
+  btn.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+  const anchor = header.querySelector('[data-action="toggleControls"]') ?? header.querySelector('[data-action="close"]') ?? header.querySelector(".close");
+  if (anchor) header.insertBefore(btn, anchor);
+  else header.append(btn);
+}
+Hooks.on("renderItemSheetV2", (app, element) => addItemSheetButton(app, element));
+Hooks.on("renderItemSheet", (app, html) => addItemSheetButton(app, html?.[0] ?? html));
 
 /* Кнопка в шапке листа персонажа (как в paperdoll).
    Основной хук - renderActorSheetV2; запасной renderActorSheet - для листов на ApplicationV1. */
