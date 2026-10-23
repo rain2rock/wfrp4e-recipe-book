@@ -73,7 +73,7 @@
               {{#each tt.ingredients}}
                 <div class="rb-tt-line {{#unless ok}}rb-tt-bad{{/unless}}">· {{name}} {{have}} / {{count}}</div>
               {{/each}}
-              <div class="rb-tt-line rb-tt-status">{{#if tt.ready}}{{rbL "WFRPRB.Tip.EntryReady"}}{{else}}{{rbL "WFRPRB.MissingLabel"}}: {{tt.missing}}{{/if}}</div>
+              <div class="rb-tt-line rb-tt-status">{{#if tt.ready}}{{rbL "WFRPRB.Tip.ReadyShort"}}{{else}}{{rbL "WFRPRB.MissingLabel"}}: {{tt.missing}}{{/if}}</div>
             </div>
             {{#if inWork}}<span class="rb-badge">{{rbL "WFRPRB.InWorkBadge"}}</span>{{/if}}
             {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}

@@ -182,7 +182,8 @@
       "MoneyLeft": "Left after crafting\t{left}",
       "MoneyShort": "Short by\t{short}",
       "MoneyNote": "~ Minor materials without a separate item - paid in coin.",
-      "Weight": "Weight"
+      "Weight": "Weight",
+      "ReadyShort": "All requirements met"
     },
     "Tool": {
       "Have": "yes",

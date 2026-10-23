@@ -45,6 +45,7 @@
   /* Размеры: иконки, монеты, кнопки, числовые поля */
   --rb-icon-s: 24px;
   --rb-icon-l: 42px;
+  --rb-icon-tt: 72px;   /* картинка в карточке-подсказке */
   --rb-icon-xl: 144px;
   --rb-coin: 16px;
   --rb-btn-h: 30px;
@@ -338,7 +339,7 @@
 
 /* Богатый ховер предмета */
 .wfrp-recipe-book .rb-tt-head { display: flex; gap: var(--rb-space-3); align-items: flex-start; margin-bottom: var(--rb-space-2); }
-.wfrp-recipe-book .rb-tt-head > img { width: var(--rb-icon-l); height: var(--rb-icon-l); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius); flex: 0 0 var(--rb-icon-l); }
+.wfrp-recipe-book .rb-tt-head > img { width: var(--rb-icon-tt); height: var(--rb-icon-tt); object-fit: cover; border: 1px solid var(--rb-gold-soft); border-radius: var(--rb-radius); flex: 0 0 var(--rb-icon-tt); }
 .wfrp-recipe-book .rb-tt-name { font-size: var(--rb-fs-xl); font-weight: 700; color: var(--rb-gold); }
 .wfrp-recipe-book .rb-tt-line { color: var(--rb-text-2); font-size: var(--rb-fs-m); }
 .wfrp-recipe-book .rb-tt-craft { border-top: 1px solid var(--rb-frame); padding-top: var(--rb-space-1); margin-top: var(--rb-space-1); }
@@ -400,10 +401,10 @@
   width: var(--rb-icon-s) !important; height: var(--rb-icon-s) !important;
 }
 .wfrp-recipe-book .rb-head-img,
-.wfrp-recipe-book .rb-sheet-img,
-.wfrp-recipe-book .rb-tt-head > img {
+.wfrp-recipe-book .rb-sheet-img {
   width: var(--rb-icon-l) !important; height: var(--rb-icon-l) !important;
 }
+.wfrp-recipe-book .rb-tt-head > img { width: var(--rb-icon-tt) !important; height: var(--rb-icon-tt) !important; }
 .wfrp-recipe-book .rb-forge-img { width: var(--rb-icon-xl) !important; height: var(--rb-icon-xl) !important; }
 
 /* Видимый фокус с клавиатуры (доступность): золотая обводка, не ломает мышиные клики */

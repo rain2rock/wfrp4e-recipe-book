@@ -10,7 +10,7 @@ import { chromium } from "playwright";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const mock = process.argv[2] ?? "docs/book-mock.html";
 const SPACE = [0, 2, 4, 6, 8, 10, 12, 14, 16];      // шкала --rb-space-* (+0 и 2 для микросдвигов)
-const ICONS = [16, 20, 24, 26, 42, 44, 96, 144, 150]; // иконки с рамками
+const ICONS = [16, 20, 24, 26, 42, 44, 72, 74, 96, 144, 150]; // иконки с рамками
 
 let pass = 0, fail = 0;
 const ok = (c, name, extra = "") => (c ? (pass++, console.log(`PASS ${name}`)) : (fail++, console.log(`FAIL ${name} ${extra}`)));
