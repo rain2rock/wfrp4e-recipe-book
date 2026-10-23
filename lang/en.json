@@ -299,6 +299,20 @@
     "ResetFilters": "Reset filters",
     "Upgrades": "Upgrades",
     "UpgradesHint": "for extra materials",
-    "NewBadge": "New recipe\nNot opened yet."
+    "NewBadge": "New recipe\nNot opened yet.",
+    "Starter": {
+      "Title": "Starter trade recipes",
+      "Name": "Starter recipes",
+      "Button": "Create starter trade recipes",
+      "Hint": "Adds ready-made recipes, materials and result items for trade professions to the world.",
+      "Intro": "Pick professions - their recipes will be added to the world together with materials and result items. Nothing is duplicated.",
+      "Install": "Create recipes",
+      "ToggleAll": "Select all / none",
+      "Installed": "already there",
+      "PickSome": "Pick at least one profession.",
+      "Done": "Done: {recipes} recipes, {items} items, {skipped} skipped",
+      "FolderItems": "Recipe Book - materials and goods",
+      "FolderRecipes": "Recipe Book - recipes"
+    }
   }
 }

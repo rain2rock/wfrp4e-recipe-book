@@ -3,6 +3,7 @@
 import { MODULE_ID, RECIPE_TYPE, buildRecipeModel } from "./recipe-model.js";
 import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, loadLangs, L } from "./recipe-book.js";
 import { RecipeSheet } from "./recipe-sheet.js";
+import { StarterRecipesApp, installStarter } from "./starter-install.js";
 
 const SUPPORTED_TYPES = ["character", "npc", "creature"];
 
@@ -21,6 +22,16 @@ Hooks.once("init", () => {
     types: [RECIPE_TYPE],
     makeDefault: true,
     label: "WFRPRB.Sheet.Label"
+  });
+
+  // Кнопка ГМа: поставить стартовые рецепты профессий
+  game.settings.registerMenu(MODULE_ID, "starter", {
+    name: "WFRPRB.Starter.Name",
+    label: "WFRPRB.Starter.Button",
+    hint: "WFRPRB.Starter.Hint",
+    icon: "fa-solid fa-book-medical",
+    type: StarterRecipesApp,
+    restricted: true
   });
 
   // Главный выключатель (мир)
@@ -120,7 +131,7 @@ Hooks.once("init", () => {
   watchCrafting();
 
   // Доступ из макросов: game.modules.get("wfrp4e-recipe-book").api.open(actor)
-  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, RecipeBookApp };
+  game.modules.get(MODULE_ID).api = { open: (a) => RecipeBookApp.openFor(a), startCraft, rollCraft, recipeStatus, installStarter, RecipeBookApp };
 });
 
 /* Кнопка в шапке листа персонажа (как в paperdoll).

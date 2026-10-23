@@ -942,6 +942,46 @@ await page.evaluate(async () => {
 });
 await page.waitForTimeout(120);
 
+/* --- Стартовые рецепты профессий: установка из настроек ГМа --- */
+await page.click("#tb-starter");
+await page.waitForTimeout(250);
+ok((await $("#rb-starter .rb-starter-row").count()) === 7, "окно стартовых рецептов: 7 профессий");
+await page.evaluate(() => {
+  // оставим только аптекаря - проверим выборочную установку
+  const rows = [...document.querySelectorAll("#rb-starter .rb-starter-row")];
+  for (const r of rows.slice(1)) r.querySelector("input").click();
+});
+await page.waitForTimeout(400);
+await page.click("#rb-starter [data-action='install']");
+await page.waitForTimeout(600);
+const starter = await page.evaluate(() => {
+  const recipes = game.items.filter((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Аптекарь)");
+  const r = recipes[0];
+  const result = r && game.items.find((i) => i.uuid === r.system.result.uuid);
+  return {
+    count: recipes.length,
+    hasOther: game.items.some((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Кузнец)"),
+    ingOk: r?.system.ingredients.every((i) => !!i.uuid && !!i.img),
+    resType: result?.type, resTrap: result?.system.trappingType?.value,
+    resPrice: result?.system.price, resEnc: result?.system.encumbrance?.value,
+    resImg: (result?.img ?? "").startsWith("data:") || (result?.img ?? "").includes("assets/icons"),
+    resDesc: (result?.system.description?.value ?? "").length > 10
+  };
+});
+ok(starter.count >= 3 && !starter.hasOther, "поставлены рецепты только выбранной профессии", JSON.stringify({c: starter.count, other: starter.hasOther}));
+ok(starter.ingOk, "сырьё рецептов - настоящие предметы мира (есть uuid и иконка)");
+ok(starter.resType === "trapping" && starter.resTrap === "drugsPoisonsHerbsDraughts",
+  "результат - зелье нужного подтипа (применяется кликом в paperdoll)", JSON.stringify(starter));
+ok(starter.resEnc !== undefined && starter.resPrice && starter.resImg && starter.resDesc,
+  "у результата есть вес, цена, иконка и описание", JSON.stringify({enc: starter.resEnc, price: starter.resPrice}));
+/* повторная установка не плодит дубли */
+await page.click("#rb-starter [data-action='install']");
+await page.waitForTimeout(500);
+ok(await page.evaluate((n) => game.items.filter((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Аптекарь)").length === n, starter.count),
+  "повторная установка не создаёт дубли");
+await page.evaluate(() => document.querySelector("#rb-starter [data-mock-close]")?.click());
+await page.waitForTimeout(150);
+
 /* --- Скриншот для Михаила --- */
 await $(".rb-entry", { hasText: "Противоядие" }).first().click();
 await page.waitForTimeout(80);

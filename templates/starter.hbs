@@ -1,0 +1,20 @@
+<div class="rb-starter-root">
+  <div class="rb-starter-scroll">
+    <p class="rb-dim rb-starter-intro">{{rbL "WFRPRB.Starter.Intro"}}</p>
+    {{#each professions}}
+      <div class="rb-row rb-ing rb-starter-row" data-key="{{key}}">
+        <label class="rb-ing-name">
+          <input type="checkbox" {{#if on}}checked{{/if}}>
+          <span class="rb-prop-label"><b>{{label}}</b> <span class="rb-dim">· {{skill}}</span><br>
+            <span class="rb-dim rb-starter-list">{{recipes}}</span></span>
+        </label>
+        {{#if installed}}<span class="rb-badge">{{rbL "WFRPRB.Starter.Installed"}}</span>{{/if}}
+      </div>
+    {{/each}}
+  </div>
+  <footer class="rb-sheet-foot">
+    <button type="button" class="rb-btn rb-btn--quiet" data-action="toggleAll">{{rbL "WFRPRB.Starter.ToggleAll"}}</button>
+    <span class="rb-sheet-foot-gap"></span>
+    <button type="button" class="rb-btn rb-btn--primary" data-action="install">{{rbL "WFRPRB.Starter.Install"}}</button>
+  </footer>
+</div>

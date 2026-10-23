@@ -22,13 +22,14 @@ const langEn = JSON.parse(read("lang/en.json"));
 const templates = {
   "modules/wfrp4e-recipe-book/templates/book.hbs": read("templates/book.hbs"),
   "modules/wfrp4e-recipe-book/templates/recipe-sheet.hbs": read("templates/recipe-sheet.hbs"),
-  "modules/wfrp4e-recipe-book/templates/item-forge.hbs": read("templates/item-forge.hbs")
+  "modules/wfrp4e-recipe-book/templates/item-forge.hbs": read("templates/item-forge.hbs"),
+  "modules/wfrp4e-recipe-book/templates/starter.hbs": read("templates/starter.hbs")
 };
 const css = read("styles/rb-system.css") + "\n" + read("styles/recipe-book.css");
 
 const stripModules = (src) => src.replace(/^import .*$/gm, "").replace(/^export /gm, "")
   .replaceAll("${MODULE_ID}", "wfrp4e-recipe-book"); // чтобы inlineAssets увидел пути ассетов в шаблонных строках
-const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/main.js"]
+const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
   .map((p) => stripModules(read(p)))
   .join("\n");
 
@@ -41,7 +42,9 @@ const assetUri = (rel) => {
   const ext = rel.split(".").pop();
   return `data:${MIME[ext] ?? "application/octet-stream"};base64,` + fs.readFileSync(file).toString("base64");
 };
-const inlineAssets = (text) => text.replace(/modules\/wfrp4e-recipe-book\/(assets\/[\w./-]+)/g, (m, rel) => assetUri(rel));
+// Вшиваем только настоящие файлы: в коде встречаются шаблонные пути (assets/icons/${file}) - их пропускаем
+const inlineAssets = (text) => text.replace(/modules\/wfrp4e-recipe-book\/(assets\/[\w./-]+)/g,
+  (m, rel) => (fs.existsSync(path.join(root, rel)) && fs.statSync(path.join(root, rel)).isFile() ? assetUri(rel) : m));
 
 const html = `<!DOCTYPE html>
 <html lang="ru">
@@ -101,6 +104,7 @@ const html = `<!DOCTYPE html>
   <button id="tb-open">Открыть книгу</button>
   <button id="tb-sheet">Лист рецепта (ГМ)</button>
   <button id="tb-view">Вид: ГМ / игрок</button>
+  <button id="tb-starter">Стартовые рецепты (ГМ)</button>
   <button id="tb-reset">Сбросить всё</button>
   <span class="mock-hint">кубы эмулируются (в Foundry бросает система); перетаскивание на лист ГМа в моке не работает</span>
 </div>
@@ -111,6 +115,10 @@ const html = `<!DOCTYPE html>
 window.__RB_LANG__ = ${json(lang)};
 window.__RB_LANGS__ = { ru: ${json(lang)}, en: ${json(langEn)} };
 window.__RB_TEMPLATES__ = ${inlineAssets(json(templates))};
+window.__RB_ASSETS__ = ${json(Object.fromEntries(
+  fs.readdirSync(path.join(root, "assets/icons")).filter((f) => f.endsWith(".png"))
+    .map((f) => [`assets/icons/${f}`, assetUri(`assets/icons/${f}`)])
+))};
 window.__RB_CONFIG__ = ${json(CONFIG_WFRP)};
 window.__RB_SKILLS__ = ${json(SKILLS)};
 // Простые иконки-заглушки: цветной квадрат с первой буквой (в живом Foundry - картинки предметов)
@@ -157,6 +165,7 @@ document.getElementById("tb-sheet").addEventListener("click", () => {
 document.getElementById("tb-view").addEventListener("click", () => {
   game.settings.set("wfrp4e-recipe-book", "playerView", !game.settings.get("wfrp4e-recipe-book", "playerView"));
 });
+document.getElementById("tb-starter").addEventListener("click", () => new StarterRecipesApp().render(true));
 document.getElementById("tb-reset").addEventListener("click", () => location.reload());
 </script>
 </body>

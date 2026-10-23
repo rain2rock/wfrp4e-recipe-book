@@ -216,3 +216,12 @@
 
 /* Отметка «новый рецепт» рядом с галкой достаточности ресурсов */
 .wfrp-recipe-book .rb-new-ico { color: var(--rb-gold); font-size: var(--rb-fs-s); flex: 0 0 auto; }
+
+/* ---------- Окно «Стартовые рецепты» ---------- */
+.rb-starter .window-content { background: var(--rb-bg); color: var(--rb-text); padding: 0; overflow: hidden; display: flex; flex-direction: column; }
+.wfrp-recipe-book .rb-starter-root { display: flex; flex-direction: column; flex: 1; min-height: 0; padding: var(--rb-space-5); box-sizing: border-box; }
+.wfrp-recipe-book .rb-starter-scroll { flex: 1; min-height: 0; overflow-y: auto; padding-right: var(--rb-space-2); }
+.wfrp-recipe-book .rb-starter-intro { margin: 0 0 var(--rb-space-3); font-size: var(--rb-fs-m); font-style: italic; }
+.wfrp-recipe-book .rb-starter-row { align-items: flex-start; min-height: 0; padding: var(--rb-space-2) 0; border-bottom: 1px solid var(--rb-frame); }
+.wfrp-recipe-book .rb-starter-row .rb-ing-name { align-items: flex-start; }
+.wfrp-recipe-book .rb-starter-list { font-size: var(--rb-fs-s); }

@@ -135,6 +135,9 @@
   window.CONFIG = { Item: { dataModels: {} } };
   window.CONST = { KEYBINDING_PRECEDENCE: { NORMAL: 0 } };
   // Рецепты мира: как во вкладке «Предметы» Foundry (FakeItem без актёра, попадает в game.items)
+  // В Foundry папки - часть ядра; в моке достаточно заглушки, чтобы установщик не падал
+  window.Folder = { create: async (data) => ({ id: `f-${data.name}`, ...data }) };
+
   window.Item = class {
     static async create(data) {
       const d = { ...(Array.isArray(data) ? data[0] : data) };
@@ -405,6 +408,7 @@
       "contents", { get: () => [...(window.__RB_actors__ ?? [])] }
     ),
     items: [],
+    folders: [],
     packs: [{
       documentName: "Item",
       async getIndex() { return (window.__RB_SKILLS__ ?? []).map((n, i) => ({ _id: `sk${i}`, name: n, type: "skill" })); }
