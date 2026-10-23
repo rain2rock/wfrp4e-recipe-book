@@ -10,7 +10,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Целебные травы",
-        "img": "earth-root.png",
+        "img": "herbs-healing.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -22,7 +22,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Спирт очищенный",
-        "img": "spirits-pint.png",
+        "img": "spirit-pure.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -46,7 +46,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Стеклянный флакон",
-        "img": "raw-materials.png",
+        "img": "glass-vial.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -109,7 +109,7 @@ export const STARTER_CATALOGUE = [
         "name": "Противоядие",
         "type": "trapping",
         "trappingType": "drugsPoisonsHerbsDraughts",
-        "img": "antitoxin-kit.png",
+        "img": "antidote.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -145,7 +145,7 @@ export const STARTER_CATALOGUE = [
         "name": "Бодрящий эликсир",
         "type": "trapping",
         "trappingType": "drugsPoisonsHerbsDraughts",
-        "img": "vitality-draught.png",
+        "img": "vigour-elixir.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -214,7 +214,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Льняная ткань",
-        "img": "clothing.png",
+        "img": "linen-cloth.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -269,7 +269,7 @@ export const STARTER_CATALOGUE = [
         "name": "Успокоительный отвар",
         "type": "trapping",
         "trappingType": "drugsPoisonsHerbsDraughts",
-        "img": "digestive-tonic.png",
+        "img": "calming-brew.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -314,7 +314,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Крупа и мука",
-        "img": "food-groceries-day.png",
+        "img": "grain-flour.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -326,7 +326,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Солёное мясо",
-        "img": "rations-1-day.png",
+        "img": "salted-meat.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -338,7 +338,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Коренья и овощи",
-        "img": "earth-root.png",
+        "img": "roots-vegetables.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -350,7 +350,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Эль",
-        "img": "ale-pint.png",
+        "img": "ale.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -366,7 +366,7 @@ export const STARTER_CATALOGUE = [
         "name": "Дорожный паёк",
         "type": "trapping",
         "trappingType": "foodAndDrink",
-        "img": "rations-1-day.png",
+        "img": "travel-rations.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -406,7 +406,7 @@ export const STARTER_CATALOGUE = [
         "name": "Сытная похлёбка",
         "type": "trapping",
         "trappingType": "foodAndDrink",
-        "img": "meal-inn.png",
+        "img": "hearty-stew.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -454,7 +454,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Железный слиток",
-        "img": "mithril-ingot.png",
+        "img": "iron-ingot.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -466,7 +466,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Уголь кузнечный",
-        "img": "rock.png",
+        "img": "charcoal.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -478,7 +478,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Кожаная обмотка",
-        "img": "leather-jack.png",
+        "img": "leather-wrap.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -493,7 +493,7 @@ export const STARTER_CATALOGUE = [
       {
         "name": "Кинжал",
         "type": "weapon",
-        "img": "main-gauche.png",
+        "img": "dagger.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -584,7 +584,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Древесина",
-        "img": "raw-materials.png",
+        "img": "timber.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -596,7 +596,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Древко",
-        "img": "raw-materials.png",
+        "img": "wooden-shaft.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -608,7 +608,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Тетива",
-        "img": "rope-10-yards.png",
+        "img": "bowstring.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -620,7 +620,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Железные гвозди",
-        "img": "chisel.png",
+        "img": "iron-nails.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -635,7 +635,7 @@ export const STARTER_CATALOGUE = [
       {
         "name": "Дубинка",
         "type": "weapon",
-        "img": "baton.png",
+        "img": "club.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -718,7 +718,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Древко стрелы",
-        "img": "raw-materials.png",
+        "img": "arrow-shaft.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -730,7 +730,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Наконечник",
-        "img": "chisel.png",
+        "img": "arrowhead.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -742,7 +742,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Оперение",
-        "img": "raw-materials.png",
+        "img": "fletching.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -754,7 +754,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Тетива",
-        "img": "rope-10-yards.png",
+        "img": "bowstring.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -769,7 +769,7 @@ export const STARTER_CATALOGUE = [
       {
         "name": "Стрелы",
         "type": "ammunition",
-        "img": "bow.png",
+        "img": "arrows.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -812,7 +812,7 @@ export const STARTER_CATALOGUE = [
       {
         "name": "Болты",
         "type": "ammunition",
-        "img": "bow.png",
+        "img": "bolts.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -856,7 +856,7 @@ export const STARTER_CATALOGUE = [
     "ingredients": [
       {
         "name": "Пчелиный воск",
-        "img": "raw-materials.png",
+        "img": "beeswax.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -868,7 +868,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Сальный жир",
-        "img": "raw-materials.png",
+        "img": "tallow.png",
         "enc": 1,
         "price": {
           "gc": 0,
@@ -880,7 +880,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Фитиль",
-        "img": "rope-10-yards.png",
+        "img": "wick.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -892,7 +892,7 @@ export const STARTER_CATALOGUE = [
       },
       {
         "name": "Лампадное масло",
-        "img": "wine-bottle.png",
+        "img": "lamp-oil.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -908,7 +908,7 @@ export const STARTER_CATALOGUE = [
         "name": "Свечи",
         "type": "trapping",
         "trappingType": "misc",
-        "img": "candle-dozen.png",
+        "img": "candles.png",
         "enc": 0,
         "price": {
           "gc": 0,
@@ -948,7 +948,7 @@ export const STARTER_CATALOGUE = [
         "name": "Лампадное масло",
         "type": "trapping",
         "trappingType": "misc",
-        "img": "wine-bottle.png",
+        "img": "lamp-oil.png",
         "enc": 0,
         "price": {
           "gc": 0,
