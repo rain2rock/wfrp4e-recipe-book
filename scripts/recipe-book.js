@@ -904,10 +904,23 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       g.entries.push(e);
     }
 
+    // Помним, из какого рецепта вырос проект: после завершения вернём выбор на него
+    this._projRecipe ??= {};
+    for (const pj of projects) {
+      const rec = this.recipes().find((r) => r.uuid === pj.recipeUuid);
+      if (rec) this._projRecipe[pj.id] = rec.id;
+    }
+
     // Выбранное: по умолчанию первый рецепт
     let detail = null;
     let sel = this.selected;
-    if (sel?.kind === "project" && !projects.find((p) => p.id === sel.id)) sel = null;
+    if (sel?.kind === "project" && !projects.find((p) => p.id === sel.id)) {
+      // Проект завершён или брошен - возвращаемся к его рецепту, а не к первому в списке
+      const backId = sel.recipeId ?? this._projRecipe[sel.id];
+      const back = backId ? this.recipes().find((r) => r.id === backId) : null;
+      sel = back ? { kind: "recipe", id: back.id } : null;
+      if (backId) delete this._projRecipe[backId];
+    }
     if (sel?.kind === "recipe" && !this.recipes().find((r) => r.id === sel.id)) sel = null;
     if (sel?.kind === "wrecipe" && !this.worldRecipes().find((r) => r.id === sel.id)) sel = null;
     if (sel?.kind === "arecipe" && !game.actors?.get?.(sel.actorId)?.items.get(sel.id)) sel = null;
@@ -1092,7 +1105,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const recipe = this.actor.items.get(this.selected.id);
     if (!recipe) return;
     const test = await startCraft(this.actor, recipe, this.picked[recipe.id] ?? []);
-    if (test) { this.selected = { kind: "project", id: test.id }; this.render(); }
+    // Если работа закончилась сразу, проекта уже нет - остаёмся на рецепте
+    if (test?.id && this.actor.items.get(test.id)) this.selected = { kind: "project", id: test.id, recipeId: recipe.id };
+    this.render();
   }
 
   static async #onContinue(event, target) {

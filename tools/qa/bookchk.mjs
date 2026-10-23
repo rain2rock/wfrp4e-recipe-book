@@ -25,10 +25,10 @@ const $ = (sel, opts) => page.locator(sel, opts);
 const text = async (sel) => (await $(sel).first().textContent())?.trim() ?? "";
 
 /* --- Список и подсветка --- */
-ok((await $(".rb-entry:not(.rb-project)").count()) === 5, "в списке 5 рецептов");
+ok((await $(".rb-entry:not(.rb-project)").count()) === 6, "в списке 6 рецептов");
 ok((await $(".rb-group-title").count()) >= 3, "рецепты сгруппированы по ремёслам");
 const readyNames = await $(".rb-entry.rb-ready .rb-entry-name").allTextContents();
-ok(readyNames.length === 3, "подсвечено 3 доступных", `(${readyNames.join("; ")})`);
+ok(readyNames.length === 4, "подсвечено 4 доступных", `(${readyNames.join("; ")})`);
 ok(readyNames.some((n) => n.includes("Лечебная настойка")), "настойка подсвечена");
 ok(!readyNames.some((n) => n.includes("Кинжал")), "кинжал без навыка не подсвечен");
 ok(!readyNames.some((n) => n.includes("Противоядие")), "противоядие без мандрагоры не подсвечено");
@@ -327,6 +327,8 @@ ok(failState.chat.includes("Не вышло"), "карточка «Не вышл
 ok(failState.sleep === 1, "сонная трава: потрачено 2, вернулась половина (1)", `(${failState.sleep})`);
 ok(failState.honey === 0, "мёд: потрачен 1, половина от 1 - ничего");
 ok(failState.moneyBp === 582 - 15 - 12 + 6, "деньги: списано 12, вернулось 6", `(${failState.moneyBp})`);
+ok((await text(".rb-head h2")).includes("Успокоительный отвар"),
+  "после провала выбор остался на своём рецепте, а не прыгнул на первый");
 
 /* --- Долгий проект: прогресс и «Продолжить» --- */
 await $(".rb-entry", { hasText: "Дорожный паёк" }).first().click();
@@ -352,6 +354,8 @@ await $("[data-action='continueTest']").first().click();
 await page.waitForTimeout(150);
 const rations = await page.evaluate(() => __RB_actor__.items.find((i) => i.name === "Дорожный паёк")?.system.quantity.value ?? 0);
 ok(rations === 5, "паёк готов ×5 после добора УУ", `(${rations})`);
+ok((await text(".rb-head h2")).includes("Дорожный паёк"),
+  "после завершения проекта выбор вернулся к его рецепту");
 
 /* --- Крит-апгрейд: вместо базового результата создаётся улучшенный предмет --- */
 await page.evaluate(async () => {
@@ -388,7 +392,7 @@ await page.waitForTimeout(120);
 await $("[data-action='filter'][data-filter='ready']").click();
 await page.waitForTimeout(50);
 const readyCount = await $(".rb-entry:not(.rb-project)").count();
-ok(readyCount === 0, "фильтр «могу сделать»: после трёх крафтов сырья нет - пусто", `(${readyCount})`);
+ok(readyCount === 1, "фильтр «могу сделать»: после крафтов остался только клинок (своё сырьё)", `(${readyCount})`);
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(50);
 await page.fill(".rb-search input", "кинжал");
@@ -487,6 +491,13 @@ await page.waitForTimeout(200);
 ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый рецепт")), "ГМ удалил рецепт из мира");
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(80);
+
+/* --- Демо-рецепт мока: улучшения видны игроку сразу --- */
+await $(".rb-entry", { hasText: "Гномий клинок" }).first().click();
+await page.waitForTimeout(120);
+const demoUps = await $(".rb-upgrade").count();
+ok(demoUps === 2 && (await text(".rb-right")).includes("Слиток мифрила"),
+  "в моке есть рецепт с двумя улучшениями (мифрил и железо)", `(${demoUps})`);
 
 /* --- Улучшения: игрок видит цену, выбирает и получает качество --- */
 await page.evaluate(async () => {
@@ -618,7 +629,8 @@ await page.selectOption(".rb-type-filter", "weapon");
 await page.evaluate(() => document.querySelector(".rb-type-filter").dispatchEvent(new Event("change")));
 await page.waitForTimeout(150);
 const weaponEntries = await $(".rb-entry:not(.rb-project) .rb-entry-name").allTextContents();
-ok(weaponEntries.length === 1 && weaponEntries[0].includes("Кинжал"), "фильтр по типу: только оружие (Кинжал)", weaponEntries.join(";"));
+ok(weaponEntries.length === 2 && weaponEntries.join(";").includes("Кинжал") && weaponEntries.join(";").includes("Гномий клинок"),
+  "фильтр по типу: только оружие (кинжал и гномий клинок)", weaponEntries.join(";"));
 await page.selectOption(".rb-type-filter", "");
 await page.evaluate(() => document.querySelector(".rb-type-filter").dispatchEvent(new Event("change")));
 await page.waitForTimeout(120);

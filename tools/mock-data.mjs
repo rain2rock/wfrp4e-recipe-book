@@ -44,6 +44,8 @@ export const CONFIG_WFRP = {
 
 /** Мировые предметы-результаты и ингредиенты (для fromUuid и выдачи результата) */
 export const WORLD_ITEMS = [
+  { id: "res-blade", name: "Гномий клинок", type: "weapon", img: "modules/wfrp4e-recipe-book/assets/icons/hand-weapon.png", system: { quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Короткий клинок гномьей ковки: без узоров, зато переживёт хозяина.</p>' } } },
+  { id: "ing-mithril", name: "Слиток мифрила", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 2, ss: 0, bp: 0 }, availability: { value: "rare" }, description: { value: '<p>Светлый, звонкий и непривычно лёгкий слиток. Гномы о таком не распространяются.</p>' } } },
   { id: "tool-still", name: "Перегонный куб", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Медный куб со змеевиком. Гордость любой алхимической мастерской.</p>' } } },
   { id: "res-mandrake", name: "Корень мандрагоры", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mandrake-root.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 2, bp: 6 }, availability: { value: "rare" }, description: { value: '<p>Скрюченный корень, похожий на человечка. Выкапывать советуют в перчатках и молча.</p>' } } },
   { id: "res-heal", name: "Лечебная настойка", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/healing-draught.png", system: { trappingType: { value: "drugsPoisonsHerbsDraughts" }, quantity: { value: 1 }, price: { gc: 0, ss: 1, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Горькая настойка тёмного стекла. Ставит на ноги - если выпить вовремя.</p>' } } },
@@ -103,11 +105,35 @@ export const RECIPES = [
     }
   },
   {
+    name: "Рецепт: Гномий клинок",
+    img: "modules/wfrp4e-recipe-book/assets/icons/recipe-default.png",
+    system: {
+      result: { uuid: "Item.res-blade", name: "Гномий клинок", img: "modules/wfrp4e-recipe-book/assets/icons/hand-weapon.png", count: 1 },
+      skill: "Ремесло (Кузнец)", skillAlt: "",
+      difficulty: "challenging", slTarget: 5,
+      ingredients: [{ uuid: "Item.ing-iron", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", count: 1 }],
+      moneyBp: 12, needsWorkshop: true, tools: [],
+      timeDays: 1, timeHours: 0, timeMinutes: 0,
+      /* Улучшения за доп. сырьё: игрок выбирает их сам перед работой */
+      upgrades: [
+        { quality: "fast", name: "Быстрое", slBonus: 5, moneyBp: 0,
+          ingredients: [{ uuid: "Item.ing-mithril", name: "Слиток мифрила", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", count: 1 }] },
+        { quality: "durable", name: "Прочный", slBonus: 5, moneyBp: 24,
+          ingredients: [{ uuid: "Item.ing-iron", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", count: 2 }] }
+      ],
+      critEnabled: true, critSL: 10, critExtra: false, critCount: 1, critUpgrade: false,
+      critRefund: true, critRandom: false,
+      critQualities: [{ name: "fine", value: 1 }], critQualMode: "and",
+      failFlawed: true, cleanSL: 4, failPool: ["shoddy", "ugly"],
+      description: { value: "<p>Ковка по-гномьи: дольше, дороже, зато честно.</p>" }
+    }
+  },
+  {
     name: "Рецепт: Кинжал",
     img: "modules/wfrp4e-recipe-book/assets/icons/recipe-default.png",
     system: {
       result: { uuid: "Item.res-dagger", name: "Кинжал", img: "modules/wfrp4e-recipe-book/assets/icons/main-gauche.png", count: 1 },
-      skill: "Ремесло (Кузнец)", skillAlt: "",
+      skill: "Ремесло (Оружейник)", skillAlt: "",
       difficulty: "challenging", slTarget: 10,
       ingredients: [{ uuid: "", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", count: 1 }],
       moneyBp: 6, needsWorkshop: true, tools: [], timeDays: 1, timeHours: 3, timeMinutes: 0,
@@ -141,6 +167,7 @@ export const ACTOR = {
     { id: "sk-cook", name: "Ремесло (Повар)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 5 } } },
     /* Кастомный навык ГМа - есть ТОЛЬКО на персонаже, ни в мире, ни в компендиумах */
     { id: "sk-moonshine", name: "Ремесло (Самогонщик)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 3 } } },
+    { id: "sk-smith", name: "Ремесло (Кузнец)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 8 } } },
     { id: "tal-master", name: "Мастер своего дела (Ремесло (Аптекарь))", type: "talent", system: { advances: { value: 2 } } },
     { id: "coin-gc", name: "Золотая крона", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#e0b020" stroke="#8a6408" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 240 }, quantity: { value: 2 } } },
     { id: "coin-ss", name: "Серебряный шиллинг", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#c8ccd0" stroke="#6e7378" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 12 }, quantity: { value: 8 } } },
@@ -149,7 +176,8 @@ export const ACTOR = {
     { id: "ing-spirit", name: "Спирт", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/spirits-pint.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 1, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Жгучая прозрачная жидкость. Аптекари настаивают, что это сырьё, а не напиток.</p>' } } },
     { id: "ing-sleep", name: "Сонная трава", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/nightshade.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 2 }, price: { gc: 0, ss: 0, bp: 6 }, availability: { value: "scarce" }, description: { value: '<p>Тёмные листья с горьким запахом. Собирают в сумерках - днём трава «спит».</p>' } } },
     { id: "ing-honey", name: "Мёд", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/digestive-tonic.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 0, bp: 4 }, availability: { value: "common" }, description: { value: '<p>Густой мёд из пригородной пасеки. Слегка отдаёт дымом.</p>' } } },
-    { id: "ing-iron", name: "Железный слиток", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 2 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Брусок кричного железа с клеймом нульнской плавильни.</p>' } } },
+    { id: "ing-iron", name: "Железный слиток", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/rock.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 3 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Брусок кричного железа с клеймом нульнской плавильни.</p>' } } },
+    { id: "ing-mith", name: "Слиток мифрила", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 2, ss: 0, bp: 0 }, availability: { value: "rare" }, description: { value: '<p>Светлый, звонкий и непривычно лёгкий слиток.</p>' } } },
     { id: "ing-meat", name: "Вяленое мясо", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/meal-inn.png", system: { trappingType: { value: "foodAndDrink" }, quantity: { value: 2 }, price: { gc: 0, ss: 0, bp: 10 }, availability: { value: "common" }, description: { value: '<p>Полоски солёного мяса, твёрдые как подошва. В дороге - деликатес.</p>' } } },
     { id: "tool-mortar", name: "Ступка и пестик", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/antitoxin-kit.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Каменная ступка, перетершая не один фунт трав. Пахнет всеми рецептами сразу.</p>' } } },
     { id: "ing-bread", name: "Сухари", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/food-groceries-day.png", system: { trappingType: { value: "foodAndDrink" }, quantity: { value: 2, price: { gc: 0, ss: 0, bp: 3 }, availability: { value: "common" }, description: { value: '<p>Дважды печёный хлеб. Не портится, но и не прожуёшь без эля.</p>' } } } }
