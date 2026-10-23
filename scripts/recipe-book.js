@@ -767,6 +767,31 @@ export async function openItemPicker(anchor, cb, { filter = null } = {}) {
   return host;
 }
 
+/**
+ * Выпадающий список простых значений (например, навыков) под полем ввода.
+ * Нативный datalist в Foundry не прокручивается и не стилизуется - рисуем свой.
+ */
+export function openNamePicker(anchor, names, cb, { query = "" } = {}) {
+  closeNamePicker(anchor);
+  const n = norm(query);
+  const match = (n ? names.filter((x) => norm(x).includes(n)) : names).slice(0, 50);
+  if (!match.length) return null;
+  const host = document.createElement("div");
+  const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark" ? " rb-theme-dark" : "";
+  host.className = `wfrp-recipe-book rb-picker-host rb-names-host${dark}`;
+  host.innerHTML = `<div class="rb-picker"><div class="rb-picker-list">${
+    match.map((x, i) => `<button type="button" class="rb-picker-row" data-idx="${i}">${esc(x)}</button>`).join("")
+  }</div></div>`;
+  anchor.after(host);
+  host.querySelectorAll(".rb-picker-row").forEach((row, i) =>
+    row.addEventListener("pointerdown", (ev) => { ev.preventDefault(); host.remove(); cb(match[i]); }));
+  return host;
+}
+
+export function closeNamePicker(anchor) {
+  (anchor?.parentElement ?? document).querySelectorAll(".rb-names-host").forEach((el) => el.remove());
+}
+
 /* ---------- Книга ---------- */
 
 export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {

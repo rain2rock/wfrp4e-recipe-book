@@ -312,10 +312,11 @@
       "Installed": "already there",
       "PickSome": "Pick at least one profession.",
       "Done": "Done: {recipes} recipes, {items} items, {skipped} skipped",
-      "FolderItems": "Recipe Book - materials and goods",
-      "FolderRecipes": "Recipe Book - recipes",
+      "FolderItems": "Materials and goods",
+      "FolderRecipes": "Recipes",
       "Expand": "Show profession recipes",
-      "Chosen": "Selected"
+      "Chosen": "Selected",
+      "FolderRoot": "Recipe Book"
     },
     "FromItem": {
       "Button": "Create recipe",

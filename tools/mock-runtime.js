@@ -136,7 +136,11 @@
   window.CONST = { KEYBINDING_PRECEDENCE: { NORMAL: 0 } };
   // Рецепты мира: как во вкладке «Предметы» Foundry (FakeItem без актёра, попадает в game.items)
   // В Foundry папки - часть ядра; в моке достаточно заглушки, чтобы установщик не падал
-  window.Folder = { create: async (data) => ({ id: `f-${data.name}`, ...data }) };
+  window.Folder = { create: async (data) => {
+    const f = { id: `f-${data.name}-${(data.folder ?? "root")}`, ...data };
+    game.folders.push(f);
+    return f;
+  } };
 
   window.Item = class {
     static async create(data) {
@@ -229,6 +233,7 @@
       this.name = data.name;
       this.img = data.img ?? window.__RB_ICON__?.(data.name, data.type) ?? "";
       this.type = data.type;
+      this.folder = data.folder ?? null;   // в Foundry это поле документа
       this.system = structuredClone(data.system ?? {});
       this.flags = structuredClone(data.flags ?? {});
     }

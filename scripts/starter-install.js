@@ -14,11 +14,12 @@ const img = (file) => {
   return globalThis.__RB_ASSETS__?.[rel] ?? `modules/${MODULE_ID}/${rel}`;
 };
 
-/** Папка для стартовых предметов (чтобы не захламлять вкладку «Предметы») */
-async function ensureFolder(name) {
-  const found = game.folders?.find((f) => f.type === "Item" && f.name === name);
+/** Папка предметов (с поддержкой вложенности), создаётся один раз */
+async function ensureFolder(name, parent = null) {
+  const found = game.folders?.find?.((f) => f.type === "Item" && f.name === name &&
+    (parent ? (f.folder?.id ?? f.folder) === parent.id : true));
   if (found) return found;
-  return Folder.create({ name, type: "Item", color: "#7a4c08" }).catch(() => null);
+  return Folder.create({ name, type: "Item", color: "#7a4c08", folder: parent?.id ?? null }).catch(() => null);
 }
 
 function findItem(name, type) {
@@ -56,13 +57,19 @@ export async function installStarter(selection) {
       return recipes.length ? { ...p, recipes } : null;
     })
     .filter(Boolean);
-  const stuffFolder = await ensureFolder(L("WFRPRB.Starter.FolderItems"));
-  const recipeFolder = await ensureFolder(L("WFRPRB.Starter.FolderRecipes"));
+  // Дерево папок: «Книга рецептов» → «Рецепты»/«Сырьё и товары» → профессия
+  const rootFolder = await ensureFolder(L("WFRPRB.Starter.FolderRoot"));
+  const recipesRoot = await ensureFolder(L("WFRPRB.Starter.FolderRecipes"), rootFolder);
+  const itemsRoot = await ensureFolder(L("WFRPRB.Starter.FolderItems"), rootFolder);
   let madeItems = 0;
   let madeRecipes = 0;
   let skipped = 0;
 
   for (const prof of picked) {
+    // Своя подпапка профессии - и для рецептов, и для предметов
+    const recipeFolder = await ensureFolder(prof.label, recipesRoot);
+    const stuffFolder = await ensureFolder(prof.label, itemsRoot);
+
     // 1. Сырьё, нужное выбранным рецептам (вместе с сырьём их улучшений)
     const needed = new Set();
     for (const r of prof.recipes) {

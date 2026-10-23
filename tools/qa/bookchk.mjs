@@ -173,23 +173,40 @@ await page.click("#tb-sheet");
 await page.waitForTimeout(200);
 const sheet = await page.evaluate(() => {
   const el = document.getElementById("rb-sheet-demo");
-  const dl = el?.querySelector("datalist");
   return {
-    skillOptions: dl ? dl.options.length : 0,
-    hasTrade: dl ? [...dl.options].some((o) => o.value === "Ремесло (Кузнец)") : false,
-    combo: !!el?.querySelector(".rb-skill-input[list]") && !!el?.querySelector(".rb-skillalt-input[list]"),
+    combo: !!el?.querySelector(".rb-skill-input") && !!el?.querySelector(".rb-skillalt-input"),
+    noDatalist: !el?.querySelector("datalist"),
     minutes: !!el?.querySelector(".rb-time-m"),
     toolZone: !!el?.querySelector("[data-dropzone='tools']"),
     coinIcons: el?.querySelectorAll(".rb-money-fields .rb-coin-img, .rb-money-fields .rb-coin-dot").length ?? 0
   };
 });
-ok(sheet.skillOptions >= 10 && sheet.hasTrade && sheet.combo, "лист ГМа: навык и альт. навык - комбобоксы с поиском по базе", JSON.stringify(sheet));
-const rootPad = await page.evaluate(() => getComputedStyle(document.querySelector("#rb-sheet-demo .rb-sheet-root")).paddingLeft);
-ok(rootPad === "14px", "отступ от края карточки до контента держится (14px)", rootPad);
+ok(sheet.combo && sheet.noDatalist, "навык и альт. навык - поля со своим списком (без нативного datalist)", JSON.stringify(sheet));
+/* свой список: прокручиваемый, фильтруется по вводу, включает навыки с персонажей */
+await page.click("#rb-sheet-demo .rb-skill-input");
+await page.waitForTimeout(300);
+const names = await page.evaluate(() => {
+  const host = document.querySelector("#rb-sheet-demo .rb-names-host");
+  const list = host?.querySelector(".rb-picker-list");
+  return {
+    open: !!host,
+    count: host?.querySelectorAll(".rb-picker-row").length ?? 0,
+    scrollable: list ? getComputedStyle(list).overflowY : "",
+    hasCustom: [...(host?.querySelectorAll(".rb-picker-row") ?? [])].some((r) => r.textContent.includes("Самогонщик"))
+  };
+});
+ok(names.open && names.count >= 10 && names.scrollable === "auto" && names.hasCustom,
+  "список навыков открылся, прокручивается и содержит навык с персонажа", JSON.stringify(names));
+await page.fill("#rb-sheet-demo .rb-skill-input", "кузн");
+await page.waitForTimeout(300);
 ok(await page.evaluate(() => {
-  const dl = document.querySelector("#rb-sheet-demo datalist");
-  return [...dl.options].some((o) => o.value === "Ремесло (Самогонщик)");
-}), "в списке поиска есть навык, созданный ГМом только на персонаже");
+  const rows = [...document.querySelectorAll("#rb-sheet-demo .rb-names-host .rb-picker-row")];
+  return rows.length > 0 && rows.every((r) => r.textContent.toLowerCase().includes("кузн"));
+}), "список фильтруется по введённому тексту");
+await page.click("#rb-sheet-demo .rb-names-host .rb-picker-row");
+await page.waitForTimeout(300);
+ok(await page.evaluate(() => __RB_actor__.items.get("rec-0").system.skill.includes("Кузнец")),
+  "выбор из списка записался в рецепт");
 /* ввод в комбобокс сохраняется */
 await page.fill("#rb-sheet-demo .rb-skillalt-input", "Ремесло (Повар)");
 await page.evaluate(() => document.querySelector("#rb-sheet-demo .rb-skillalt-input").dispatchEvent(new Event("change")));
@@ -1013,6 +1030,16 @@ const starter = await page.evaluate(() => {
 });
 ok(starter.count === 1 && !starter.hasOther, "поставлен ровно один выбранный рецепт", JSON.stringify({c: starter.count, other: starter.hasOther}));
 ok(starter.ingOk, "сырьё рецептов - настоящие предметы мира (есть uuid и иконка)");
+const folders = await page.evaluate(() => {
+  const names = game.folders.map((f) => f.name);
+  const prof = game.folders.filter((f) => f.name === "Аптекарь");
+  const recipe = game.items.find((i) => i.type === "wfrp4e-recipe-book.recipe" && i.system.skill === "Ремесло (Аптекарь)");
+  return { hasRoot: names.includes("Книга рецептов"), hasRecipes: names.includes("Рецепты"),
+    hasItems: names.includes("Сырьё и товары"), profFolders: prof.length, nested: prof.every((f) => !!f.folder),
+    recipeInFolder: !!recipe?.folder };
+});
+ok(folders.hasRoot && folders.hasRecipes && folders.hasItems && folders.profFolders === 2 && folders.nested && folders.recipeInFolder,
+  "стартовое разложено по папкам: корень → рецепты/сырьё → профессия", JSON.stringify(folders));
 ok(starter.resType === "trapping" && starter.resTrap === "drugsPoisonsHerbsDraughts",
   "результат - зелье нужного подтипа (применяется кликом в paperdoll)", JSON.stringify(starter));
 ok(starter.resEnc !== undefined && starter.resPrice && starter.resImg && starter.resDesc,

@@ -4,7 +4,7 @@
 
 import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
 import { ItemForgeApp } from "./item-forge.js";
-import { L, F, esc, COIN_VALUE, coinIco, skillNames, itemIndex, openItemPicker, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, COIN_VALUE, coinIco, skillNames, itemIndex, openItemPicker, openNamePicker, closeNamePicker, RecipeBookApp } from "./recipe-book.js";
 import { suggestFromItem } from "./recipe-from-item.js";
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
@@ -176,13 +176,22 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       this.document.update({ "system.critCount": Math.max(1, Number(ev.currentTarget.value) || 1) });
     });
 
-    // Навыки: комбобоксы с поиском (datalist), пишем сами - работает и в живом, и в моке
-    root.querySelector(".rb-skill-input")?.addEventListener("change", (ev) => {
-      this.document.update({ "system.skill": ev.currentTarget.value.trim() }).then(() => this.#refresh());
-    });
-    root.querySelector(".rb-skillalt-input")?.addEventListener("change", (ev) => {
-      this.document.update({ "system.skillAlt": ev.currentTarget.value.trim() }).then(() => this.#refresh());
-    });
+    // Навыки: поле со своим выпадающим списком (нативный datalist не прокручивается)
+    for (const [sel, field] of [[".rb-skill-input", "skill"], [".rb-skillalt-input", "skillAlt"]]) {
+      const input = root.querySelector(sel);
+      if (!input) continue;
+      const save = (value) => this.document.update({ [`system.${field}`]: value.trim() }).then(() => this.#refresh());
+      const openList = async (query) => {
+        this._skillNames ??= await skillNames();
+        openNamePicker(input, this._skillNames, (name) => { input.value = name; save(name); }, { query });
+      };
+      // По клику показываем весь список, фильтруем только при наборе текста
+      input.addEventListener("focus", () => openList(""));
+      input.addEventListener("input", () => openList(input.value));
+      input.addEventListener("change", (ev) => save(ev.currentTarget.value));
+      input.addEventListener("blur", () => setTimeout(() => closeNamePicker(input), 150));
+      input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeNamePicker(input); });
+    }
 
     // Время: часы не больше 23, минуты не больше 59 - подрезаем и пишем одним апдейтом
     const clamp = (v, max) => Math.max(0, Math.min(Number(v) || 0, max));
