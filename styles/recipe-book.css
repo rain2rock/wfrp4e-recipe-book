@@ -186,11 +186,11 @@
 .wfrp-recipe-book .rb-forge-name { width: 100%; box-sizing: border-box; font-size: var(--rb-fs-l) !important; font-weight: 600; }
 
 /* ---------- Ревью: контент скроллится, футер прибит ---------- */
-.wfrp-recipe-book .rb-right-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.wfrp-recipe-book .rb-right-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding-right: var(--rb-space-2); }
 .wfrp-recipe-book .rb-sheet-root { overflow: hidden !important; display: flex; flex-direction: column; }
-.wfrp-recipe-book .rb-sheet-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--rb-space-4); }
+.wfrp-recipe-book .rb-sheet-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--rb-space-4); padding: 2px var(--rb-space-2) 2px 2px; }
 .wfrp-recipe-book .rb-forge-root { overflow: hidden !important; display: flex; flex-direction: column; }
-.wfrp-recipe-book .rb-forge-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--rb-space-3); }
+.wfrp-recipe-book .rb-forge-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: var(--rb-space-3); padding: 2px var(--rb-space-2) 2px 2px; }
 .wfrp-recipe-book .rb-foot { border-top: 1px solid var(--rb-frame); }
 
 

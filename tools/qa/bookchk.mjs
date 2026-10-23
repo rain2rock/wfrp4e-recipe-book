@@ -728,6 +728,17 @@ ok(cbSize > 0 && cbSize <= 18, "чекбоксы прижаты против с�
 /* табы и каунтеры */
 ok((await $(`${forge} .rb-tab`).count()) === 4, "мастер разбит на 4 таба");
 ok((await $(`${forge} .rb-forge-replace`).count()) === 1, "у иконки есть оверлей «Заменить»");
+await page.focus(`${forge} .rb-forge-name`);
+await page.waitForTimeout(100);
+const focusFit = await page.evaluate((f) => {
+  const el = document.querySelector(`${f} .rb-forge-name`);
+  const box = document.querySelector(`${f} .rb-forge-scroll`);
+  const s = getComputedStyle(el);
+  const off = parseFloat(s.outlineOffset) || 0;
+  const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+  return { inside: r.right + off <= b.right + 0.5 && r.left - off >= b.left - 0.5, off };
+}, forge);
+ok(focusFit.inside && focusFit.off <= 0, "обводка фокуса не выходит за прокручиваемую область", JSON.stringify(focusFit));
 const forgeImgW = await page.evaluate((f) => document.querySelector(`${f} .rb-forge-img`).getBoundingClientRect().width, forge);
 ok(Math.abs(forgeImgW - 150) < 3, "иконка-карточка 144px (+рамка)", `(${forgeImgW}px)`);
 ok((await text(`${forge} .rb-tab.is-active`)).includes("Достоинства") &&

@@ -401,8 +401,9 @@
 .wfrp-recipe-book input:focus-visible,
 .wfrp-recipe-book select:focus-visible,
 .wfrp-recipe-book [data-action]:focus-visible {
+  /* Обводка рисуется ВНУТРЬ: у края прокручиваемой области внешняя срезалась */
   outline: 2px solid var(--rb-gold-soft) !important;
-  outline-offset: 1px;
+  outline-offset: -2px !important;
 }
 
 /* ========================= Примитивы из ревью ========================= */
