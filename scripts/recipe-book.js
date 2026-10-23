@@ -231,16 +231,27 @@ export function isGMView() {
   return !!game.user.isGM && !game.settings.get(MODULE_ID, "playerView");
 }
 
-export function recipeStatus(actor, recipe) {
+export function recipeStatus(actor, recipe, { picked = [] } = {}) {
   const sys = recipe.system ?? {};
-  const slBase = Number(sys.slTarget) || 1;
+  // Выбранные улучшения добавляют своё сырьё, деньги и требуемый УУ
+  const ups = (sys.upgrades ?? []).filter((u) => picked.includes(u.quality));
+  const slBase = (Number(sys.slTarget) || 1) + ups.reduce((n, u) => n + (Number(u.slBonus) || 0), 0);
   const skillItem = findSkill(actor, sys.skill) ?? findSkill(actor, sys.skillAlt);
   const skillUsed = skillItem ? skillItem.name : sys.skill;
   const skillTotal = skillItem ? Number(skillItem.system.total?.value) || 0 : 0;
   const mod = difficultyMod(sys.difficulty);
   const talent = Math.min(craftsmanLevels(actor, skillUsed), Math.max(slBase - 1, 0));
   const slTarget = Math.max(slBase - talent, 1);
-  const ingredients = (sys.ingredients ?? []).map((ing) => {
+  // Ингредиенты рецепта + ингредиенты выбранных улучшений (одинаковые складываются)
+  const needed = [...(sys.ingredients ?? []).map((i) => ({ ...i }))];
+  for (const u of ups) {
+    for (const ing of u.ingredients ?? []) {
+      const same = needed.find((n) => norm(n.name) === norm(ing.name));
+      if (same) same.count += ing.count;
+      else needed.push({ ...ing });
+    }
+  }
+  const ingredients = needed.map((ing) => {
     const { have } = stockOf(actor, ing.name);
     return { ...ing, have, ok: have >= ing.count };
   });
@@ -248,8 +259,9 @@ export function recipeStatus(actor, recipe) {
     const { have } = stockOf(actor, t.name);
     return { ...t, have, ok: have > 0 };
   });
+  const costBp = (sys.moneyBp || 0) + ups.reduce((n, u) => n + (Number(u.moneyBp) || 0), 0);
   const haveBp = moneyPennies(actor);
-  const moneyOk = haveBp >= (sys.moneyBp || 0);
+  const moneyOk = haveBp >= costBp;
   const countMoney = game.settings.get(MODULE_ID, "highlightMoney");
   const missing = [];
   if (!skillItem) missing.push("skill");
@@ -259,7 +271,7 @@ export function recipeStatus(actor, recipe) {
   const base = !!skillItem && ingredients.every((i) => i.ok) && tools.every((t) => t.ok);
   return {
     skillItem, skillUsed, skillTotal, mod, target: skillTotal + mod,
-    slTarget, talent, ingredients, tools, moneyOk, haveBp, missing,
+    slTarget, talent, ingredients, tools, moneyOk, haveBp, costBp, ups, missing,
     ready: base && (moneyOk || !countMoney),
     canStart: base && moneyOk
   };
@@ -267,8 +279,8 @@ export function recipeStatus(actor, recipe) {
 
 /* ---------- Запуск, завершение и провал крафта ---------- */
 
-export async function startCraft(actor, recipe) {
-  const st = recipeStatus(actor, recipe);
+export async function startCraft(actor, recipe, picked = []) {
+  const st = recipeStatus(actor, recipe, { picked });
   if (!st.canStart) {
     const what = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
     return ui.notifications.warn(F("WFRPRB.Craft.CantStart", { what }));
@@ -292,7 +304,7 @@ export async function startCraft(actor, recipe) {
       else updates.push({ _id: it.id, "system.quantity.value": q - take });
     }
   }
-  if (!(await changeActorMoney(actor, -(sys.moneyBp || 0)))) return;
+  if (!(await changeActorMoney(actor, -st.costBp))) return;
   if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
   if (deletes.length) await actor.deleteEmbeddedDocuments("Item", deletes);
 
@@ -332,8 +344,10 @@ export async function startCraft(actor, recipe) {
           pool: [...(sys.failPool ?? [])]
         },
         result: { uuid: sys.result.uuid, name: sys.result.name, img: sys.result.img || recipe.img, count: sys.result.count, descr: sys.description?.value ?? "" },
-        moneyBp: sys.moneyBp || 0,
-        spent: spentLite
+        moneyBp: st.costBp,
+        spent: spentLite,
+        // Выбранные улучшения: качества добавятся предмету при успехе
+        upgrades: st.ups.map((u) => ({ quality: u.quality, name: u.name }))
       }
     }
   }]);
@@ -439,6 +453,11 @@ async function finishCraft(actor, test) {
     };
   }
   if (obj.system?.quantity) obj.system.quantity.value = count;
+  const ups = test.getFlag(FLAG, "upgrades") ?? [];
+  if (ups.length) {
+    pushProps(obj, "qualities", ups.map((u) => ({ name: u.quality, value: null })));
+    lines.push("· " + esc(F("WFRPRB.Chat.Upgraded", { list: ups.map((u) => u.name || propertyLabel(u.quality)).join(", ") })));
+  }
   if (typeof obj_critQualities !== "undefined" && obj_critQualities) pushProps(obj, "qualities", obj_critQualities);
   // «Порог чистой работы»: проект завершён, но УУ ниже порога - предмет со случайным изъяном
   const fail = test.getFlag(FLAG, "fail") ?? {};
@@ -684,9 +703,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     actions: {
       select: RecipeBookApp.#onSelect,
       craft: RecipeBookApp.#onCraft,
+      toggleUpgrade: RecipeBookApp.#onToggleUpgrade,
       continueTest: RecipeBookApp.#onContinue,
       abandon: RecipeBookApp.#onAbandon,
       filter: RecipeBookApp.#onFilter,
+      resetFilters: RecipeBookApp.#onResetFilters,
       openResult: RecipeBookApp.#onOpenResult,
       openRecipe: RecipeBookApp.#onOpenRecipe,
       createRecipe: RecipeBookApp.#onCreateRecipe,
@@ -704,6 +725,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.filter = "all";
     this.search = "";
     this.selected = null; // {kind:"recipe"|"project", id}
+    this.picked = {};      // id рецепта -> массив выбранных улучшений (ключи качеств)
   }
 
   get title() {
@@ -899,7 +921,8 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       const r = this.selectedRecipe();
       const statusActor = this.selectedOwner();
       if (r) {
-        const st = recipeStatus(statusActor, r);
+        const picked = this.picked[r.id] ?? [];
+        const st = recipeStatus(statusActor, r, { picked });
         const res = r.system.result ?? {};
         const dd = Number(r.system.timeDays) || 0;
         const hh = Number(r.system.timeHours) || 0;
@@ -916,9 +939,20 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
             tooltip: F("WFRPRB.Tip.Ingredient", { have: ing.have, need: ing.count }),
             tt: await this._itemTip(ing.name, ing.uuid, ing.img, statusActor)
           }))),
-          moneyBp: r.system.moneyBp, moneyHtml: moneyHtml(r.system.moneyBp || 0), moneyOk: st.moneyOk,
+          moneyBp: st.costBp, moneyHtml: moneyHtml(st.costBp), moneyOk: st.moneyOk,
+          upgrades: (r.system.upgrades ?? []).map((u) => ({
+            quality: u.quality,
+            name: u.name || propertyLabel(u.quality),
+            on: picked.includes(u.quality),
+            slBonus: u.slBonus,
+            costHtml: [
+              ...(u.ingredients ?? []).map((i) => `${esc(i.name)}${i.count > 1 ? ` ×${i.count}` : ""}`),
+              u.moneyBp ? moneyHtml(u.moneyBp) : ""
+            ].filter(Boolean).join(", "),
+            tip: F("WFRPRB.Tip.Upgrade", { sl: u.slBonus })
+          })),
           moneyTip: (() => {
-            const cost = r.system.moneyBp || 0;
+            const cost = st.costBp;
             const left = st.haveBp - cost;
             return [
               F("WFRPRB.Tip.Money", { have: moneyText(st.haveBp), need: moneyText(cost) }),
@@ -975,9 +1009,14 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           .reduce((n, a) => n + a.items.filter((i) => i.type === RECIPE_TYPE).length, 0)
     };
 
+    // Ничего не нашлось, но фильтры/поиск активны - предложить сброс
+    const filtersActive = !!q || this.filter === "ready" || this.filter === "missing" ||
+      !!this.skillFilter || !!this.typeFilter || !!this.ownerFilter;
+    const noResults = !entries.length && (world || !projects.length) && filtersActive;
+
     return {
       actor: { name: this.actor?.name ?? "", img: this.actor?.img ?? "" },
-      gm,
+      gm, noResults,
       world,
       extraFilters,
       skillOptions: skillOptions.map((n) => ({ name: n, selected: n === this.skillFilter })),
@@ -1036,11 +1075,23 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
+  /** Игрок включает/выключает улучшение перед началом работы */
+  static #onToggleUpgrade(event, target) {
+    const id = this.selected?.id;
+    if (!id) return;
+    const key = target.dataset.quality;
+    const list = new Set(this.picked[id] ?? []);
+    if (list.has(key)) list.delete(key);
+    else list.add(key);
+    this.picked[id] = [...list];
+    this.render();
+  }
+
   static async #onCraft() {
     if (this.selected?.kind !== "recipe") return;
     const recipe = this.actor.items.get(this.selected.id);
     if (!recipe) return;
-    const test = await startCraft(this.actor, recipe);
+    const test = await startCraft(this.actor, recipe, this.picked[recipe.id] ?? []);
     if (test) { this.selected = { kind: "project", id: test.id }; this.render(); }
   }
 
@@ -1057,6 +1108,16 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       content: `<p>${L("WFRPRB.Abandon.Hint")}</p>`
     }).catch(() => false);
     if (yes) { await test.delete(); this.render(); }
+  }
+
+  /** Пустая выдача: вернуть книгу к полному списку (режим «Реестр» сохраняем) */
+  static #onResetFilters() {
+    this.search = "";
+    this.skillFilter = "";
+    this.typeFilter = "";
+    this.ownerFilter = "";
+    if (this.filter !== "world") this.filter = "all";
+    this.render();
   }
 
   static #onFilter(event, target) {

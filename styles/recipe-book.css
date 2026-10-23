@@ -53,6 +53,7 @@
   box-shadow: none !important;
   outline: none !important;
   text-transform: none; text-shadow: none; height: auto; min-height: 0;
+  letter-spacing: normal !important; font-family: inherit !important;
 }
 .wfrp-recipe-book button.rb-entry:hover,
 .wfrp-recipe-book .rb-entry:hover { background: var(--rb-hover) !important; }
@@ -194,3 +195,12 @@
 
 
 .wfrp-recipe-book .rb-forge-tabnote { font-size: var(--rb-fs-s); font-style: italic; padding: var(--rb-space-1) 0; }
+
+/* Пустая выдача фильтров: объяснение + сброс */
+.wfrp-recipe-book .rb-noresults { display: flex; flex-direction: column; align-items: center; gap: var(--rb-space-3); padding: var(--rb-space-7) var(--rb-space-4); color: var(--rb-muted); font-style: italic; text-align: center; }
+.wfrp-recipe-book .rb-noresults .rb-btn { font-style: normal; }
+
+/* Улучшения рецепта: выбор игроком, стоимость справа */
+.wfrp-recipe-book .rb-upgrade .rb-ing-count { color: var(--rb-text-dim); }
+.wfrp-recipe-book .rb-upgrade.is-on .rb-ing-name { color: var(--rb-text); font-weight: 600; }
+.wfrp-recipe-book .rb-upgrade.is-on .rb-ing-count { color: var(--rb-gold); }

@@ -61,6 +61,12 @@
       {{/each}}
 
       {{#if empty}}<div class="rb-empty">{{rbL "WFRPRB.Empty"}}</div>{{/if}}
+      {{#if noResults}}
+        <div class="rb-noresults">
+          <span>{{rbL "WFRPRB.NoResults"}}</span>
+          <button type="button" class="rb-btn" data-action="resetFilters">{{rbL "WFRPRB.ResetFilters"}}</button>
+        </div>
+      {{/if}}
     </div>
     {{#if gm}}
       <button type="button" class="rb-btn rb-newrecipe" data-action="createRecipe" data-rb-tip="{{rbL 'WFRPRB.NewRecipeHint'}}">
@@ -146,6 +152,21 @@
             <div class="rb-row rb-dim">{{rbL "WFRPRB.NoIngredients"}}</div>
           {{/unless}}{{/unless}}
         </section>
+
+        {{#if detail.upgrades.length}}
+        <section class="rb-block">
+          <div class="rb-block-title">{{rbL "WFRPRB.Upgrades"}} <span class="rb-dim">· {{rbL "WFRPRB.UpgradesHint"}}</span></div>
+          {{#each detail.upgrades}}
+            <div class="rb-row rb-ing rb-upgrade {{#if on}}is-on{{/if}}" data-rb-tip="{{tip}}">
+              <span class="rb-ing-name">
+                <input type="checkbox" data-action="toggleUpgrade" data-quality="{{quality}}" {{#if on}}checked{{/if}}>
+                {{name}} <span class="rb-dim">+{{slBonus}} {{rbL "WFRPRB.SL"}}</span>
+              </span>
+              <span class="rb-ing-count">{{{costHtml}}}</span>
+            </div>
+          {{/each}}
+        </section>
+        {{/if}}
 
         {{#if (or detail.time detail.needsWorkshop detail.tools.length)}}
         <section class="rb-block">

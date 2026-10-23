@@ -61,6 +61,14 @@ const skinCss = await page.evaluate(() => {
   return { entry: check(document.querySelector(".rb-entry")), chip: check(document.querySelector(".rb-filter")) };
 });
 ok(skinCss.entry && skinCss.chip, "записи списка и чипы тоже перебивают скин", JSON.stringify(skinCss));
+const typo = await page.evaluate(() => {
+  const pick = (sel) => { const s = getComputedStyle(document.querySelector(sel)); return { ls: s.letterSpacing, ff: s.fontFamily }; };
+  const body = getComputedStyle(document.body).fontFamily;
+  const e = pick(".rb-entry"), c = pick(".rb-filter");
+  return { entryLs: e.ls, chipLs: c.ls, sameFamily: e.ff === body && c.ff === body };
+});
+ok(typo.entryLs === "normal" && typo.chipLs === "normal" && typo.sameFamily,
+  "типографика кнопочных элементов не сбита скином (интервал и шрифт)", JSON.stringify(typo));
 const moneyRow = await page.evaluate(() => {
   const coin = document.querySelector(".rb-ing-count .rb-coin-img, .rb-ing-count .rb-coin-dot");
   const count = coin?.closest(".rb-ing-count");
@@ -480,6 +488,59 @@ ok(await page.evaluate(() => !game.items.some((i) => i.name === "Новый ре
 await $("[data-action='filter'][data-filter='all']").click();
 await page.waitForTimeout(80);
 
+/* --- Улучшения: игрок видит цену, выбирает и получает качество --- */
+await page.evaluate(async () => {
+  await __RB_actor__.createEmbeddedDocuments("Item", [{
+    name: "Рецепт: Пробный клинок", type: "wfrp4e-recipe-book.recipe", img: "",
+    system: {
+      result: { uuid: "", name: "Пробный клинок", img: "", count: 1 },
+      skill: "Ремесло (Аптекарь)", skillAlt: "", difficulty: "average", slTarget: 1,
+      ingredients: [], moneyBp: 0, needsWorkshop: false, tools: [],
+      upgrades: [{ quality: "fast", name: "Быстрое", slBonus: 5, moneyBp: 0,
+        ingredients: [{ uuid: "", name: "Целебные травы", img: "", count: 1 }] }],
+      critEnabled: false, critSL: 99, critQualities: [], critResult: { uuid: "", name: "", img: "" },
+      failPool: [], timeDays: 0, timeHours: 0, timeMinutes: 0,
+      description: { value: "" }, gmdescription: { value: "" }
+    }
+  }]);
+});
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Пробный клинок" }).first().click();
+await page.waitForTimeout(100);
+ok((await $(".rb-upgrade").count()) === 1 && (await text(".rb-upgrade")).includes("Целебные травы"),
+  "игрок видит улучшение и его цену");
+const slBefore = await text(".rb-right");
+await page.click(".rb-upgrade input[data-action='toggleUpgrade']");
+await page.waitForTimeout(200);
+const slAfter = await text(".rb-right");
+ok(slBefore.includes("1") && slAfter.includes("6"), "выбор улучшения поднял требуемый УУ на 5");
+ok((await text(".rb-ing", { hasText: "Целебные травы" })).includes("/ 1") ||
+   (await $(".rb-ing", { hasText: "Целебные травы" }).count()) > 0, "сырьё улучшения добавилось в список");
+await page.evaluate(() => { window.__RB_FORCE_ROLL__ = 1; });
+await $(".rb-btn--primary, .rb-btn--craft").first().click();
+await page.waitForTimeout(300);
+const upRes = await page.evaluate(() => {
+  const it = [...__RB_actor__.items].find((i) => i.name === "Пробный клинок" && i.type === "trapping");
+  return { made: !!it, fast: !!it?.system.qualities?.value?.some((q) => q.name === "fast"), chat: __RB_chat__.at(-1)?.content ?? "" };
+});
+ok(upRes.made && upRes.fast && upRes.chat.includes("лучшения"),
+  "готовый предмет получил качество улучшения, в чате отмечено", JSON.stringify(upRes).slice(0, 160));
+await page.evaluate(async () => {
+  for (const i of [...__RB_actor__.items].filter((x) => x.name.includes("Пробный клинок"))) await i.delete();
+});
+await page.waitForTimeout(150);
+
+/* --- Пустая выдача фильтров: объяснение и сброс --- */
+await page.fill(".rb-search input", "щщщ");
+await page.waitForTimeout(300);
+ok((await $(".rb-entry:not(.rb-project)").count()) === 0 && (await $(".rb-noresults").count()) === 1,
+  "пустая выдача показывает плашку «ничего не найдено»");
+await $("[data-action='resetFilters']").click();
+await page.waitForTimeout(200);
+ok((await $(".rb-noresults").count()) === 0 && (await $(".rb-entry:not(.rb-project)").count()) > 0,
+  "«Сбросить фильтры» вернул полный список");
+ok(await page.evaluate(() => document.querySelector(".rb-search input").value === ""), "поиск очищен сбросом");
+
 /* --- Сервисный переключатель «как видит игрок» (панель мока; в Foundry - настройка модуля) --- */
 ok((await $(".rb-view-toggle").count()) === 0, "в самой книге переключателя вида нет - он сервисный");
 await page.click("#tb-view");
@@ -694,23 +755,26 @@ await page.waitForTimeout(250);
 const forged = await page.evaluate((rid) => {
   const item = game.items.find((i) => i.name === "Пробный меч");
   const r = game.items.find((i) => i.id === rid);
+  const up = r.system.upgrades.find((u) => u.quality === "durable");
   return {
     item: !!item, type: item?.type,
     img: item?.img === __RB_worldItems__.find((x) => x.name === "Кинжал")?.img,
     enc: item?.system.encumbrance?.value, price: item?.system.price,
-    durable: item?.system.qualities.value.find((q) => q.name === "durable")?.value,
+    durableOnItem: !!item?.system.qualities.value.find((q) => q.name === "durable"),
     slTarget: r.system.slTarget,
-    iron: r.system.ingredients.find((i) => i.name === "Корень мандрагоры")?.count,
-    moneyBp: r.system.moneyBp,
+    upSl: up?.slBonus, upBp: up?.moneyBp,
+    upIng: up?.ingredients?.find((i) => i.name === "Корень мандрагоры")?.count,
     critQ: r.system.critQualities.map((q) => q.name).join(","),
     failFlawed: r.system.failFlawed, cleanSL: r.system.cleanSL,
     pool: r.system.failPool.length,
     linked: r.system.result.uuid === item?.uuid
   };
 }, forgeRec);
-ok(forged.item && forged.type === "weapon" && forged.durable === 2 && forged.img, "создан предмет мира: оружие с «Прочный (2)» и выбранной иконкой", JSON.stringify(forged));
+ok(forged.item && forged.type === "weapon" && forged.img && !forged.durableOnItem,
+  "создан предмет мира: оружие с выбранной иконкой; «Прочный» ушёл в улучшения, а не вшит", JSON.stringify(forged));
 ok(forged.enc === 2 && forged.price?.gc === 1 && forged.price?.ss === 4, "вес 2 и базовая цена 1зк 4сш записаны в предмет", JSON.stringify({enc: forged.enc, price: forged.price}));
-ok(forged.slTarget === 10 && forged.iron === 2 && forged.moneyBp === 12, "рецепт обновлён: УУ 10, мандрагора ×2, 12 пенни");
+ok(forged.slTarget === 5 && forged.upSl === 5 && forged.upIng === 2 && forged.upBp === 12,
+  "улучшение записано: +5 УУ за мандрагору ×2 и 12 пенни", JSON.stringify(forged));
 ok(forged.critQ === "damaging" && forged.failFlawed && forged.cleanSL === 2 && forged.pool > 0 && forged.linked,
   "крит-качества и правила брака записаны, результат привязан");
 await page.evaluate(() => {

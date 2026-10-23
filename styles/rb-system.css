@@ -114,7 +114,8 @@
   border-image: none !important;
   box-shadow: none !important;
   outline: none !important;
-  text-transform: none; text-shadow: none; letter-spacing: normal;
+  text-transform: none; text-shadow: none; letter-spacing: normal !important;
+  font-family: inherit !important;
 }
 .wfrp-recipe-book button.rb-btn:hover,
 .wfrp-recipe-book .rb-btn:hover { background: var(--rb-hover) !important; color: var(--rb-text); box-shadow: none !important; text-shadow: none; }
@@ -153,7 +154,8 @@
   border-image: none !important;
   box-shadow: none !important;
   outline: none !important;
-  text-transform: none; text-shadow: none; letter-spacing: normal; height: auto; min-height: 0;
+  text-transform: none; text-shadow: none; letter-spacing: normal !important;
+  font-family: inherit !important; height: auto; min-height: 0;
 }
 .wfrp-recipe-book button.rb-filter:hover,
 .wfrp-recipe-book .rb-filter:hover { background: var(--rb-hover) !important; box-shadow: none !important; }
@@ -301,7 +303,8 @@
   border-image: none !important;
   box-shadow: none !important;
   outline: none !important;
-  text-transform: none; text-shadow: none; height: auto; min-height: 0;
+  text-transform: none; text-shadow: none; letter-spacing: normal !important;
+  font-family: inherit !important; height: auto; min-height: 0;
 }
 .wfrp-recipe-book button.rb-picker-row:hover, .wfrp-recipe-book .rb-picker-row:hover { background: var(--rb-hover) !important; }
 .wfrp-recipe-book .rb-picker-row img { width: 20px; height: 20px; object-fit: cover; border: 1px solid var(--rb-frame); border-radius: 3px; }
@@ -432,7 +435,8 @@
   background: none !important; background-image: none !important;
   border: none !important; border-bottom: 2px solid transparent !important;
   border-radius: 0 !important; box-shadow: none !important; outline: none !important;
-  text-transform: none; text-shadow: none; letter-spacing: normal;
+  text-transform: none; text-shadow: none; letter-spacing: normal !important;
+  font-family: inherit !important;
 }
 .wfrp-recipe-book button.rb-tab:hover, .wfrp-recipe-book .rb-tab:hover { color: var(--rb-text); background: var(--rb-hover) !important; }
 .wfrp-recipe-book button.rb-tab.is-active, .wfrp-recipe-book .rb-tab.is-active {

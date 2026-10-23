@@ -63,7 +63,8 @@
       "CritQualities": "qualities: {list}",
       "SloppyWork": "Imperfect work - flaw: {flaw}",
       "Flawed": "Botched: {name}",
-      "FlawedLine": "The work failed, but an item emerged - with the «{flaw}» flaw"
+      "FlawedLine": "The work failed, but an item emerged - with the «{flaw}» flaw",
+      "Upgraded": "upgrades: {list}"
     },
     "Money": {
       "gc": "GC",
@@ -179,7 +180,8 @@
       "ToolNote": "Tool: the character must have it; not consumed.",
       "MoneyLeft": "Left after crafting\t{left}",
       "MoneyShort": "Short by\t{short}",
-      "MoneyNote": "~ Minor materials without a separate item - paid in coin."
+      "MoneyNote": "~ Minor materials without a separate item - paid in coin.",
+      "Upgrade": "Upgrade\nFor extra materials the item gains this quality. The required SL grows by {sl}."
     },
     "Tool": {
       "Have": "yes",
@@ -286,6 +288,10 @@
     "Invested": "Invested",
     "PriceShort": "cost:",
     "InWorkBadge": "in progress",
-    "EmptyRight": "Pick a recipe on the left to open its spread here."
+    "EmptyRight": "Pick a recipe on the left to open its spread here.",
+    "NoResults": "Nothing matches the current filters.",
+    "ResetFilters": "Reset filters",
+    "Upgrades": "Upgrades",
+    "UpgradesHint": "for extra materials"
   }
 }

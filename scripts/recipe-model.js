@@ -67,6 +67,20 @@ export function buildRecipeModel() {
         name: new F.StringField({ initial: "" }),
         img: new F.StringField({ initial: "" })
       })),
+      // Улучшения: за доп. сырьё предмет получает качество (игрок видит и выбирает сам)
+      upgrades: new F.ArrayField(new F.SchemaField({
+        quality: new F.StringField({ initial: "" }),   // ключ качества системы
+        name: new F.StringField({ initial: "" }),      // подпись для игрока
+        slBonus: new F.NumberField({ initial: 5, min: 0, integer: true }),
+        moneyBp: new F.NumberField({ initial: 0, min: 0, integer: true }),
+        ingredients: new F.ArrayField(new F.SchemaField({
+          uuid: new F.StringField({ initial: "" }),
+          name: new F.StringField({ initial: "" }),
+          img: new F.StringField({ initial: "" }),
+          count: new F.NumberField({ initial: 1, min: 1, integer: true })
+        }))
+      })),
+
       // Критический успех: если накопленный УУ при завершении >= critSL
       critEnabled: new F.BooleanField({ initial: false }),
       critSL: new F.NumberField({ initial: 8, min: 1, integer: true }),

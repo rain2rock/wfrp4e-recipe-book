@@ -71,8 +71,11 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
   }
 
   /** Требуемый УУ по правилам: изъяны половинят (каждый), затем +5 за каждое достоинство */
-  computedSL() {
-    const nq = Object.values(this.forge.qualities).filter((x) => x.on).length;
+  /** Требуемый УУ: изъяны половинят (каждый), затем +5 за достоинство.
+      withUpgrades=false - без качеств, которые станут выбираемыми улучшениями. */
+  computedSL({ withUpgrades = true } = {}) {
+    const qs = Object.values(this.forge.qualities).filter((x) => x.on);
+    const nq = withUpgrades ? qs.length : qs.filter((v) => !(v.extraName || Number(v.extraBp) > 0)).length;
     const nf = Object.values(this.forge.flaws).filter((x) => x.on).length;
     let sl = this.baseSL;
     for (let i = 0; i < nf; i++) sl = sl / 2;
@@ -244,8 +247,18 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     const st = this.forge;
     if (!st.name.trim()) return ui.notifications.warn(L("WFRPRB.Forge.NameEmpty"));
 
-    const qualities = Object.entries(st.qualities).filter(([, v]) => v.on)
+    // Качество с доп. сырьём - это УЛУЧШЕНИЕ (игрок выбирает при крафте),
+    // остальные качества вшиты в сам предмет
+    const isUpgrade = ([, v]) => v.on && (v.extraName || Number(v.extraBp) > 0);
+    const qualities = Object.entries(st.qualities).filter(([, v]) => v.on).filter((e) => !isUpgrade(e))
       .map(([name, v]) => ({ name, value: hasValue(name) ? (Number(v.value) || 1) : null }));
+    const upgrades = Object.entries(st.qualities).filter(isUpgrade).map(([key, v]) => ({
+      quality: key,
+      name: propertyLabel(key),
+      slBonus: 5,
+      moneyBp: Number(v.extraBp) || 0,
+      ingredients: v.extraName ? [{ uuid: v.extraUuid ?? "", name: v.extraName, img: v.extraImg ?? "", count: v.extraCount || 1 }] : []
+    }));
     const flaws = Object.entries(st.flaws).filter(([, v]) => v.on)
       .map(([name, v]) => ({ name, value: hasValue(name) ? (Number(v.value) || 1) : null }));
 
@@ -262,18 +275,6 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     const item = await Item.create({ name: st.name.trim(), type: st.type, img: st.img, system });
     if (!item) return;
 
-    // Доп. сырьё за достоинства - в ингредиенты и деньги рецепта
-    const ingredients = [...this.recipe.system.ingredients];
-    let extraBp = 0;
-    for (const [, v] of Object.entries(st.qualities)) {
-      if (!v.on) continue;
-      extraBp += Number(v.extraBp) || 0;
-      if (v.extraName) {
-        const found = ingredients.find((i) => i.name === v.extraName);
-        if (found) found.count += v.extraCount || 1;
-        else ingredients.push({ uuid: v.extraUuid ?? "", name: v.extraName, img: v.extraImg ?? "", count: v.extraCount || 1 });
-      }
-    }
 
     const critQualities = Object.entries(st.critQualities).filter(([, v]) => v.on)
       .map(([name, v]) => ({ name, value: hasValue(name) ? (Number(v.value) || 1) : null }));
@@ -284,9 +285,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     await this.recipe.update({
       name: F("WFRPRB.Sheet.DefaultName", { name: item.name }),
       "system.result": { uuid: item.uuid, name: item.name, img: item.img, count: this.recipe.system.result.count || 1 },
-      "system.slTarget": this.computedSL(),
-      "system.ingredients": ingredients,
-      "system.moneyBp": (this.recipe.system.moneyBp || 0) + extraBp,
+      "system.slTarget": this.computedSL({ withUpgrades: false }),
+      "system.upgrades": upgrades,
       "system.critEnabled": this.recipe.system.critEnabled || critQualities.length > 0,
       "system.critSL": st.critSL,
       "system.critQualities": critQualities,
