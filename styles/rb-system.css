@@ -45,7 +45,7 @@
   /* Размеры: иконки, монеты, кнопки, числовые поля */
   --rb-icon-s: 24px;
   --rb-icon-l: 42px;
-  --rb-icon-tt: 72px;   /* картинка в карточке-подсказке */
+  --rb-icon-tt: 88px;   /* картинка в карточке-подсказке */
   --rb-icon-xl: 144px;
   --rb-coin: 16px;
   --rb-btn-h: 30px;
@@ -430,13 +430,6 @@
   border: 1px solid var(--rb-frame); border-radius: var(--rb-radius-pill);
 }
 
-/* Сворачиваемая секция формы: summary в стиле заголовка секции, маркер справа */
-.wfrp-recipe-book details.rb-fold > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: var(--rb-space-2); }
-.wfrp-recipe-book details.rb-fold > summary::-webkit-details-marker { display: none; }
-.wfrp-recipe-book details.rb-fold > summary::after { content: "▸"; margin-left: auto; color: var(--rb-muted); }
-.wfrp-recipe-book details.rb-fold[open] > summary::after { content: "▾"; }
-.wfrp-recipe-book details.rb-fold .rb-block { margin-top: var(--rb-space-2); }
-
 /* ========================= Табы ========================= */
 .wfrp-recipe-book .rb-tabs { display: flex; gap: var(--rb-space-1); border-bottom: 1px solid var(--rb-frame); }
 .wfrp-recipe-book button.rb-tab,
@@ -483,3 +476,10 @@
 .wfrp-recipe-book .rb-filter.is-active { color: var(--rb-text) !important; }
 .wfrp-recipe-book .rb-tab { color: var(--rb-text-dim) !important; font-size: var(--rb-fs-m) !important; }
 .wfrp-recipe-book .rb-tab.is-active { color: var(--rb-text) !important; }
+
+/* Необратимое действие в диалоге Foundry («Удалить везде», «Бросить работу»).
+   DialogV2 рисуется вне окон модуля, поэтому селектор без обёртки .wfrp-recipe-book. */
+button.rb-danger,
+.wfrp-recipe-book button.rb-danger { color: var(--rb-bad, #a32014) !important; border-color: currentColor !important; font-weight: 600; }
+button.rb-danger:hover,
+.wfrp-recipe-book button.rb-danger:hover { background: var(--rb-bad, #a32014) !important; color: var(--rb-well, #f3e7cf) !important; }

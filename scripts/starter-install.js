@@ -3,7 +3,7 @@
    Повторный запуск безопасен: предметы ищутся по имени и переиспользуются. */
 
 import { MODULE_ID, RECIPE_TYPE } from "./recipe-model.js";
-import { L, F, moneyText, COIN_VALUE, RBTooltip, RecipeBookApp } from "./recipe-book.js";
+import { L, F, moneyText, priceBp, fmtTime, isDark, RBTooltip, RecipeBookApp } from "./recipe-book.js";
 import { STARTER_CATALOGUE } from "./starter-data.js";
 
 const { ApplicationV2: StarterBase, HandlebarsApplicationMixin: StarterMixin } = foundry.applications.api;
@@ -146,9 +146,8 @@ export async function installStarter(selection) {
 
 /** Подсказка-карточка рецепта каталога: что получится и чего это стоит */
 function recipeTip(prof, rec) {
-  const bp = (rec.price?.gc ?? 0) * COIN_VALUE.gc + (rec.price?.ss ?? 0) * COIN_VALUE.ss + (rec.price?.bp ?? 0);
-  const time = [rec.timeDays && `${rec.timeDays}${L("WFRPRB.Time.d")}`, rec.timeHours && `${rec.timeHours}${L("WFRPRB.Time.h")}`,
-    rec.timeMinutes && `${rec.timeMinutes}${L("WFRPRB.Time.m")}`].filter(Boolean).join(" ");
+  const bp = priceBp({ price: rec.price });
+  const time = fmtTime(rec.timeDays, rec.timeHours, rec.timeMinutes);
   const typeKey = `TYPES.Item.${rec.type}`;
   const lines = [
     `${rec.name}${rec.count > 1 ? ` ×${rec.count}` : ""}`,
@@ -218,13 +217,14 @@ export class StarterRecipesApp extends StarterMixin(StarterBase) {
 
   _onRender() {
     const root = this.element;
-    root.classList.toggle("rb-theme-dark", game.settings.get(MODULE_ID, "bookTheme") === "dark");
+    root.classList.toggle("rb-theme-dark", isDark());
     RBTooltip.adoptTips();
 
     // Галка профессии: включает/выключает все её рецепты, частичный выбор - промежуточное состояние
     for (const el of root.querySelectorAll(".rb-starter-row > .rb-ing-name input")) {
       const row = el.closest(".rb-starter-row");
       const prof = STARTER_CATALOGUE.find((p) => p.key === row.dataset.key);
+      if (!prof) continue;
       const ids = prof.recipes.map((r) => recipeId(prof.key, r.name));
       const partial = row.dataset.some === "true";
       el.indeterminate = partial;
@@ -261,9 +261,14 @@ export class StarterRecipesApp extends StarterMixin(StarterBase) {
   }
 
   static async #onInstall() {
-    if (!this.picked.size) return ui.notifications.warn(L("WFRPRB.Starter.PickSome"));
-    const res = await installStarter([...this.picked]);
-    ui.notifications.info(F("WFRPRB.Starter.Done", res));
+    if (!this.picked.size) return ui.notifications?.warn(L("WFRPRB.Starter.PickSome"));
+    try {
+      const res = await installStarter([...this.picked]);
+      ui.notifications?.info(F("WFRPRB.Starter.Done", res));
+    } catch (err) {
+      console.error(`${MODULE_ID} | установка стартовых рецептов прервалась`, err);
+      ui.notifications?.error(L("WFRPRB.Starter.Failed"));
+    }
     this.render();
   }
 }

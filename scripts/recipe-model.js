@@ -2,6 +2,9 @@
    Вся математика броска - у системы; здесь только данные рецепта. */
 
 export const MODULE_ID = "wfrp4e-recipe-book";
+/** Листы, которым открывается книга и которые держат рецепты (один список на весь модуль) */
+export const ACTOR_TYPES = ["character", "npc", "creature"];
+
 export const RECIPE_TYPE = `${MODULE_ID}.recipe`;
 
 /* Запасные таблицы на случай отсутствия системы (мок). Живые значения берём из game.wfrp4e.config. */

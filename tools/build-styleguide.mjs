@@ -104,6 +104,12 @@ ${section(
   ".rb-group-title, .rb-entry(.rb-ready|.is-selected), .rb-entry-name, .rb-ok-ico, .rb-mini-progress"
 )}
 ${section(
+  "Опасная кнопка диалога",
+  "Необратимое действие («Удалить везде», «Бросить работу») - класс rb-danger на кнопке DialogV2. Диалог рисуется вне окон модуля, поэтому селектор в CSS без обёртки .wfrp-recipe-book.",
+  `<button type="button" class="rb-btn rb-danger">Удалить везде</button>`,
+  "button.rb-danger"
+)}
+${section(
   "Акцент-значение и бейдж",
   "Крупное значение строки - .rb-target-num (цель броска); бейдж состояния - .rb-badge («в работе» у рецепта с активным проектом).",
   `<div style="width: 360px">
@@ -112,14 +118,7 @@ ${section(
    </div>`,
   ".rb-target-num, .rb-target-row(.is-bad), .rb-badge"
 )}
-${section(
-  "Сворачиваемая секция",
-  "details.rb-fold: summary в стиле заголовка секции с маркером справа. В мастере «Создать с нуля» так свёрнуты крит и брак.",
-  `<details class="rb-fold" open style="width: 360px"><summary class="rb-block-title rb-fold-sum">⚡ При крите добавить качества <span class="rb-dim">(добавятся только при крите)</span></summary>
-     <section class="rb-block"><div class="rb-row rb-ing"><span class="rb-ing-name"><input type="checkbox" checked> Грозное</span></div></section>
-   </details>`,
-  "details.rb-fold, summary.rb-fold-sum"
-)}
+
 ${section(
   "Полоса прогресса",
   "Проект крафта: .rb-progress + .rb-progress-fill (золотой градиент).",

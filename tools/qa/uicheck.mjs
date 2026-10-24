@@ -10,7 +10,7 @@ import { chromium } from "playwright";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const mock = process.argv[2] ?? "docs/book-mock.html";
 const SPACE = [0, 2, 4, 6, 8, 10, 12, 14, 16];      // шкала --rb-space-* (+0 и 2 для микросдвигов)
-const ICONS = [16, 20, 24, 26, 42, 44, 72, 74, 96, 144, 150]; // иконки с рамками
+const ICONS = [16, 20, 24, 26, 42, 44, 88, 90, 96, 144, 150]; // иконки с рамками
 
 let pass = 0, fail = 0;
 const ok = (c, name, extra = "") => (c ? (pass++, console.log(`PASS ${name}`)) : (fail++, console.log(`FAIL ${name} ${extra}`)));
@@ -34,7 +34,7 @@ await page.waitForTimeout(400);
 
 const audit = await page.evaluate((spaceScale) => {
   const px = (v) => Math.round(parseFloat(v) || 0);
-  const out = { pads: [], btns: [], rows: [], imgs: [], overflow: [], checks: [], focus: [] };
+  const out = { pads: [], btns: [], rows: [], imgs: [], overflow: [], checks: [], placeholders: [], focus: [] };
 
   // 1a. Корни окон: отступ от краёв обязателен (10-16px по шкале)
   out.rootPads = [];
@@ -106,7 +106,20 @@ const audit = await page.evaluate((spaceScale) => {
   out.clipped = [...document.querySelectorAll(".wfrp-recipe-book .rb-entry-name, .wfrp-recipe-book .rb-ing-name")]
     .filter((e) => e.offsetParent && e.scrollWidth > e.clientWidth + 2 && !e.closest("[data-rb-tip],[data-rbtt]")).length;
 
-  // 8. Фокус рисуется внутрь
+  // 8. Неподставленные плейсхолдеры: ключ попал в разметку мимо F()
+  const PH = /\{[a-zA-Z]\w*\}/;
+  for (const el of document.querySelectorAll(".wfrp-recipe-book [data-rb-tip]")) {
+    if (PH.test(el.dataset.rbTip)) out.placeholders.push(`tip ${el.className.split(" ")[0]}: ${el.dataset.rbTip.slice(0, 40)}`);
+  }
+  for (const el of document.querySelectorAll(".wfrp-recipe-book, #rb-tooltip")) {
+    for (const node of el.querySelectorAll("*")) {
+      if (node.children.length || node.tagName === "INPUT") continue;
+      const t = node.textContent ?? "";
+      if (PH.test(t)) out.placeholders.push(`text ${node.className.split(" ")[0]}: ${t.slice(0, 40)}`);
+    }
+  }
+
+  // 9. Фокус рисуется внутрь
   for (const el of document.querySelectorAll(".wfrp-recipe-book input, .wfrp-recipe-book .rb-btn")) {
     const off = parseFloat(getComputedStyle(el).outlineOffset) || 0;
     if (off > 0) out.focus.push(`${el.className.split(" ")[0]}=${off}`);
@@ -130,6 +143,7 @@ ok(audit.nameless.length === 0, "у кнопок есть подпись или 
 ok(audit.unlabeled.length === 0, "у полей есть подпись, плейсхолдер или aria-label", audit.unlabeled.join(", "));
 ok(audit.cbNoLabel === 0, "подпись каждого чекбокса кликабельна", String(audit.cbNoLabel));
 ok(audit.clipped === 0, "обрезанный текст доступен в подсказке", String(audit.clipped));
+ok(audit.placeholders.length === 0, "в текстах нет неподставленных {плейсхолдеров}", [...new Set(audit.placeholders)].slice(0, 5).join("; "));
 
 console.log(`\nИтог вёрстки: PASS ${pass}, FAIL ${fail}`);
 await browser.close();

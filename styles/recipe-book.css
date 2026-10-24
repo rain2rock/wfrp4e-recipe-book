@@ -236,6 +236,7 @@
 /* Карточка-подсказка рецепта: нехватка - красным, итоговая строка приглушена */
 .wfrp-recipe-book .rb-tt-bad { color: var(--rb-bad); }
 .wfrp-recipe-book .rb-tt-status { margin-top: var(--rb-space-1); color: var(--rb-muted); font-style: italic; }
+.wfrp-recipe-book .rb-tt-new { color: var(--rb-gold); }
 
 /* ---------- Приветственная карточка в чате ---------- */
 .rb-welcome { font-size: var(--rb-fs-base); line-height: 1.45; }

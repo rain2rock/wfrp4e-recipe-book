@@ -3,16 +3,15 @@
    и сырьё в четверть цены - по правилам «Создание предмета» (Книга правил, стр. 199). */
 
 import { MODULE_ID, RECIPE_TYPE } from "./recipe-model.js";
-import { L, F, priceBp, COIN_VALUE, RecipeBookApp } from "./recipe-book.js";
+import { norm, L, F, priceBp, COIN_VALUE, RecipeBookApp } from "./recipe-book.js";
 
 const AVAIL_TO_DIFF = { common: "average", scarce: "challenging", rare: "difficult", exotic: "veryHard" };
 
 /** Типы, из которых осмысленно делать рецепт (всё физическое, что можно изготовить) */
-const CRAFTABLE = ["weapon", "armour", "trapping", "ammunition", "container", "money"];
+const CRAFTABLE = ["weapon", "armour", "trapping", "ammunition", "container"];
 
 export function canMakeRecipe(item) {
   if (!item || item.type === RECIPE_TYPE) return false;
-  if (item.type === "money") return false;          // монеты не куют
   return CRAFTABLE.includes(item.type);
 }
 
@@ -32,7 +31,7 @@ export function suggestFromItem(doc) {
 export function existingRecipeFor(item) {
   return (game.items ?? []).find((i) =>
     i.type === RECIPE_TYPE &&
-    (i.system.result?.uuid === item.uuid || i.system.result?.name === item.name)) ?? null;
+    (i.system.result?.uuid === item.uuid || norm(i.system.result?.name) === norm(item.name))) ?? null;
 }
 
 /**

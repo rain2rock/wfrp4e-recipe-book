@@ -1,13 +1,11 @@
 /* «Книга рецептов WFRP» - init: модель, лист, настройки, клавиша, кнопка на листе, api. */
 
-import { MODULE_ID, RECIPE_TYPE, buildRecipeModel } from "./recipe-model.js";
+import { ACTOR_TYPES, MODULE_ID, RECIPE_TYPE, buildRecipeModel } from "./recipe-model.js";
 import { RecipeBookApp, watchCrafting, startCraft, rollCraft, recipeStatus, loadLangs, L } from "./recipe-book.js";
 import { RecipeSheet } from "./recipe-sheet.js";
 import { StarterRecipesApp, installStarter } from "./starter-install.js";
 import { createRecipeFromItem, canMakeRecipe } from "./recipe-from-item.js";
 import { welcomeOnce, showWelcome } from "./welcome.js";
-
-const SUPPORTED_TYPES = ["character", "npc", "creature"];
 
 Hooks.once("init", () => {
   // Хелперы шаблонов: в ядре Foundry их может не быть
@@ -118,7 +116,7 @@ Hooks.once("init", () => {
       if (!isEnabled() || game.system.id !== "wfrp4e") return false;
       const token = canvas?.tokens?.controlled?.find((t) => t.actor?.isOwner);
       const actor = token?.actor ?? game.user.character;
-      if (!actor || !SUPPORTED_TYPES.includes(actor.type)) {
+      if (!actor || !ACTOR_TYPES.includes(actor.type)) {
         ui.notifications?.info(game.i18n.localize("WFRPRB.Hotkey.NoActor"));
         return true;
       }
@@ -181,7 +179,7 @@ Hooks.on("renderItemSheet", (app, html) => addItemSheetButton(app, html?.[0] ?? 
 function addSheetButton(app, element) {
   if (game.system.id !== "wfrp4e" || !game.settings.get(MODULE_ID, "enabled")) return;
   const actor = app.document ?? app.actor;
-  if (!actor || !SUPPORTED_TYPES.includes(actor.type)) return;
+  if (!actor || !ACTOR_TYPES.includes(actor.type)) return;
   const header = app.window?.header ?? element.querySelector(".window-header");
   if (!header || header.querySelector(".rb-open")) return;
   const btn = document.createElement("button");

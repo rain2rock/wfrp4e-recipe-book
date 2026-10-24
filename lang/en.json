@@ -47,7 +47,8 @@
     "Craft": {
       "CantStart": "Missing: {what}.",
       "TestName": "Crafting: {name}",
-      "NoSystem": "WFRP4e system not found. Rolling is impossible."
+      "NoSystem": "WFRP4e system not found. Rolling is impossible.",
+      "Broken": "Crafting did not finish - see the console (F12)"
     },
     "Chat": {
       "Done": "Crafted: {name} ×{count}",
@@ -123,7 +124,6 @@
       "Skill": "Skill",
       "SkillAlt": "Alternative skill",
       "Difficulty": "Difficulty",
-      "Conditions": "Conditions",
       "Tools": "Tools",
       "Description": "Description",
       "Remove": "Remove",
@@ -137,7 +137,8 @@
       "Cancel": "Cancel",
       "SaveAsNewTip": "Current edits become a NEW recipe; the original is restored",
       "PickResultIcon": "Replace the result icon",
-      "SkillSearch": "Start typing to search..."
+      "SkillSearch": "Start typing to search...",
+      "SaveFailed": "Field was not saved - see the console (F12)"
     },
     "Difficulty": {
       "veryEasy": "Very Easy (+60)",
@@ -195,7 +196,6 @@
       "Hint": "GM registry\nAll recipes: world ones and copies owned by characters (versions may differ), grouped by owner. Give, edit or delete recipes from here.",
       "Give": "Give to character",
       "GiveTip": "The character learns a copy of this recipe",
-      "Edit": "Edit",
       "Given": "«{name}» given to {actor}",
       "ThisBook": "this book",
       "NoPlayers": "No one to give to: no player-owned characters found.",
@@ -265,15 +265,11 @@
       "SubType": "Subtype",
       "Qualities": "Qualities",
       "Flaws": "Flaws",
-      "Extras": "Extra materials per quality",
-      "ExtraFor": "for «{name}»",
       "AddIngredient": "ingredient",
       "Money": "money (pennies)",
-      "CritQual": "On crit add qualities",
       "QualMode": "Mode",
       "ModeAnd": "All (AND)",
       "ModeOr": "One at random (OR)",
-      "FailBlock": "Failure and botching",
       "FailFlawed": "Botch on failure (flawed item instead of total loss)",
       "CleanSL": "Clean work threshold (SL)",
       "CleanSLOff": "0 = off",
@@ -301,7 +297,7 @@
     "ResetFilters": "Reset filters",
     "Upgrades": "Upgrades",
     "UpgradesHint": "for extra materials",
-    "NewBadge": "New recipe\nNot opened yet.",
+    "NewBadge": "New recipe, not opened yet",
     "Starter": {
       "Title": "Starter trade recipes",
       "Name": "Starter recipes",
@@ -317,7 +313,8 @@
       "FolderRecipes": "Recipes",
       "Expand": "Show profession recipes",
       "Chosen": "Selected",
-      "FolderRoot": "Recipe Book"
+      "FolderRoot": "Recipe Book",
+      "Failed": "Install interrupted - some items were created. See the console (F12)"
     },
     "FromItem": {
       "Button": "Create recipe",

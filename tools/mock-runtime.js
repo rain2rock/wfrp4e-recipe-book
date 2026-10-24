@@ -200,7 +200,7 @@
         <header>${cfg.window?.title ?? ""}</header>
         <section>${cfg.content ?? ""}</section>
         <footer>${buttons.map((b, i) =>
-          `<button type="button" class="rb-btn ${b.default ? "rb-btn--primary" : "rb-btn--quiet"}" data-i="${i}" data-act="${b.action}">${b.label}</button>`).join("")}</footer>
+          `<button type="button" class="rb-btn ${b.default ? "rb-btn--primary" : "rb-btn--quiet"} ${b.class ?? ""}" data-i="${i}" data-act="${b.action}">${b.label}</button>`).join("")}</footer>
       </div>`;
     document.body.append(back);
     back.querySelectorAll("button").forEach((btn) => btn.addEventListener("click", () => {
@@ -412,7 +412,10 @@
       { get: (id) => (window.__RB_actors__ ?? []).find((a) => a.id === id) ?? null },
       "contents", { get: () => [...(window.__RB_actors__ ?? [])] }
     ),
-    items: [],
+    items: Object.assign([], {
+      // В Foundry это Collection: у неё есть и .get, и .find - в моке добавляем .get вручную
+      get(id) { return this.find((i) => i.id === id) ?? null; }
+    }),
     folders: [],
     packs: [{
       documentName: "Item",

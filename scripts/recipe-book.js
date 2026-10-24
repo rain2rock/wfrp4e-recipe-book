@@ -3,7 +3,7 @@
    предмет extendedTest, бросок - actor.setupExtendedTest(): диалог, модификаторы,
    таланты и накопление УУ делает система WFRP4e. Мы - интерфейс и логистика. */
 
-import { MODULE_ID, RECIPE_TYPE, difficultyMod, difficultyLabel, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
+import { MODULE_ID, RECIPE_TYPE, ACTOR_TYPES, difficultyMod, difficultyLabel } from "./recipe-model.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -37,8 +37,8 @@ export const L = (k) => {
 };
 export const F = (k, d = {}) => L(k).replace(/\{(\w+)\}/g, (_, x) => d[x] ?? "");
 export const esc = (s) => foundry.utils.escapeHTML?.(String(s ?? "")) ?? Handlebars.escapeExpression(String(s ?? ""));
-const norm = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
-const FLAG = MODULE_ID;
+/** Сравнение имён предметов по всему модулю: регистр и лишние пробелы не считаются */
+export const norm = (s) => String(s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
 
 /* ---------- Деньги (та же логика, что в paperdoll) ---------- */
 
@@ -51,7 +51,8 @@ function actorCoins(actor) {
   return out;
 }
 
-export function moneyPennies(actor) {
+export function moneyPennies(actor, idx = null) {
+  if (idx) return idx.pennies;
   return (actor?.items ?? [])
     .filter((i) => i.type === "money")
     .reduce((sum, c) => sum + (Number(c.system.quantity?.value) || 0) * (Number(c.system.coinValue?.value) || 1), 0);
@@ -159,7 +160,7 @@ function coinUpdates(actor, deltaBp) {
 async function changeActorMoney(actor, deltaBp) {
   if (!deltaBp) return true;
   const { updates, error } = coinUpdates(actor, deltaBp);
-  if (error) { ui.notifications.warn(error); return false; }
+  if (error) { ui.notifications?.warn(error); return false; }
   if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
   return true;
 }
@@ -184,15 +185,46 @@ export function availLabel(key) {
 
 /* ---------- Статус рецепта у персонажа ---------- */
 
-/** Типы, среди которых ищем ингредиенты (всё физическое с количеством) */
+/** Не предметы в смысле крафта: ни в сырьё, ни в результаты, ни в поиск по базе.
+    Один список на книгу и на поиск - иначе груз корабля попадал в ингредиенты. */
+const NOT_STOCK = new Set(["skill", "talent", "career", "careerPath", "spell", "prayer", "trait", "psychology",
+  "mutation", "disease", "injury", "critical", "extendedTest", "money", "template",
+  "cargo", "vehicleMod", "vehicleRole", "vehicleTest", RECIPE_TYPE]);
+
+/** Запас персонажа: всё физическое с количеством */
 function isStock(item) {
-  return !["skill", "talent", "extendedTest", "career", "spell", "prayer", "trait", "psychology", "mutation", "disease", "injury", "money"].includes(item.type)
-    && item.type !== RECIPE_TYPE
-    && item.system?.quantity !== undefined;
+  return !NOT_STOCK.has(item.type) && item.system?.quantity !== undefined;
 }
 
-function stockOf(actor, name) {
+/** Срез инвентаря для одного прохода: сырьё по имени, навыки, таланты, деньги.
+    Собирается один раз на рендер: иначе каждый ингредиент каждого рецепта заново обходит весь инвентарь. */
+export function actorIndex(actor) {
+  const stock = new Map();
+  const skills = new Map();
+  const talents = [];
+  let pennies = 0;
+  for (const it of actor?.items ?? []) {
+    if (it.type === "money") {
+      pennies += (Number(it.system.quantity?.value) || 0) * (Number(it.system.coinValue?.value) || 1);
+      continue;
+    }
+    const n = norm(it.name);
+    if (it.type === "skill") { if (!skills.has(n)) skills.set(n, it); continue; }
+    if (it.type === "talent") { talents.push(it); continue; }
+    if (!isStock(it)) continue;
+    let e = stock.get(n);
+    if (!e) stock.set(n, (e = { have: 0, items: [] }));
+    e.have += Number(it.system.quantity?.value) || 0;
+    e.items.push(it);
+  }
+  return { stock, skills, talents, pennies };
+}
+
+const EMPTY_STOCK = { have: 0, items: [] };
+
+function stockOf(actor, name, idx = null) {
   const n = norm(name);
+  if (idx) return idx.stock.get(n) ?? EMPTY_STOCK;
   let have = 0;
   const items = [];
   for (const it of actor?.items ?? []) {
@@ -203,18 +235,19 @@ function stockOf(actor, name) {
   return { have, items };
 }
 
-function findSkill(actor, name) {
+function findSkill(actor, name, idx = null) {
   if (!name) return null;
   const n = norm(name);
+  if (idx) return idx.skills.get(n) ?? null;
   return (actor?.items ?? []).find((i) => i.type === "skill" && norm(i.name) === n) ?? null;
 }
 
 /** Талант «Мастер своего дела (ремесло)» (Craftsman): каждый уровень снижает требуемый УУ на 1.
     Талант берётся на конкретное ремесло - учитываем специализацию из скобок, если она указана. */
-function craftsmanLevels(actor, skillName) {
+function craftsmanLevels(actor, skillName, idx = null) {
   let lv = 0;
   const skill = norm(skillName);
-  for (const t of actor?.items ?? []) {
+  for (const t of idx ? idx.talents : actor?.items ?? []) {
     if (t.type !== "talent") continue;
     const n = norm(t.name);
     const m = /^(?:мастер своего дела|craftsman)\s*(?:\((.+)\))?$/.exec(n);
@@ -226,21 +259,27 @@ function craftsmanLevels(actor, skillName) {
   return lv;
 }
 
+/** Тёмная тема книги (спрашивают и окна, и подсказки) */
+export function isDark() {
+  return game.settings.get(MODULE_ID, "bookTheme") === "dark";
+}
+
 /** ГМ-интерфейс показывается, если пользователь ГМ и не включил «вид игрока» */
 export function isGMView() {
   return !!game.user.isGM && !game.settings.get(MODULE_ID, "playerView");
 }
 
-export function recipeStatus(actor, recipe, { picked = [] } = {}) {
+export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
   const sys = recipe.system ?? {};
+  const inv = idx ?? actorIndex(actor);
   // Выбранные улучшения добавляют своё сырьё, деньги и требуемый УУ
   const ups = (sys.upgrades ?? []).filter((u) => picked.includes(u.quality));
   const slBase = (Number(sys.slTarget) || 1) + ups.reduce((n, u) => n + (Number(u.slBonus) || 0), 0);
-  const skillItem = findSkill(actor, sys.skill) ?? findSkill(actor, sys.skillAlt);
+  const skillItem = findSkill(actor, sys.skill, inv) ?? findSkill(actor, sys.skillAlt, inv);
   const skillUsed = skillItem ? skillItem.name : sys.skill;
   const skillTotal = skillItem ? Number(skillItem.system.total?.value) || 0 : 0;
   const mod = difficultyMod(sys.difficulty);
-  const talent = Math.min(craftsmanLevels(actor, skillUsed), Math.max(slBase - 1, 0));
+  const talent = Math.min(craftsmanLevels(actor, skillUsed, inv), Math.max(slBase - 1, 0));
   const slTarget = Math.max(slBase - talent, 1);
   // Ингредиенты рецепта + ингредиенты выбранных улучшений (одинаковые складываются)
   const needed = [...(sys.ingredients ?? []).map((i) => ({ ...i }))];
@@ -252,15 +291,15 @@ export function recipeStatus(actor, recipe, { picked = [] } = {}) {
     }
   }
   const ingredients = needed.map((ing) => {
-    const { have } = stockOf(actor, ing.name);
+    const { have } = stockOf(actor, ing.name, inv);
     return { ...ing, have, ok: have >= ing.count };
   });
   const tools = (sys.tools ?? []).map((t) => {
-    const { have } = stockOf(actor, t.name);
+    const { have } = stockOf(actor, t.name, inv);
     return { ...t, have, ok: have > 0 };
   });
   const costBp = (sys.moneyBp || 0) + ups.reduce((n, u) => n + (Number(u.moneyBp) || 0), 0);
-  const haveBp = moneyPennies(actor);
+  const haveBp = moneyPennies(actor, inv);
   const moneyOk = haveBp >= costBp;
   const countMoney = game.settings.get(MODULE_ID, "highlightMoney");
   const missing = [];
@@ -283,7 +322,8 @@ export async function startCraft(actor, recipe, picked = []) {
   const st = recipeStatus(actor, recipe, { picked });
   if (!st.canStart) {
     const what = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
-    return ui.notifications.warn(F("WFRPRB.Craft.CantStart", { what }));
+    ui.notifications?.warn(F("WFRPRB.Craft.CantStart", { what }));
+    return null;
   }
   const sys = recipe.system;
 
@@ -299,7 +339,7 @@ export async function startCraft(actor, recipe, picked = []) {
       const q = Number(it.system.quantity?.value) || 0;
       const take = Math.min(q, left);
       left -= take;
-      spent.push({ name: it.name, img: it.img, uuid: ing.uuid, count: take, type: it.type, source: it.toObject() });
+      spent.push({ name: it.name, img: it.img, count: take, source: it.toObject() });
       if (take >= q) deletes.push(it.id);
       else updates.push({ _id: it.id, "system.quantity.value": q - take });
     }
@@ -326,7 +366,7 @@ export async function startCraft(actor, recipe, picked = []) {
       completion: { value: "none" }
     },
     flags: {
-      [FLAG]: {
+      [MODULE_ID]: {
         recipeUuid: recipe.uuid, recipeName: recipe.name,
         crit: sys.critEnabled ? {
           sl: Number(sys.critSL) || 0,
@@ -359,7 +399,7 @@ export async function rollCraft(actor, test) {
   if (typeof actor.setupExtendedTest === "function") {
     const t = await actor.setupExtendedTest(test, {});
     if (t && typeof t.roll === "function" && !t.context?.rolled) await t.roll().catch(() => null);
-  } else ui.notifications.error(L("WFRPRB.Craft.NoSystem"));
+  } else ui.notifications?.error(L("WFRPRB.Craft.NoSystem"));
 }
 
 /** Локализованное имя качества/изъяна из конфига системы (fallback - сам ключ) */
@@ -385,6 +425,24 @@ function propText(p) {
 }
 
 /** Дописать качества/изъяны в данные создаваемого предмета (формат системы: {name, value}) */
+/** Предмет-результат: из базы по uuid, иначе простой товар.
+    Общий для завершения крафта, брака и «сделать предмет» из реестра ГМа. */
+async function resultObject(data, fallbackName, count = 1) {
+  const src = data?.uuid ? await fromUuid(data.uuid).catch(() => null) : null;
+  let obj;
+  if (src) {
+    obj = src.toObject();
+    delete obj._id;
+  } else {
+    obj = {
+      name: data?.name || fallbackName, type: "trapping", img: data?.img,
+      system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: data?.descr ?? "" } }
+    };
+  }
+  if (obj.system?.quantity) obj.system.quantity.value = count;
+  return obj;
+}
+
 function pushProps(obj, listKey, props) {
   if (!props?.length) return;
   obj.system ??= {};
@@ -406,12 +464,12 @@ function chatCard(actor, { icon, title, lines, img }) {
 }
 
 async function finishCraft(actor, test) {
-  let data = test.getFlag(FLAG, "result");
-  const crit = test.getFlag(FLAG, "crit");
+  let data = test.getFlag(MODULE_ID, "result");
+  const crit = test.getFlag(MODULE_ID, "crit");
   const curSL = Number(test.system.SL?.current) || 0;
   const isCrit = !!crit && crit.sl > 0 && curSL >= crit.sl;
   let count = data.count || 1;
-  const lines = [esc(test.getFlag(FLAG, "recipeName") ?? "")];
+  const lines = [esc(test.getFlag(MODULE_ID, "recipeName") ?? "")];
 
   let obj_critQualities = null;
   if (isCrit) {
@@ -436,40 +494,29 @@ async function finishCraft(actor, test) {
         obj_critQualities = qs; // применим после сборки объекта
         lines.push("· " + esc(F("WFRPRB.Chat.CritQualities", { list: qs.map(propText).join(", ") })));
       } else if (eff === "refund") {
-        const spent = test.getFlag(FLAG, "spent") ?? [];
+        const spent = test.getFlag(MODULE_ID, "spent") ?? [];
         const back = [];
         for (const sp of spent) {
           const half = Math.floor(sp.count / 2);
           if (half > 0) back.push({ ...sp.source, system: { ...sp.source.system, quantity: { value: half } } });
         }
         if (back.length) await actor.createEmbeddedDocuments("Item", back);
-        const backBp = Math.floor((test.getFlag(FLAG, "moneyBp") || 0) / 2);
+        const backBp = Math.floor((test.getFlag(MODULE_ID, "moneyBp") || 0) / 2);
         if (backBp) await changeActorMoney(actor, backBp);
         lines.push("· " + esc(L("WFRPRB.Chat.CritRefund")));
       }
     }
   }
 
-  let obj = null;
-  const src = data.uuid ? await fromUuid(data.uuid).catch(() => null) : null;
-  if (src) {
-    obj = src.toObject();
-    delete obj._id;
-  } else {
-    obj = {
-      name: data.name || test.name, type: "trapping", img: data.img,
-      system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: data.descr ?? "" } }
-    };
-  }
-  if (obj.system?.quantity) obj.system.quantity.value = count;
-  const ups = test.getFlag(FLAG, "upgrades") ?? [];
+  const obj = await resultObject(data, test.name, count);
+  const ups = test.getFlag(MODULE_ID, "upgrades") ?? [];
   if (ups.length) {
     pushProps(obj, "qualities", ups.map((u) => ({ name: u.quality, value: null })));
     lines.push("· " + esc(F("WFRPRB.Chat.Upgraded", { list: ups.map((u) => u.name || propertyLabel(u.quality)).join(", ") })));
   }
-  if (typeof obj_critQualities !== "undefined" && obj_critQualities) pushProps(obj, "qualities", obj_critQualities);
+  if (obj_critQualities) pushProps(obj, "qualities", obj_critQualities);
   // «Порог чистой работы»: проект завершён, но УУ ниже порога - предмет со случайным изъяном
-  const fail = test.getFlag(FLAG, "fail") ?? {};
+  const fail = test.getFlag(MODULE_ID, "fail") ?? {};
   if (fail.cleanSL > 0 && curSL < fail.cleanSL && fail.pool?.length) {
     const flaw = fail.pool[Math.floor(Math.random() * fail.pool.length)];
     pushProps(obj, "flaws", [{ name: flaw, value: null }]);
@@ -487,21 +534,10 @@ async function finishCraft(actor, test) {
 
 async function failCraft(actor, test) {
   // «Брак при провале»: вместо потери работы создаётся предмет со случайным изъяном
-  const fail = test.getFlag(FLAG, "fail") ?? {};
-  const data0 = test.getFlag(FLAG, "result");
+  const fail = test.getFlag(MODULE_ID, "fail") ?? {};
+  const data0 = test.getFlag(MODULE_ID, "result");
   if (fail.flawed && fail.pool?.length) {
-    let obj = null;
-    const src = data0?.uuid ? await fromUuid(data0.uuid).catch(() => null) : null;
-    if (src) {
-      obj = src.toObject();
-      delete obj._id;
-    } else {
-      obj = {
-        name: data0?.name || test.name, type: "trapping", img: data0?.img,
-        system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: data0?.descr ?? "" } }
-      };
-    }
-    if (obj.system?.quantity) obj.system.quantity.value = data0?.count || 1;
+    const obj = await resultObject(data0, test.name, data0?.count || 1);
     const flaw = fail.pool[Math.floor(Math.random() * fail.pool.length)];
     pushProps(obj, "flaws", [{ name: flaw, value: null }]);
     await actor.createEmbeddedDocuments("Item", [obj]);
@@ -516,8 +552,8 @@ async function failCraft(actor, test) {
   }
 
   const mode = game.settings.get(MODULE_ID, "failLoss"); // none | half | all
-  const spent = test.getFlag(FLAG, "spent") ?? [];
-  const moneyBp = test.getFlag(FLAG, "moneyBp") || 0;
+  const spent = test.getFlag(MODULE_ID, "spent") ?? [];
+  const moneyBp = test.getFlag(MODULE_ID, "moneyBp") || 0;
   const back = [];
   let backBp = 0;
   if (mode === "none") {
@@ -532,7 +568,7 @@ async function failCraft(actor, test) {
   }
   if (back.length) await actor.createEmbeddedDocuments("Item", back);
   if (backBp) await changeActorMoney(actor, backBp);
-  const data = test.getFlag(FLAG, "result");
+  const data = test.getFlag(MODULE_ID, "result");
   chatCard(actor, {
     icon: "✗", img: data?.img || test.img,
     title: F("WFRPRB.Chat.Failed", { name: data?.name || test.name }),
@@ -543,6 +579,19 @@ async function failCraft(actor, test) {
 }
 
 /** Следим за системными extendedTest с нашим флагом: цель достигнута - предмет, ниже нуля - провал */
+/** Копия рецепта персонажу: пометка «новый» и ссылка на источник.
+    Зовут и книга (кнопка «выдать»), и лист рецепта (сохранение с выдачей). */
+export async function giveRecipeTo(actor, recipe) {
+  const obj = recipe.toObject();
+  delete obj._id;
+  const flags = { ...(obj.flags?.[MODULE_ID] ?? {}), isNew: true, fresh: false, source: recipe.uuid };
+  delete flags.forActor; // копия ничья, это поле только у черновика
+  obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: flags };
+  const [made] = await actor.createEmbeddedDocuments("Item", [obj]);
+  ui.notifications?.info(F("WFRPRB.World.Given", { name: recipe.name, actor: actor.name }));
+  return made;
+}
+
 export function watchCrafting() {
   Hooks.on("updateItem", (item, changes, options, userId) => {
     if (userId && userId !== game.user.id) return;
@@ -551,12 +600,18 @@ export function watchCrafting() {
       RecipeBookApp.renderAll();
       return;
     }
-    if (item.type !== "extendedTest" || !item.actor || !item.getFlag(FLAG, "result")) return;
+    if (item.type !== "extendedTest" || !item.actor || !item.getFlag(MODULE_ID, "result")) return;
     const cur = Number(item.system.SL?.current) || 0;
     const target = Number(item.system.SL?.target) || 0;
-    if (target > 0 && cur >= target) finishCraft(item.actor, item);
-    else if (cur < 0) failCraft(item.actor, item);
-    else RecipeBookApp.renderAll();
+    const done = target > 0 && cur >= target ? finishCraft(item.actor, item)
+      : cur < 0 ? failCraft(item.actor, item) : null;
+    // Работа продолжается - просто обновляем прогресс
+    if (!done) return RecipeBookApp.renderAll();
+    // Сырьё уже списано: молча терять ошибку нельзя, иначе проект зависнет без следов
+    done.catch((err) => {
+      console.error(`${MODULE_ID} | не удалось завершить крафт`, err);
+      ui.notifications?.error(L("WFRPRB.Craft.Broken"));
+    });
   });
   for (const hook of ["createItem", "deleteItem"]) {
     Hooks.on(hook, (item) => {
@@ -571,15 +626,13 @@ export function watchCrafting() {
 let _itemIndex = null;
 export async function itemIndex() {
   if (_itemIndex) return _itemIndex;
-  const SKIP = new Set(["skill", "talent", "career", "careerPath", "spell", "prayer", "trait", "psychology",
-    "mutation", "disease", "injury", "critical", "extendedTest", "money", "template", "cargo", "vehicleMod", "vehicleRole", "vehicleTest", RECIPE_TYPE]);
   const out = [];
-  for (const it of game.items ?? []) if (!SKIP.has(it.type)) out.push({ name: it.name, img: it.img, uuid: it.uuid, type: it.type });
+  for (const it of game.items ?? []) if (!NOT_STOCK.has(it.type)) out.push({ name: it.name, img: it.img, uuid: it.uuid, type: it.type });
   for (const pack of game.packs ?? []) {
     if ((pack.documentName ?? pack.metadata?.type) !== "Item") continue;
     const idx = await pack.getIndex().catch(() => []);
     for (const e of idx) {
-      if (SKIP.has(e.type)) continue;
+      if (NOT_STOCK.has(e.type)) continue;
       out.push({ name: e.name, img: e.img, uuid: e.uuid ?? `Compendium.${pack.collection}.Item.${e._id}`, type: e.type });
     }
   }
@@ -588,10 +641,6 @@ export async function itemIndex() {
   return out;
 }
 
-/**
- * Подтверждение необратимого действия: заголовок-вопрос, факт последствий, именованные кнопки.
- * Кнопка действия названа глаголом (не «Да»), отмена - всегда рядом и безопасна.
- */
 /** Диалог с произвольным набором именованных действий; возвращает ключ выбранного */
 export async function askAction({ title, body, options }) {
   return foundry.applications.api.DialogV2.wait({
@@ -604,6 +653,10 @@ export async function askAction({ title, body, options }) {
   }).catch(() => "cancel");
 }
 
+/**
+ * Подтверждение необратимого действия: заголовок-вопрос, факт последствий, именованные кнопки.
+ * Кнопка действия названа глаголом (не «Да»), отмена - всегда рядом и безопасна.
+ */
 export async function confirmAction({ title, body, confirmLabel }) {
   const choice = await foundry.applications.api.DialogV2.wait({
     window: { title },
@@ -635,7 +688,7 @@ export class RBTooltip {
   static showHtml(html, event, mode = "rich") {
     const el = this.ensure();
     this.mode = mode;
-    const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark" ? "rb-theme-dark" : "";
+    const dark = isDark() ? "rb-theme-dark" : "";
     el.className = `wfrp-recipe-book rb-tooltip ${dark} ${mode === "tip" ? "is-tip" : ""}`;
     el.innerHTML = html;
     el.classList.add("is-visible");
@@ -744,7 +797,7 @@ export async function openItemPicker(anchor, cb, { filter = null } = {}) {
   // Панель носит класс окна модуля с собой: её могут вставлять и вне наших окон,
   // а все стили (включая размеры картинок) привязаны к .wfrp-recipe-book
   const host = document.createElement("div");
-  const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark" ? " rb-theme-dark" : "";
+  const dark = isDark() ? " rb-theme-dark" : "";
   host.className = `wfrp-recipe-book rb-picker-host${dark}`;
   host.innerHTML = `<div class="rb-picker"><input type="text" class="rb-picker-search" placeholder="${esc(L("WFRPRB.Sheet.SearchItem"))}"><div class="rb-picker-list"></div></div>`;
   const panel = host.querySelector(".rb-picker");
@@ -777,7 +830,7 @@ export function openNamePicker(anchor, names, cb, { query = "" } = {}) {
   const match = (n ? names.filter((x) => norm(x).includes(n)) : names).slice(0, 50);
   if (!match.length) return null;
   const host = document.createElement("div");
-  const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark" ? " rb-theme-dark" : "";
+  const dark = isDark() ? " rb-theme-dark" : "";
   host.className = `wfrp-recipe-book rb-picker-host rb-names-host${dark}`;
   host.innerHTML = `<div class="rb-picker"><div class="rb-picker-list">${
     match.map((x, i) => `<button type="button" class="rb-picker-row" data-idx="${i}">${esc(x)}</button>`).join("")
@@ -880,7 +933,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   copiesOf(recipe) {
     const out = [];
     for (const a of game.actors?.contents ?? []) {
-      if (a.type !== "character") continue;
+      if (!ACTOR_TYPES.includes(a.type)) continue;
       for (const it of a.items) {
         if (it.type !== RECIPE_TYPE) continue;
         const src = it.getFlag(MODULE_ID, "source");
@@ -894,7 +947,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   selectedRecipe() {
     const sel = this.selected;
     if (sel?.kind === "recipe") return this.actor.items.get(sel.id);
-    if (sel?.kind === "wrecipe") return (game.items ?? []).find?.((i) => i.id === sel.id) ?? game.items?.get?.(sel.id);
+    if (sel?.kind === "wrecipe") return game.items?.get?.(sel.id) ?? null;
     if (sel?.kind === "arecipe") return game.actors?.get?.(sel.actorId)?.items.get(sel.id) ?? null;
     return null;
   }
@@ -905,7 +958,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   projects() {
-    return (this.actor?.items ?? []).filter((i) => i.type === "extendedTest" && i.getFlag(FLAG, "result"));
+    return (this.actor?.items ?? []).filter((i) => i.type === "extendedTest" && i.getFlag(MODULE_ID, "result"));
   }
 
   /** Данные для богатого ховера по предмету: картинка, цена, доступность, описание */
@@ -924,54 +977,75 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async _prepareContext() {
-    const dark = game.settings.get(MODULE_ID, "bookTheme") === "dark";
+    const dark = isDark();
     const gm = isGMView();
     if (this.filter === "world" && !gm) this.filter = "all";
     const world = this.filter === "world";
     const q = norm(this.search);
+    // Один проход - один срез инвентаря и один расчёт статуса на рецепт (их спрашивают и список, и счётчики)
+    const indexes = new Map();
+    const idxFor = (a) => {
+      const key = a?.id ?? "none";
+      let i = indexes.get(key);
+      if (!i) indexes.set(key, (i = actorIndex(a)));
+      return i;
+    };
+    const stCache = new Map();
+    const statusOf = (a, r) => {
+      const key = `${a?.id ?? "none"}|${r.uuid}`;
+      let st = stCache.get(key);
+      if (!st) stCache.set(key, (st = recipeStatus(a, r, { idx: idxFor(a) })));
+      return st;
+    };
+    const ownRecipes = this.recipes();
+    const ownById = new Map(ownRecipes.map((r) => [r.id, r]));
+    const ownByUuid = new Map(ownRecipes.map((r) => [r.uuid, r]));
     const projects = this.projects().map((t) => {
       const target = Number(t.system.SL?.target) || 1;
       const cur = Math.max(Number(t.system.SL?.current) || 0, 0);
-      const res = t.getFlag(FLAG, "result");
+      const res = t.getFlag(MODULE_ID, "result");
       const skillItem = findSkill(this.actor, t.system.test?.value);
-      const moneyBp = t.getFlag(FLAG, "moneyBp") || 0;
+      const moneyBp = t.getFlag(MODULE_ID, "moneyBp") || 0;
+      const skillName = t.system.test?.value ?? "";
+      const skillTotal = skillItem ? Number(skillItem.system.total?.value) || 0 : 0;
+      const mod = difficultyMod(t.system.difficulty?.value);
       return {
         id: t.id, img: res?.img || t.img, name: res?.name || t.name, count: res?.count || 1,
         cur: Number(t.system.SL?.current) || 0, target,
         pct: Math.min(Math.round((cur / target) * 100), 100),
         skill: t.system.test?.value ?? "",
-        rollTarget: (skillItem ? Number(skillItem.system.total?.value) || 0 : 0) + difficultyMod(t.system.difficulty?.value),
-        recipeUuid: t.getFlag(FLAG, "recipeUuid") ?? "",
-        spent: t.getFlag(FLAG, "spent") ?? [],
+        rollTarget: skillTotal + mod,
+        // Подсказка собирается здесь: в шаблоне ключ подставился бы как есть, с «{skill}»
+        checkTip: skillItem
+          ? F("WFRPRB.Tip.Check", { skill: skillName, total: skillTotal, mod: mod >= 0 ? `+${mod}` : mod, target: skillTotal + mod })
+          : F("WFRPRB.Tip.NoSkill", { skill: skillName }),
+        recipeUuid: t.getFlag(MODULE_ID, "recipeUuid") ?? "",
+        spent: t.getFlag(MODULE_ID, "spent") ?? [],
         moneyHtml: moneyBp ? moneyHtml(moneyBp) : ""
       };
     });
 
     // Рецепты без навыка (свежесозданные ГМом) - в группу «Необычные», она всегда в конце
     const unusual = L("WFRPRB.Group.Unusual");
-    // Тип предмета-результата: по uuid из базы, кастомный результат создаётся как trapping
-    const resType = (r) => {
-      const uuid = r.system.result?.uuid;
-      if (!uuid) return "trapping";
-      try { return globalThis.fromUuidSync?.(uuid)?.type ?? "trapping"; } catch { return "trapping"; }
-    };
     const worldLabel = L("WFRPRB.World.Source");
     let pool;
     if (world) {
       // Реестр ГМа: рецепты мира + копии у ВСЕХ персонажей (версии могут отличаться)
       pool = this.worldRecipes().map((r) => ({ r, owner: null }));
-      for (const a of (game.actors?.contents ?? []).filter((x) => x.type === "character")) {
+      for (const a of (game.actors?.contents ?? []).filter((x) => ACTOR_TYPES.includes(x.type))) {
         for (const r of a.items.filter((i) => i.type === RECIPE_TYPE)) pool.push({ r, owner: a });
       }
     } else {
-      pool = this.recipes().map((r) => ({ r, owner: null }));
+      pool = ownRecipes.map((r) => ({ r, owner: null }));
     }
     let entries = pool.map(({ r, owner }) => {
-      const st = recipeStatus(world ? (owner ?? this.actor) : this.actor, r);
+      const st = statusOf(world ? (owner ?? this.actor) : this.actor, r);
       const missing = st.missing.map((m) => L(`WFRPRB.Missing.${m}`)).join(", ");
       const res = r.system.result ?? {};
-      // Параметры готового предмета - как в подсказках paperdoll
-      const doc = res.uuid ? (globalThis.fromUuidSync?.(res.uuid) ?? null) : null;
+      // Параметры готового предмета - как в подсказках paperdoll. Тип результата берём из того же документа,
+      // кастомный результат (без uuid) создаётся как trapping
+      let doc = null;
+      if (res.uuid) try { doc = globalThis.fromUuidSync?.(res.uuid) ?? null; } catch { doc = null; }
       const dsys = doc?.system ?? {};
       const dbp = doc ? priceBp(dsys) : 0;
       const typeKey = `TYPES.Item.${doc?.type ?? "trapping"}`;
@@ -984,7 +1058,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         // В списке - иконка ПРЕДМЕТА-РЕЗУЛЬТАТА (что получится); иконка рецепта - запасная
         id: r.id, name: r.name, img: res.img || r.img,
         resultName: res.name || r.name, count: res.count ?? 1,
-        skill: st.skillUsed || unusual, type: resType(r), ready: st.ready, missing,
+        skill: st.skillUsed || unusual, type: doc?.type ?? "trapping", ready: st.ready, missing,
         owner: owner?.name ?? null, ownerId: owner?.id ?? "",
         inWork: !world && projects.some((pj) => pj.recipeUuid === r.uuid),
         isNew: !!r.getFlag(MODULE_ID, "isNew"),
@@ -1056,7 +1130,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     // Помним, из какого рецепта вырос проект: после завершения вернём выбор на него
     this._projRecipe ??= {};
     for (const pj of projects) {
-      const rec = this.recipes().find((r) => r.uuid === pj.recipeUuid);
+      const rec = ownByUuid.get(pj.recipeUuid);
       if (rec) this._projRecipe[pj.id] = rec.id;
     }
 
@@ -1066,11 +1140,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (sel?.kind === "project" && !projects.find((p) => p.id === sel.id)) {
       // Проект завершён или брошен - возвращаемся к его рецепту, а не к первому в списке
       const backId = sel.recipeId ?? this._projRecipe[sel.id];
-      const back = backId ? this.recipes().find((r) => r.id === backId) : null;
+      const back = backId ? ownById.get(backId) : null;
       sel = back ? { kind: "recipe", id: back.id } : null;
-      if (backId) delete this._projRecipe[backId];
+      delete this._projRecipe[sel.id];
     }
-    if (sel?.kind === "recipe" && !this.recipes().find((r) => r.id === sel.id)) sel = null;
+    if (sel?.kind === "recipe" && !ownById.has(sel.id)) sel = null;
     if (sel?.kind === "wrecipe" && !this.worldRecipes().find((r) => r.id === sel.id)) sel = null;
     if (sel?.kind === "arecipe" && !game.actors?.get?.(sel.actorId)?.items.get(sel.id)) sel = null;
     // Выбор из реестра не живёт вне реестра (и недоступен в виде игрока)
@@ -1089,7 +1163,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           r.unsetFlag(MODULE_ID, "isNew").catch(() => null);
         }
         const picked = this.picked[r.id] ?? [];
-        const st = recipeStatus(statusActor, r, { picked });
+        const st = recipeStatus(statusActor, r, { picked, idx: idxFor(statusActor) });
         const res = r.system.result ?? {};
         const dd = Number(r.system.timeDays) || 0;
         const hh = Number(r.system.timeHours) || 0;
@@ -1169,11 +1243,11 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const counts = {
-      all: this.recipes().length,
-      ready: this.recipes().filter((r) => recipeStatus(this.actor, r).ready).length,
+      all: ownRecipes.length,
+      ready: ownRecipes.filter((r) => statusOf(this.actor, r).ready).length,
       work: projects.length,
       world: this.worldRecipes().length +
-        (game.actors?.contents ?? []).filter((a) => a.type === "character")
+        (game.actors?.contents ?? []).filter((a) => ACTOR_TYPES.includes(a.type))
           .reduce((n, a) => n + a.items.filter((i) => i.type === RECIPE_TYPE).length, 0)
     };
 
@@ -1192,7 +1266,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
       ownerOptions,
       dark, groups, projects, detail, search: this.search,
       filter: this.filter, counts,
-      empty: !this.recipes().length && !projects.length
+      empty: !ownRecipes.length && !projects.length
     };
   }
 
@@ -1208,7 +1282,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   _onRender() {
     const root = this.element;
-    root.classList.toggle("rb-theme-dark", game.settings.get(MODULE_ID, "bookTheme") === "dark");
+    root.classList.toggle("rb-theme-dark", isDark());
     RBTooltip.hide();
     RBTooltip.adoptTips();
     this._bindTooltips(root);
@@ -1273,10 +1347,10 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static async #onAbandon(event, target) {
     const test = this.actor.items.get(target.dataset.id);
     if (!test) return;
-    const spent = (test.getFlag(FLAG, "spent") ?? []).map((sp) => `${esc(sp.name)}${sp.count > 1 ? ` ×${sp.count}` : ""}`);
-    const moneyBp = test.getFlag(FLAG, "moneyBp") || 0;
+    const spent = (test.getFlag(MODULE_ID, "spent") ?? []).map((sp) => `${esc(sp.name)}${sp.count > 1 ? ` ×${sp.count}` : ""}`);
+    const moneyBp = test.getFlag(MODULE_ID, "moneyBp") || 0;
     if (moneyBp) spent.push(moneyText(moneyBp));
-    const name = esc(test.getFlag(FLAG, "result")?.name ?? test.name);
+    const name = esc(test.getFlag(MODULE_ID, "result")?.name ?? test.name);
     const yes = await confirmAction({
       title: L("WFRPRB.Abandon.Title"),
       body: spent.length
@@ -1319,9 +1393,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (old) return old.remove();
     // Только персонажи ИГРОКОВ: тип character и есть владелец не-ГМ (NPC и прочие не показываем)
     const actors = (game.actors?.contents ?? [])
-      .filter((a) => a.type === "character" && a.hasPlayerOwner)
+      .filter((a) => ACTOR_TYPES.includes(a.type) && a.hasPlayerOwner)
       .slice(0, 20);
-    if (!actors.length) return ui.notifications.warn(L("WFRPRB.World.NoPlayers"));
+    if (!actors.length) return ui.notifications?.warn(L("WFRPRB.World.NoPlayers"));
     const panel = document.createElement("div");
     panel.className = "rb-picker rb-give-picker";
     panel.innerHTML = `<div class="rb-picker-list">` + actors.map((a, i) =>
@@ -1334,12 +1408,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async #giveTo(actor, recipe) {
-    const obj = recipe.toObject();
-    delete obj._id;
-    // Игрок увидит пометку «новый», пока не откроет рецепт
-    obj.flags = { ...(obj.flags ?? {}), [MODULE_ID]: { ...(obj.flags?.[MODULE_ID] ?? {}), isNew: true, fresh: false, source: recipe.uuid } };
-    const [made] = await actor.createEmbeddedDocuments("Item", [obj]);
-    ui.notifications.info(F("WFRPRB.World.Given", { name: recipe.name, actor: actor.name }));
+    const made = await giveRecipeTo(actor, recipe);
     if (actor.id === this.actor.id) {
       this.filter = "all";
       this.selected = { kind: "recipe", id: made.id };
@@ -1352,20 +1421,12 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const r = this.selectedRecipe();
     if (!r) return;
     const res = r.system.result ?? {};
-    let obj = null;
-    const src = res.uuid ? await fromUuid(res.uuid).catch(() => null) : null;
-    if (src) {
-      obj = src.toObject();
-      delete obj._id;
-    } else {
-      obj = {
-        name: res.name || r.name, type: "trapping", img: res.img || r.img,
-        system: { trappingType: { value: "misc" }, quantity: { value: 1 }, description: { value: r.system.description?.value ?? "" } }
-      };
-    }
-    if (obj.system?.quantity) obj.system.quantity.value = res.count || 1;
+    const obj = await resultObject(
+      { ...res, img: res.img || r.img, descr: r.system.description?.value ?? "" },
+      r.name, res.count || 1
+    );
     const made = await Item.create(obj);
-    if (made) ui.notifications.info(F("WFRPRB.World.Made", { name: made.name, count: res.count || 1 }));
+    if (made) ui.notifications?.info(F("WFRPRB.World.Made", { name: made.name, count: res.count || 1 }));
   }
 
   /** ГМ: удалить рецепт - из книги персонажа или насовсем из мира */
@@ -1401,7 +1462,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
         const byActor = new Map();
         for (const c of copies) byActor.set(c.actor, [...(byActor.get(c.actor) ?? []), c.item.id]);
         for (const [a, ids] of byActor) await a.deleteEmbeddedDocuments("Item", ids);
-        ui.notifications.info(F("WFRPRB.Delete.DoneAll", { name, count: copies.length }));
+        ui.notifications?.info(F("WFRPRB.Delete.DoneAll", { name, count: copies.length }));
       }
       await r.delete();
       this.selected = null;

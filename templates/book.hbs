@@ -54,7 +54,7 @@
           <button type="button" class="rb-entry {{#if ready}}rb-ready{{/if}} {{#if (eq ../../detail.id id)}}is-selected{{/if}}" data-action="select" data-kind="{{kind}}" data-id="{{id}}" data-actor="{{ownerId}}" data-rbtt="recipe">
             <img src="{{img}}" alt="">
             <span class="rb-entry-name">{{resultName}}{{#if (gt count 1)}} ×{{count}}{{/if}}</span>
-            {{#if isNew}}<i class="fa-solid fa-certificate rb-new-ico"></i>{{/if}}
+            {{#if isNew}}<i class="fa-solid fa-certificate rb-new-ico" aria-label="{{rbL 'WFRPRB.NewBadge'}}"></i>{{/if}}
             <div class="rb-tt-src" hidden>
               <div class="rb-tt-head">{{#if tt.img}}<img src="{{tt.img}}" alt="">{{/if}}
                 <div>
@@ -73,10 +73,11 @@
               {{#each tt.ingredients}}
                 <div class="rb-tt-line {{#unless ok}}rb-tt-bad{{/unless}}">· {{name}} {{have}} / {{count}}</div>
               {{/each}}
+              {{#if isNew}}<div class="rb-tt-line rb-tt-new">{{rbL "WFRPRB.NewBadge"}}</div>{{/if}}
               <div class="rb-tt-line rb-tt-status">{{#if tt.ready}}{{rbL "WFRPRB.Tip.ReadyShort"}}{{else}}{{rbL "WFRPRB.MissingLabel"}}: {{tt.missing}}{{/if}}</div>
             </div>
             {{#if inWork}}<span class="rb-badge">{{rbL "WFRPRB.InWorkBadge"}}</span>{{/if}}
-            {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" title="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
+            {{#if ready}}<i class="fa-solid fa-circle-check rb-ok-ico" aria-label="{{rbL 'WFRPRB.Ready'}}"></i>{{/if}}
           </button>
         {{/each}}
       {{/each}}
@@ -255,7 +256,7 @@
         <section class="rb-block">
           <div class="rb-progress"><div class="rb-progress-fill" style="width:{{detail.pct}}%"></div></div>
           <div class="rb-row" data-rb-tip="{{rbL 'WFRPRB.Tip.Progress'}}"><span>{{rbL "WFRPRB.Progress"}}</span><span><b>{{detail.cur}}</b> / {{detail.target}} {{rbL "WFRPRB.SL"}}</span></div>
-          <div class="rb-row rb-target-row" data-rb-tip="{{rbL 'WFRPRB.Tip.Check'}}">
+          <div class="rb-row rb-target-row" data-rb-tip="{{detail.checkTip}}">
             <span>{{rbL "WFRPRB.Target"}}</span>
             <span class="rb-target-num">{{detail.rollTarget}}</span>
           </div>

@@ -14,7 +14,8 @@ export async function showWelcome() {
   ].map((t) => `<li>${esc(t)}</li>`).join("");
 
   await ChatMessage.create({
-    whisper: ChatMessage.getWhisperRecipients?.("GM")?.map((u) => u.id) ?? [],
+    // Пустой whisper в Foundry означает «всем», поэтому запасной вариант - лично себе
+    whisper: ChatMessage.getWhisperRecipients?.("GM")?.map((u) => u.id) ?? [game.user.id],
     content: `<div class="rb-welcome">
       <div class="rb-welcome-head"><img src="${img}" alt=""><b>${esc(L("WFRPRB.Welcome.Title"))}</b></div>
       <div class="rb-welcome-text">${esc(L("WFRPRB.Welcome.Intro"))}</div>
@@ -28,6 +29,6 @@ export async function showWelcome() {
 export async function welcomeOnce() {
   if (!game.user.isGM) return;
   if (game.settings.get(MODULE_ID, "welcomeShown")) return;
-  await game.settings.set(MODULE_ID, "welcomeShown", true);
   await showWelcome();
+  await game.settings.set(MODULE_ID, "welcomeShown", true);
 }

@@ -4,7 +4,7 @@
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
 import { MODULE_ID } from "./recipe-model.js";
-import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, isDark, RecipeBookApp } from "./recipe-book.js";
 
 const { ApplicationV2: ForgeAppBase, HandlebarsApplicationMixin: ForgeMixin } = foundry.applications.api;
 
@@ -70,7 +70,6 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     this.baseSL = Number(this.recipe.system.slTarget) || 1;
   }
 
-  /** Требуемый УУ по правилам: изъяны половинят (каждый), затем +5 за каждое достоинство */
   /** Требуемый УУ: изъяны половинят (каждый), затем +5 за достоинство.
       withUpgrades=false - без качеств, которые станут выбираемыми улучшениями. */
   computedSL({ withUpgrades = true } = {}) {
@@ -136,7 +135,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
 
   _onRender() {
     const root = this.element;
-    root.classList.toggle("rb-theme-dark", game.settings.get(MODULE_ID, "bookTheme") === "dark");
+    root.classList.toggle("rb-theme-dark", isDark());
     const st = this.forge;
     const rerender = () => this.render();
 
@@ -188,16 +187,11 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     this.render();
   }
 
-  /** Выпадающий пикер по базе - общий с книгой (openItemPicker) */
-  async #openForgePicker(anchor, cb) {
-    return openItemPicker(anchor, cb);
-  }
-
   /** Пикер ингредиента для доп. сырья качества */
   static async #onPickExtra(event, target) {
     const key = target.closest(".rb-qrow")?.dataset.key;
     if (!key) return;
-    await this.#openForgePicker(target.closest(".rb-qrow"), (e) => {
+    await openItemPicker(target.closest(".rb-qrow"), (e) => {
       this.forge.qualities[key] = {
         ...(this.forge.qualities[key] ?? { on: true }),
         extraName: e.name, extraImg: e.img, extraUuid: e.uuid
@@ -208,7 +202,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
 
   /** Иконка будущего предмета - с любого предмета базы */
   static async #onPickIcon(event, target) {
-    await this.#openForgePicker(target.closest(".rb-forge-head"), (e) => {
+    await openItemPicker(target.closest(".rb-forge-head"), (e) => {
       this.forge.img = e.img;
       this.render();
     });
@@ -246,7 +240,6 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
 
     const item = await Item.create({ name: st.name.trim(), type: st.type, img: st.img, system });
     if (!item) return;
-
 
     const critQualities = Object.entries(st.critQualities).filter(([, v]) => v.on)
       .map(([name, v]) => ({ name, value: hasValue(name) ? (Number(v.value) || 1) : null }));

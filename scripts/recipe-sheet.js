@@ -2,10 +2,16 @@
    При дропе результата подставляем сложность по доступности, УУ по цене,
    сырьё = 1/4 цены - по правилам «Создание предмета» (стр. 199). */
 
-import { MODULE_ID, FALLBACK_DIFFICULTIES } from "./recipe-model.js";
+import { MODULE_ID, FALLBACK_DIFFICULTIES, difficultyLabel } from "./recipe-model.js";
 import { ItemForgeApp } from "./item-forge.js";
-import { L, F, esc, COIN_VALUE, coinIco, skillNames, itemIndex, openItemPicker, openNamePicker, closeNamePicker, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, norm, COIN_VALUE, coinIco, skillNames, itemIndex, openItemPicker, openNamePicker, closeNamePicker, giveRecipeTo, RecipeBookApp } from "./recipe-book.js";
 import { suggestFromItem } from "./recipe-from-item.js";
+
+/** Апдейт листа может не пройти валидацию модели (часы 0-23, минуты 0-59) - говорим об этом вслух */
+const reportSaveError = (err) => {
+  console.error(`${MODULE_ID} | не удалось сохранить поле рецепта`, err);
+  ui.notifications?.error(L("WFRPRB.Sheet.SaveFailed"));
+};
 
 const RBSheetMixin = foundry.applications.api.HandlebarsApplicationMixin;
 const ItemSheetV2 = foundry.applications.sheets.ItemSheetV2;
@@ -40,7 +46,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
 
   /** Рецепт создан с нуля и ещё ни разу не сохранён */
   get isFresh() {
-    return !!this.document.getFlag?.("wfrp4e-recipe-book", "fresh");
+    return !!this.document.getFlag?.(MODULE_ID, "fresh");
   }
 
   /** Заголовок окна - только имя рецепта (иначе Foundry добавляет тип: «Recipe: Recipe: ...») */
@@ -66,7 +72,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       coinGc: coinIco("gc"), coinSs: coinIco("ss"), coinBp: coinIco("bp"),
       difficulties: Object.keys(game.wfrp4e?.config?.difficultyLabels ?? FALLBACK_DIFFICULTIES).map((k) => ({
         key: k,
-        label: game.wfrp4e?.config?.difficultyLabels?.[k] ? game.i18n.localize(game.wfrp4e.config.difficultyLabels[k]) : game.i18n.localize(FALLBACK_DIFFICULTIES[k]?.label ?? k),
+        label: difficultyLabel(k),
         selected: sys.difficulty === k
       }))
     };
@@ -86,7 +92,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   static async #onSave() {
     if (this.isFresh) {
       // Рецепт создан из книги игрока - спросить, выдать ли его этому игроку
-      const uuid = this.document.getFlag("wfrp4e-recipe-book", "forActor");
+      const uuid = this.document.getFlag(MODULE_ID, "forActor");
       const actor = uuid ? await fromUuid(uuid).catch(() => null) : null;
       if (actor?.hasPlayerOwner) {
         const choice = await foundry.applications.api.DialogV2.wait({
@@ -99,20 +105,10 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
           ]
         }).catch(() => "cancel");
         if (choice === "cancel") return; // вернуться к созданию рецепта
-        if (choice === "give") {
-          const obj = this.document.toObject();
-          delete obj._id;
-          obj.flags ??= {};
-          obj.flags["wfrp4e-recipe-book"] = {
-            ...(obj.flags["wfrp4e-recipe-book"] ?? {}),
-            fresh: false, forActor: undefined, isNew: true, source: this.document.uuid
-          };
-          await actor.createEmbeddedDocuments("Item", [obj]);
-          ui.notifications.info(F("WFRPRB.World.Given", { name: this.document.name, actor: actor.name }));
-        }
+        if (choice === "give") await giveRecipeTo(actor, this.document);
       }
-      await this.document.unsetFlag("wfrp4e-recipe-book", "fresh");
-      await this.document.setFlag("wfrp4e-recipe-book", "isNew", true);
+      await this.document.unsetFlag(MODULE_ID, "fresh");
+      await this.document.setFlag(MODULE_ID, "isNew", true);
     }
     this._snap = null;
     await this.close();
@@ -150,7 +146,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     // полностью НОВЫЙ предмет: uuid пуст, создастся при завершении крафта
     root.querySelector(".rb-result-name")?.addEventListener("change", async (ev) => {
       const name = ev.currentTarget.value.trim();
-      const known = (await itemIndex()).find((i) => i.name.trim().toLowerCase() === name.toLowerCase());
+      const known = (await itemIndex()).find((i) => norm(i.name) === norm(name));
       await this.document.update(known
         ? { "system.result": { ...this.document.system.result, name: known.name, uuid: known.uuid, img: known.img } }
         : { "system.result.name": name, "system.result.uuid": "" });
@@ -162,14 +158,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     }
     // Критический успех: галка, порог, режим, количество (как деньги - пишем сами)
     root.querySelector(".rb-crit-on")?.addEventListener("change", (ev) => {
-      this.document.update({ "system.critEnabled": ev.currentTarget.checked }).then(() => this.#refresh());
+      this.document.update({ "system.critEnabled": ev.currentTarget.checked }).then(() => this.#refresh()).catch(reportSaveError);
     });
     root.querySelector(".rb-crit-sl")?.addEventListener("change", (ev) => {
       this.document.update({ "system.critSL": Math.max(1, Number(ev.currentTarget.value) || 1) });
     });
     for (const [sel, field] of [[".rb-crit-extra", "critExtra"], [".rb-crit-upgrade", "critUpgrade"], [".rb-crit-refund", "critRefund"], [".rb-crit-random", "critRandom"]]) {
       root.querySelector(sel)?.addEventListener("change", (ev) => {
-        this.document.update({ [`system.${field}`]: ev.currentTarget.checked }).then(() => this.#refresh());
+        this.document.update({ [`system.${field}`]: ev.currentTarget.checked }).then(() => this.#refresh()).catch(reportSaveError);
       });
     }
     root.querySelector(".rb-crit-count")?.addEventListener("change", (ev) => {
@@ -180,14 +176,14 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
     for (const [sel, field] of [[".rb-skill-input", "skill"], [".rb-skillalt-input", "skillAlt"]]) {
       const input = root.querySelector(sel);
       if (!input) continue;
-      const save = (value) => this.document.update({ [`system.${field}`]: value.trim() }).then(() => this.#refresh());
+      const save = (value) => this.document.update({ [`system.${field}`]: value.trim() }).then(() => this.#refresh()).catch(reportSaveError);
       const openList = async (query) => {
         this._skillNames ??= await skillNames();
         openNamePicker(input, this._skillNames, (name) => { input.value = name; save(name); }, { query });
       };
       // По клику показываем весь список, фильтруем только при наборе текста
-      input.addEventListener("focus", () => openList(""));
-      input.addEventListener("input", () => openList(input.value));
+      input.addEventListener("focus", () => void openList(""));
+      input.addEventListener("input", () => void openList(input.value));
       input.addEventListener("change", (ev) => save(ev.currentTarget.value));
       input.addEventListener("blur", () => setTimeout(() => closeNamePicker(input), 150));
       input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") closeNamePicker(input); });
@@ -200,7 +196,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       const d = clamp(g(".rb-time-d")?.value, 9999);
       const h = clamp(g(".rb-time-h")?.value, 23);
       const m = clamp(g(".rb-time-m")?.value, 59);
-      this.document.update({ "system.timeDays": d, "system.timeHours": h, "system.timeMinutes": m }).then(() => this.#refresh());
+      this.document.update({ "system.timeDays": d, "system.timeHours": h, "system.timeMinutes": m }).then(() => this.#refresh()).catch(reportSaveError);
     };
     for (const sel of [".rb-time-d", ".rb-time-h", ".rb-time-m"])
       root.querySelector(sel)?.addEventListener("change", syncTime);
@@ -230,7 +226,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       this.#refresh();
     } else if (zone === "tools") {
       const list = [...this.document.system.tools];
-      if (!list.find((t) => t.name === doc.name)) list.push({ uuid: doc.uuid, name: doc.name, img: doc.img });
+      if (!list.find((t) => norm(t.name) === norm(doc.name))) list.push({ uuid: doc.uuid, name: doc.name, img: doc.img });
       await this.document.update({ "system.tools": list });
       this.#refresh();
     } else if (zone === "ingredients") {
@@ -279,7 +275,7 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
       await this.document.update({ "system.ingredients": list });
     } else if (zone === "tools") {
       const list = [...this.document.system.tools];
-      if (!list.find((t) => t.name === entry.name)) list.push({ uuid: entry.uuid, name: entry.name, img: entry.img });
+      if (!list.find((t) => norm(t.name) === norm(entry.name))) list.push({ uuid: entry.uuid, name: entry.name, img: entry.img });
       await this.document.update({ "system.tools": list });
     }
     this.#refresh();
@@ -325,8 +321,8 @@ export class RecipeSheet extends RBSheetMixin(ItemSheetV2) {
   async close(options) {
     // Закрытие крестиком = сохранить: свежий рецепт перестаёт быть «свежим»
     if (!this._deleted && this.isFresh) {
-      await this.document.unsetFlag?.("wfrp4e-recipe-book", "fresh");
-      await this.document.setFlag?.("wfrp4e-recipe-book", "isNew", true);
+      await this.document.unsetFlag?.(MODULE_ID, "fresh");
+      await this.document.setFlag?.(MODULE_ID, "isNew", true);
     }
     this._snap = null;
     this.#closePicker();

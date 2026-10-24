@@ -40,8 +40,26 @@ if (process.argv.includes("--update")) {
   process.exit(0);
 }
 
+/* Ключ с подстановками ({skill}, {name}) нельзя выводить через rbL - в разметку попадёт
+   сам плейсхолдер. Такие ключи обязаны проходить через F() в коде. */
+const lang = JSON.parse(fs.readFileSync(path.join(root, "lang/ru.json"), "utf8"));
+const langValue = (key) => key.split(".").reduce((o, k) => (o == null ? o : o[k]), lang);
+const PLACEHOLDER = /\{[a-zA-Z]\w*\}/;
+let langFailed = false;
+for (const file of fs.readdirSync(path.join(root, "templates"))) {
+  if (!file.endsWith(".hbs")) continue;
+  const src = fs.readFileSync(path.join(root, "templates", file), "utf8");
+  for (const m of src.matchAll(/rbL\s+["']([\w.]+)["']/g)) {
+    const value = langValue(m[1]);
+    if (typeof value === "string" && PLACEHOLDER.test(value)) {
+      langFailed = true;
+      console.log(`FAIL ${file}: ключ ${m[1]} выводится через rbL, но содержит подстановку - собирай строку через F() в коде`);
+    }
+  }
+}
+
 const baseline = fs.existsSync(BASELINE) ? JSON.parse(fs.readFileSync(BASELINE, "utf8")) : {};
-let failed = false;
+let failed = langFailed;
 for (const [file, byRule] of Object.entries(current)) {
   for (const [rule, n] of Object.entries(byRule)) {
     const was = baseline[file]?.[rule] ?? 0;
