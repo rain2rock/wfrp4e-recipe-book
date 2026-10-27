@@ -3,12 +3,21 @@
    требуемый УУ по правилам (изъян - вдвое, достоинство +5, стр. 199), доп. сырьё
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
-import { MODULE_ID } from "./recipe-model.js";
-import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, isDark, RecipeBookApp } from "./recipe-book.js";
+import { MODULE_ID, difficultyLabel } from "./recipe-model.js";
+import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, isDark, availLabel, RecipeBookApp } from "./recipe-book.js";
+import { AVAIL_TO_DIFF } from "./recipe-from-item.js";
+import { EFFECT_PRESETS, buildPotionEffects, donorEffects, effectSummary } from "./item-effects.js";
 
 const { ApplicationV2: ForgeAppBase, HandlebarsApplicationMixin: ForgeMixin } = foundry.applications.api;
 
 const FORGE_TYPES = ["weapon", "armour", "trapping", "ammunition"];
+const AVAIL_KEYS = Object.keys(AVAIL_TO_DIFF);
+
+/** Состояния и характеристики системы - для пресетов эффектов */
+function sysList(key) {
+  return Object.entries(game.wfrp4e?.config?.[key] ?? {}).map(([k, v]) => ({ key: k, label: game.i18n.localize(v) }))
+    .sort((a, b) => a.label.localeCompare(b.label, "ru"));
+}
 
 /** Списки качеств/изъянов по типу предмета - из конфига системы */
 function propLists(type) {
@@ -38,6 +47,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       pickExtra: ItemForgeApp.#onPickExtra,
       selectTab: ItemForgeApp.#onSelectTab,
       pickIcon: ItemForgeApp.#onPickIcon,
+      pickDonor: ItemForgeApp.#onPickDonor,
       forgeCreate: ItemForgeApp.#onCreate
     }
   };
@@ -55,6 +65,7 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       img: `modules/${MODULE_ID}/assets/icons/recipe-default.png`,
       trappingType: "drugsPoisonsHerbsDraughts",
       enc: 0,
+      avail: "common",
       priceGc: 0, priceSs: 0, priceBp: 0,
       qualities: {},   // key -> { on, value, extraName, extraImg, extraUuid, extraCount, extraBp }
       flaws: {},       // key -> { on, value }
@@ -64,7 +75,16 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       failFlawed: false,
       cleanSL: 0,
       failPool: {},    // key -> on (по умолчанию все)
-      tab: "qualities" // активный таб: qualities | flaws | crit | fail
+      // Применяемый предмет: nothing | пресет по правилам | копия эффектов донора
+      effect: {
+        mode: "none",  // none | preset | donor
+        preset: "heal",
+        healType: "tb", healValue: 4,
+        cond: "", condCount: 1,
+        charac: "t", bonus: 10, rounds: 6,
+        donorName: "", donorImg: "", donorUuid: ""
+      },
+      tab: "qualities" // активный таб: qualities | flaws | crit | fail | effect
     };
     this.forge = st;
     this.baseSL = Number(this.recipe.system.slTarget) || 1;
@@ -113,8 +133,30 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
     const critRows = row(qualities, st.critQualities);
 
+    const eff = st.effect;
+    const conditions = sysList("conditions");
+    const characteristics = sysList("characteristics");
+    const condLabel = conditions.find((c) => c.key === eff.cond)?.label ?? "";
+    const characLabel = characteristics.find((c) => c.key === eff.charac)?.label ?? "";
+
     return {
       st,
+      avails: AVAIL_KEYS.map((k) => ({ key: k, label: availLabel(k), selected: st.avail === k })),
+      availDiff: difficultyLabel(AVAIL_TO_DIFF[st.avail]),
+      effect: {
+        ...eff,
+        isPreset: eff.mode === "preset",
+        isDonor: eff.mode === "donor",
+        isHeal: eff.preset === "heal",
+        isCond: eff.preset === "addCondition" || eff.preset === "removeCondition",
+        isBonus: eff.preset === "bonus",
+        healTB: eff.healType === "tb",
+        presets: EFFECT_PRESETS.map((k) => ({ key: k, label: L(`WFRPRB.Effect.Preset.${k}`), selected: eff.preset === k })),
+        conditions: conditions.map((c) => ({ ...c, selected: c.key === eff.cond })),
+        characteristics: characteristics.map((c) => ({ ...c, selected: c.key === eff.charac })),
+        summary: eff.mode === "preset" ? effectSummary(eff, condLabel, characLabel)
+          : eff.mode === "donor" && eff.donorName ? F("WFRPRB.Effect.SumDonor", { name: eff.donorName }) : ""
+      },
       types: FORGE_TYPES.map((t) => ({ key: t, label: L(`WFRPRB.Forge.Type${t === "weapon" ? "Weapon" : t === "armour" ? "Armour" : t === "trapping" ? "Trapping" : "Ammo"}`), selected: st.type === t })),
       trappingTypes: Object.entries(game.wfrp4e?.config?.trappingCategories ?? game.wfrp4e?.config?.trappingTypes ?? {})
         .map(([k, v]) => ({ key: k, label: game.i18n.localize(v), selected: st.trappingType === k })),
@@ -125,7 +167,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
         q: Object.values(st.qualities).filter((x) => x.on).length,
         f: Object.values(st.flaws).filter((x) => x.on).length,
         c: Object.values(st.critQualities).filter((x) => x.on).length,
-        x: (st.failFlawed ? 1 : 0) + (st.cleanSL > 0 ? 1 : 0)
+        x: (st.failFlawed ? 1 : 0) + (st.cleanSL > 0 ? 1 : 0),
+        e: st.effect.mode === "none" ? 0 : 1
       },
       baseSL: this.baseSL,
       prognosis: this.computedSL(),
@@ -147,6 +190,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     root.querySelector(".rb-forge-name")?.addEventListener("change", (ev) => { st.name = ev.currentTarget.value; });
     root.querySelector(".rb-forge-subtype")?.addEventListener("change", (ev) => { st.trappingType = ev.currentTarget.value; });
     root.querySelector(".rb-forge-enc")?.addEventListener("change", (ev) => { st.enc = Math.max(0, Number(ev.currentTarget.value) || 0); });
+    // Доступность задаёт сложность броска по правилам - перерисовываем, чтобы показать её сразу
+    root.querySelector(".rb-forge-avail")?.addEventListener("change", (ev) => { st.avail = ev.currentTarget.value; rerender(); });
     for (const [sel, field] of [[".rb-forge-gc", "priceGc"], [".rb-forge-ss", "priceSs"], [".rb-forge-pbp", "priceBp"]]) {
       root.querySelector(sel)?.addEventListener("change", (ev) => { st[field] = Math.max(0, Number(ev.currentTarget.value) || 0); });
     }
@@ -178,6 +223,18 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     }
     root.querySelector(".rb-forge-critmode")?.addEventListener("change", (ev) => { st.critMode = ev.currentTarget.value; });
     root.querySelector(".rb-forge-critsl")?.addEventListener("change", (ev) => { st.critSL = Math.max(1, Number(ev.currentTarget.value) || 1); });
+    // Вкладка «Эффект»
+    const eff = st.effect;
+    root.querySelector(".rb-eff-mode")?.addEventListener("change", (ev) => { eff.mode = ev.currentTarget.value; rerender(); });
+    root.querySelector(".rb-eff-preset")?.addEventListener("change", (ev) => { eff.preset = ev.currentTarget.value; rerender(); });
+    root.querySelector(".rb-eff-healtype")?.addEventListener("change", (ev) => { eff.healType = ev.currentTarget.value; rerender(); });
+    root.querySelector(".rb-eff-healvalue")?.addEventListener("change", (ev) => { eff.healValue = Math.max(1, Number(ev.currentTarget.value) || 1); rerender(); });
+    root.querySelector(".rb-eff-cond")?.addEventListener("change", (ev) => { eff.cond = ev.currentTarget.value; rerender(); });
+    root.querySelector(".rb-eff-condcount")?.addEventListener("change", (ev) => { eff.condCount = Math.max(1, Number(ev.currentTarget.value) || 1); rerender(); });
+    root.querySelector(".rb-eff-charac")?.addEventListener("change", (ev) => { eff.charac = ev.currentTarget.value; rerender(); });
+    root.querySelector(".rb-eff-bonus")?.addEventListener("change", (ev) => { eff.bonus = Number(ev.currentTarget.value) || 0; rerender(); });
+    root.querySelector(".rb-eff-rounds")?.addEventListener("change", (ev) => { eff.rounds = Math.max(1, Number(ev.currentTarget.value) || 1); rerender(); });
+
     root.querySelector(".rb-forge-failflawed")?.addEventListener("change", (ev) => { st.failFlawed = ev.currentTarget.checked; rerender(); });
     root.querySelector(".rb-forge-cleansl")?.addEventListener("change", (ev) => { st.cleanSL = Math.max(0, Number(ev.currentTarget.value) || 0); rerender(); });
   }
@@ -196,6 +253,14 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
         ...(this.forge.qualities[key] ?? { on: true }),
         extraName: e.name, extraImg: e.img, extraUuid: e.uuid
       };
+      this.render();
+    });
+  }
+
+  /** Предмет-донор: забираем его эффекты как есть */
+  static async #onPickDonor(event, target) {
+    await openItemPicker(target.closest(".rb-field"), (e) => {
+      Object.assign(this.forge.effect, { donorName: e.name, donorImg: e.img, donorUuid: e.uuid });
       this.render();
     });
   }
@@ -232,13 +297,19 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       quantity: { value: 1 },
       encumbrance: { value: Number(st.enc) || 0 },
       price: { gc: Number(st.priceGc) || 0, ss: Number(st.priceSs) || 0, bp: Number(st.priceBp) || 0 },
-      availability: { value: "common" },
+      availability: { value: st.avail },
       qualities: { value: qualities },
       flaws: { value: flaws }
     };
     if (st.type === "trapping") system.trappingType = { value: st.trappingType };
 
-    const item = await Item.create({ name: st.name.trim(), type: st.type, img: st.img, system });
+    // Применяемый предмет: два эффекта по контракту системы (docs/wfrp4e-effects.md)
+    const name = st.name.trim();
+    let effects = [];
+    if (st.effect.mode === "preset") effects = buildPotionEffects(st.effect, { name, img: st.img });
+    else if (st.effect.mode === "donor") effects = await donorEffects(st.effect.donorUuid);
+
+    const item = await Item.create({ name, type: st.type, img: st.img, system, effects });
     if (!item) return;
 
     const critQualities = Object.entries(st.critQualities).filter(([, v]) => v.on)
@@ -251,6 +322,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       name: F("WFRPRB.Sheet.DefaultName", { name: item.name }),
       "system.result": { uuid: item.uuid, name: item.name, img: item.img, count: this.recipe.system.result.count || 1 },
       "system.slTarget": this.computedSL({ withUpgrades: false }),
+      // Сложность идёт из доступности по правилам, иначе ГМ молча получил бы не ту проверку
+      "system.difficulty": AVAIL_TO_DIFF[st.avail] ?? "challenging",
       "system.upgrades": upgrades,
       "system.critEnabled": this.recipe.system.critEnabled || critQualities.length > 0,
       "system.critSL": st.critSL,

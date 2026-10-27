@@ -5,7 +5,8 @@
 import { MODULE_ID, RECIPE_TYPE } from "./recipe-model.js";
 import { norm, L, F, priceBp, COIN_VALUE, RecipeBookApp } from "./recipe-book.js";
 
-const AVAIL_TO_DIFF = { common: "average", scarce: "challenging", rare: "difficult", exotic: "veryHard" };
+/** Доступность -> сложность броска по правилам (стр. 199). Общий источник для мастера и рецепта. */
+export const AVAIL_TO_DIFF = { common: "average", scarce: "challenging", rare: "difficult", exotic: "veryHard" };
 
 /** Типы, из которых осмысленно делать рецепт (всё физическое, что можно изготовить) */
 const CRAFTABLE = ["weapon", "armour", "trapping", "ammunition", "container"];

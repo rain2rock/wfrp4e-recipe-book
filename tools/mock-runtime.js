@@ -236,6 +236,9 @@
       this.folder = data.folder ?? null;   // в Foundry это поле документа
       this.system = structuredClone(data.system ?? {});
       this.flags = structuredClone(data.flags ?? {});
+      // Эффекты в Foundry - вложенная коллекция; для мока достаточно массива данных,
+      // применение эффектов эмулировать НЕ надо - это делает система
+      this.effects = structuredClone(data.effects ?? []);
     }
     get uuid() { return this.parent ? `Actor.${this.parent.id}.Item.${this.id}` : `Item.${this.id}`; }
     get actor() { return this.parent; }
@@ -262,7 +265,7 @@
       return this;
     }
     toObject() {
-      return JSON.parse(JSON.stringify({ name: this.name, type: this.type, img: this.img, system: this.system, flags: this.flags }));
+      return JSON.parse(JSON.stringify({ name: this.name, type: this.type, img: this.img, system: this.system, flags: this.flags, effects: this.effects ?? [] }));
     }
     async update(changes) {
       for (const [k, v] of Object.entries(flatten(changes))) setPath(this, k, v);
@@ -373,7 +376,8 @@
       type: data.type ?? "trapping",
       img: data.img ?? window.__RB_ICON__?.(data.name, data.type) ?? "",
       system: data.system ?? { quantity: { value: 1 } },
-      toObject() { return JSON.parse(JSON.stringify({ name: this.name, type: this.type, img: this.img, system: this.system })); },
+      effects: data.effects ?? [],
+      toObject() { return JSON.parse(JSON.stringify({ name: this.name, type: this.type, img: this.img, system: this.system, effects: this.effects ?? [] })); },
       sheet: { render: () => toast(`В Foundry тут откроется «${data.name}»`, "info") }
     };
     window.__RB_worldItems__.push(obj);

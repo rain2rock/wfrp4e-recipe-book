@@ -15,6 +15,9 @@
           <label class="rb-coinfield">{{{coinSs}}}<input type="number" class="rb-num rb-forge-ss" value="{{st.priceSs}}" min="0"></label>
           <label class="rb-coinfield">{{{coinBp}}}<input type="number" class="rb-num rb-forge-pbp" value="{{st.priceBp}}" min="0"></label>
         </span></div>
+      <div class="rb-field"><label>{{rbL "WFRPRB.Tip.Avail"}}</label>
+        <select class="rb-forge-avail" data-rb-tip="{{rbL 'WFRPRB.Forge.AvailTip'}}">{{#each avails}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+        <span class="rb-dim rb-forge-availdiff">{{availDiff}}</span></div>
       <div class="rb-field"><label>{{rbL "WFRPRB.Forge.Type"}}</label>
         <select class="rb-forge-type">{{#each types}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
       {{#if isTrapping}}
@@ -33,6 +36,8 @@
       {{rbL "WFRPRB.Forge.TabCrit"}}{{#if counts.c}}<span class="rb-tab-count">{{counts.c}}</span>{{/if}}</button>
     <button type="button" class="rb-tab {{#if (eq st.tab 'fail')}}is-active{{/if}}" data-action="selectTab" data-tab="fail">
       {{rbL "WFRPRB.Forge.TabFail"}}{{#if counts.x}}<span class="rb-tab-count">{{counts.x}}</span>{{/if}}</button>
+    <button type="button" class="rb-tab {{#if (eq st.tab 'effect')}}is-active{{/if}}" data-action="selectTab" data-tab="effect">
+      {{rbL "WFRPRB.Forge.TabEffect"}}{{#if counts.e}}<span class="rb-tab-count">{{counts.e}}</span>{{/if}}</button>
   </nav>
 
   {{#if (eq st.tab "qualities")}}
@@ -102,6 +107,62 @@
         </div>
       {{/each}}
     {{/if}}
+  </section>
+  {{/if}}
+  {{#if (eq st.tab "effect")}}
+  <section class="rb-block rb-eff-block">
+    <div class="rb-dim rb-forge-tabnote">{{rbL "WFRPRB.Effect.Note"}}</div>
+    <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Mode"}}</label>
+      <select class="rb-eff-mode">
+        <option value="none" {{#if (eq effect.mode "none")}}selected{{/if}}>{{rbL "WFRPRB.Effect.ModeNone"}}</option>
+        <option value="preset" {{#if (eq effect.mode "preset")}}selected{{/if}}>{{rbL "WFRPRB.Effect.ModePreset"}}</option>
+        <option value="donor" {{#if (eq effect.mode "donor")}}selected{{/if}}>{{rbL "WFRPRB.Effect.ModeDonor"}}</option>
+      </select></div>
+
+    {{#if effect.isPreset}}
+      <div class="rb-field"><label>{{rbL "WFRPRB.Effect.PresetLabel"}}</label>
+        <select class="rb-eff-preset">{{#each effect.presets}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+
+      {{#if effect.isHeal}}
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.HealHow"}}</label>
+          <select class="rb-eff-healtype">
+            <option value="tb" {{#if effect.healTB}}selected{{/if}}>{{rbL "WFRPRB.Effect.HealTB"}}</option>
+            <option value="fixed" {{#unless effect.healTB}}selected{{/unless}}>{{rbL "WFRPRB.Effect.HealFixed"}}</option>
+          </select></div>
+        {{#unless effect.healTB}}
+          <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Wounds"}}</label>
+            <input type="number" class="rb-num rb-eff-healvalue" value="{{effect.healValue}}" min="1"></div>
+        {{/unless}}
+      {{/if}}
+
+      {{#if effect.isCond}}
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Condition"}}</label>
+          <select class="rb-eff-cond">
+            <option value="">{{rbL "WFRPRB.Effect.PickCondition"}}</option>
+            {{#each effect.conditions}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+          </select></div>
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Count"}}</label>
+          <input type="number" class="rb-num rb-num--s rb-eff-condcount" value="{{effect.condCount}}" min="1"></div>
+      {{/if}}
+
+      {{#if effect.isBonus}}
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Characteristic"}}</label>
+          <select class="rb-eff-charac">{{#each effect.characteristics}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select></div>
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Bonus"}}</label>
+          <input type="number" class="rb-num rb-num--s rb-eff-bonus" value="{{effect.bonus}}" step="5"></div>
+        <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Rounds"}}</label>
+          <input type="number" class="rb-num rb-num--s rb-eff-rounds" value="{{effect.rounds}}" min="1"></div>
+      {{/if}}
+    {{/if}}
+
+    {{#if effect.isDonor}}
+      <div class="rb-field"><label>{{rbL "WFRPRB.Effect.Donor"}}</label>
+        <button type="button" class="rb-btn rb-btn--quiet rb-eff-donor" data-action="pickDonor" data-rb-tip="{{rbL 'WFRPRB.Effect.DonorTip'}}">
+          {{#if effect.donorImg}}<img src="{{effect.donorImg}}" alt="">{{/if}}{{#if effect.donorName}}{{effect.donorName}}{{else}}+ {{rbL "WFRPRB.Effect.PickDonor"}}{{/if}}
+        </button></div>
+    {{/if}}
+
+    {{#if effect.summary}}<div class="rb-row rb-eff-summary">{{effect.summary}}</div>{{/if}}
   </section>
   {{/if}}
   </div>

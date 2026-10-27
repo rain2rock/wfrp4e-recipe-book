@@ -264,6 +264,31 @@ export function isDark() {
   return game.settings.get(MODULE_ID, "bookTheme") === "dark";
 }
 
+/* ---------- Таланты аптекаря (стр. 143) ----------
+   «Фармацевт» (Pharmacist) - проваленную проверку ремесла (аптекарь) можно перевернуть.
+   «Походный рецепт» (Concoct) - затея аптекаря не требует мастерской.
+   ВАЖНО: в русской книге из-за вёрстки колонок заголовок «Поспешное бегство» (Flee!, бег)
+   стоит рядом с текстом «Походного рецепта» - на бегство эти правила НЕ распространяются. */
+const APOTHECARY_RE = /аптекар|apothecar/;
+/* Специализация в скобках не мешает: «Фармацевт (травы)» тоже считается.
+   \b тут нельзя - в JS граница слова считается по латинице и на кириллице не срабатывает. */
+const TALENT_RE = {
+  pharmacist: /^(фармацевт|pharmacist)(\s|\(|$)/,
+  concoct: /^(походный рецепт|concoct)(\s|\(|$)/
+};
+
+/** Какие из талантов аптекаря есть у персонажа (только для ремесла (аптекарь)) */
+function apothecaryTalents(skillName, idx) {
+  const none = { pharmacist: false, concoct: false };
+  if (!APOTHECARY_RE.test(norm(skillName))) return none;
+  const out = { ...none };
+  for (const t of idx.talents) {
+    const n = norm(t.name);
+    for (const key of Object.keys(TALENT_RE)) if (TALENT_RE[key].test(n)) out[key] = true;
+  }
+  return out;
+}
+
 /** ГМ-интерфейс показывается, если пользователь ГМ и не включил «вид игрока» */
 export function isGMView() {
   return !!game.user.isGM && !game.settings.get(MODULE_ID, "playerView");
@@ -279,6 +304,7 @@ export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
   const skillUsed = skillItem ? skillItem.name : sys.skill;
   const skillTotal = skillItem ? Number(skillItem.system.total?.value) || 0 : 0;
   const mod = difficultyMod(sys.difficulty);
+  const talents = apothecaryTalents(skillUsed, inv);
   const talent = Math.min(craftsmanLevels(actor, skillUsed, inv), Math.max(slBase - 1, 0));
   const slTarget = Math.max(slBase - talent, 1);
   // Ингредиенты рецепта + ингредиенты выбранных улучшений (одинаковые складываются)
@@ -310,7 +336,7 @@ export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
   const base = !!skillItem && ingredients.every((i) => i.ok) && tools.every((t) => t.ok);
   return {
     skillItem, skillUsed, skillTotal, mod, target: skillTotal + mod,
-    slTarget, talent, ingredients, tools, moneyOk, haveBp, costBp, ups, missing,
+    slTarget, talent, talents, ingredients, tools, moneyOk, haveBp, costBp, ups, missing,
     ready: base && (moneyOk || !countMoney),
     canStart: base && moneyOk
   };
@@ -1229,6 +1255,9 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           })() : "",
           slTip: F("WFRPRB.Tip.SL", { target: st.slTarget }) + (st.talent ? "\n· " + L("WFRPRB.Tip.Talent") : ""),
           needsWorkshop: r.system.needsWorkshop,
+          // Талант снимает требование мастерской - показываем это прямо в строке условия
+          noWorkshopNeeded: r.system.needsWorkshop && st.talents.concoct,
+          pharmacist: st.talents.pharmacist,
           tools: await Promise.all(st.tools.map(async (t) => ({
             ...t,
             tt: await this._itemTip(t.name, t.uuid, t.img, statusActor)

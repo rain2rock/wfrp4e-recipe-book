@@ -1,6 +1,12 @@
 /* Тестовые данные мока: конфиг системы, персонаж «Хьюго», мировые предметы-результаты. */
 
 export const CONFIG_WFRP = {
+  // Состояния и характеристики - для пресетов эффектов в мастере
+  conditions: { bleeding: "Кровотечение", poisoned: "Отравление", stunned: "Оглушение",
+    fatigued: "Усталость", blinded: "Слепота", prone: "Ничком" },
+  characteristics: { ws: "Ближний бой", bs: "Стрельба", s: "Сила", t: "Выносливость",
+    i: "Инициатива", ag: "Ловкость", dex: "Хватка", int: "Интеллект", wp: "Сила воли", fel: "Харизма" },
+  availability: { common: "Распространённый", scarce: "Редкий", rare: "Раритетный", exotic: "Экзотический" },
   itemQualities: { durable: "Прочный", fine: "Красивый", lightweight: "Облегчённый", practical: "Практичный" },
   itemFlaws: { ugly: "Некрасивый", shoddy: "Хлипкий", unreliable: "Неудобный", bulky: "Громоздкий" },
   weaponQualities: { accurate: "Точное", damaging: "Грозное", defensive: "Защитное", fast: "Быстрое", hack: "Разрубающее", impale: "Пронзающее" },
@@ -44,6 +50,18 @@ export const CONFIG_WFRP = {
 
 /** Мировые предметы-результаты и ингредиенты (для fromUuid и выдачи результата) */
 export const WORLD_ITEMS = [
+  // Донор для мастера: настоящее зелье с двумя эффектами (кнопка + нагрузка), как в системе
+  { id: "res-panacea", name: "Панацея универсалис", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/healing-draught.png",
+    system: { trappingType: { value: "drugsPoisonsHerbsDraughts" }, quantity: { value: 1 }, price: { gc: 5, ss: 0, bp: 0 },
+      availability: { value: "rare" }, description: { value: '<p>Снадобье, о котором спорят все аптекари Империи.</p>' } },
+    effects: [
+      { name: "Панацея универсалис", type: "base", disabled: false, changes: [],
+        system: { transferData: { type: "target", documentType: "Actor" },
+          scriptData: [{ label: "Панацея универсалис", trigger: "immediate", script: "this.actor.modifyWounds(this.actor.system.characteristics.t.bonus);", options: { deleteEffect: true } }] } },
+      { name: "Применить: Панацея универсалис", type: "base", disabled: false, changes: [],
+        system: { transferData: { type: "document", documentType: "Item" },
+          scriptData: [{ label: "@effect.name", trigger: "manual", script: "this.item.system.reduceQuantity();" }] } }
+    ] },
   { id: "res-blade", name: "Гномий клинок", type: "weapon", img: "modules/wfrp4e-recipe-book/assets/icons/hand-weapon.png", system: { quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Короткий клинок гномьей ковки: без узоров, зато переживёт хозяина.</p>' } } },
   { id: "ing-mithril", name: "Слиток мифрила", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 2, ss: 0, bp: 0 }, availability: { value: "rare" }, description: { value: '<p>Светлый, звонкий и непривычно лёгкий слиток. Гномы о таком не распространяются.</p>' } } },
   { id: "tool-still", name: "Перегонный куб", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/glass-vial.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Медный куб со змеевиком. Гордость любой алхимической мастерской.</p>' } } },
@@ -169,6 +187,8 @@ export const ACTOR = {
     { id: "sk-moonshine", name: "Ремесло (Самогонщик)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 3 } } },
     { id: "sk-smith", name: "Ремесло (Кузнец)", type: "skill", system: { characteristic: { value: "dex" }, advances: { value: 8 } } },
     { id: "tal-master", name: "Мастер своего дела (Ремесло (Аптекарь))", type: "talent", system: { advances: { value: 2 } } },
+    { id: "tal-pharm", name: "Фармацевт", type: "talent", system: { advances: { value: 1 } } },
+    { id: "tal-concoct", name: "Походный рецепт", type: "talent", system: { advances: { value: 1 } } },
     { id: "coin-gc", name: "Золотая крона", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#e0b020" stroke="#8a6408" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 240 }, quantity: { value: 2 } } },
     { id: "coin-ss", name: "Серебряный шиллинг", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#c8ccd0" stroke="#6e7378" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 12 }, quantity: { value: 8 } } },
     { id: "coin-bp", name: "Медное пенни", type: "money", img: "data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><circle cx="12" cy="12" r="10" fill="#c07a38" stroke="#6a3a12" stroke-width="2"/><circle cx="9" cy="9" r="3.5" fill="#fff" opacity=".35"/></svg>'), system: { coinValue: { value: 1 }, quantity: { value: 6 } } },

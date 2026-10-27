@@ -245,3 +245,9 @@
 .rb-welcome-steps { margin: var(--rb-space-2) 0 0; padding-left: var(--rb-space-7); }
 .rb-welcome-steps li { margin-bottom: 3px; }
 .rb-welcome-foot { margin-top: var(--rb-space-2); font-size: var(--rb-fs-m); opacity: 0.75; font-style: italic; }
+
+/* Доступность в мастере: подпись сложности рядом, но список не ужимается под неё */
+.wfrp-recipe-book .rb-forge-availdiff { flex: 0 0 auto; white-space: nowrap; font-size: var(--rb-fs-s); }
+.wfrp-recipe-book .rb-field select.rb-forge-avail { flex: 1 1 auto; }
+/* Сводка будущего эффекта - итог вкладки, выделяем как значимую строку */
+.wfrp-recipe-book .rb-eff-summary { font-weight: 600; }

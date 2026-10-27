@@ -285,7 +285,9 @@
       "FailNote": "What happens when the work goes poorly.",
       "TabCrit": "Crit",
       "TabFail": "Failure",
-      "Replace": "Replace icon"
+      "Replace": "Replace icon",
+      "TabEffect": "Effect",
+      "AvailTip": "Availability sets the test difficulty by the rules (p. 199)."
     },
     "Target": "d100 roll target",
     "NoSkillShort": "no skill",
@@ -335,6 +337,48 @@
       "Step2": "Your own recipe: the «Create recipe» button in an item sheet header, or «+ New recipe» in the book.",
       "Step3": "Give a recipe to a character - they open the book with B or the button on their sheet.",
       "Foot": "Shown once. To repeat: api.showWelcome() in the console."
+    },
+    "Talent": {
+      "Pharmacist": "Pharmacist",
+      "PharmacistShort": "a failed test can be reversed",
+      "PharmacistTip": "Pharmacist talent\nA failed Trade (Apothecary) test may be reversed if that turns it into a success.\n~ The reversal is done in the system roll dialog.",
+      "ConcoctShort": "not needed - Concoct",
+      "ConcoctTip": "Concoct talent\nAn apothecary endeavour needs no workshop - potions are mixed on the move.\n~ The benefit covers one endeavour."
+    },
+    "Effect": {
+      "ApplyName": "Apply: {name}",
+      "NoneLeft": "None left",
+      "Note": "The item becomes usable: a button appears on the character sheet, spends one unit and applies the effect. The roll and the effect itself are handled by the system.",
+      "Mode": "Use",
+      "ModeNone": "No effect",
+      "ModePreset": "Ready-made effect",
+      "ModeDonor": "Same as another item",
+      "PresetLabel": "What it does",
+      "Preset": {
+        "heal": "Heals wounds",
+        "addCondition": "Applies a condition",
+        "removeCondition": "Removes a condition",
+        "bonus": "Temporary characteristic bonus"
+      },
+      "HealHow": "How much it heals",
+      "HealTB": "Toughness Bonus",
+      "HealFixed": "Exact number",
+      "Wounds": "Wounds",
+      "Condition": "Condition",
+      "PickCondition": "Pick a condition...",
+      "Count": "Count",
+      "Characteristic": "Characteristic",
+      "Bonus": "Bonus",
+      "Rounds": "Rounds",
+      "Donor": "Donor item",
+      "PickDonor": "Pick an item",
+      "DonorTip": "Effects will be copied from the chosen item as they are.\n~ Use it when the world already has a working potion.",
+      "SumHealTB": "Heals wounds equal to Toughness Bonus",
+      "SumHealFixed": "Heals {n} wounds",
+      "SumAddCond": "Applies condition «{cond}» ×{n}",
+      "SumRemoveCond": "Removes condition «{cond}» ×{n}",
+      "SumBonus": "{charac} {n} for {rounds} rounds",
+      "SumDonor": "Effects as in «{name}»"
     }
   }
 }

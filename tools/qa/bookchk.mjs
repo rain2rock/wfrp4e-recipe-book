@@ -43,6 +43,23 @@ ok((await $(".rb-entry:not(.rb-project)").count()) === 6, "в списке 6 р�
 ok((await $(".rb-group-title").count()) >= 3, "рецепты сгруппированы по ремёслам");
 const readyNames = await $(".rb-entry.rb-ready .rb-entry-name").allTextContents();
 ok(readyNames.length === 4, "подсвечено 4 доступных", `(${readyNames.join("; ")})`);
+
+/* --- Таланты аптекаря (стр. 143): подсказки в развороте рецепта --- */
+await $(".rb-entry:not(.rb-project)").first().click();
+await page.waitForTimeout(150);
+const talentRow = await page.evaluate(() => {
+  const row = document.querySelector(".rb-talent");
+  const ws = [...document.querySelectorAll(".rb-ing")].find((r) => r.textContent.includes("Мастерская"));
+  return {
+    pharmacist: row?.textContent.includes("Фармацевт") ?? false,
+    tip: row?.dataset.rbTip ?? "",
+    workshopOk: ws?.classList.contains("is-ok") ?? null,
+    workshopText: ws?.textContent ?? ""
+  };
+});
+ok(talentRow.pharmacist && talentRow.tip.includes("перевернуть"),
+  "у аптекаря с «Фармацевтом» в развороте есть подсказка про переворот провала", JSON.stringify(talentRow));
+
 ok(readyNames.some((n) => n.includes("Лечебная настойка")), "настойка подсвечена");
 ok(!readyNames.some((n) => n.includes("Кинжал")), "кинжал без навыка не подсвечен");
 ok(!readyNames.some((n) => n.includes("Противоядие")), "противоядие без мандрагоры не подсвечено");
@@ -853,7 +870,7 @@ const cbSize = await page.evaluate((f) => {
 }, forge);
 ok(cbSize > 0 && cbSize <= 18, "чекбоксы прижаты против скина ядра", `(${cbSize}px)`);
 /* табы и каунтеры */
-ok((await $(`${forge} .rb-tab`).count()) === 4, "мастер разбит на 4 таба");
+ok((await $(`${forge} .rb-tab`).count()) === 5, "мастер разбит на 5 табов");
 ok((await $(`${forge} .rb-forge-replace`).count()) === 1, "у иконки есть оверлей «Заменить»");
 await page.focus(`${forge} .rb-forge-name`);
 await page.waitForTimeout(100);
@@ -909,6 +926,9 @@ await page.fill(`${forge} .rb-forge-cleansl`, "2");
 await page.evaluate((f) => document.querySelector(`${f} .rb-forge-cleansl`).dispatchEvent(new Event("change")), forge);
 await page.waitForTimeout(150);
 ok((await text(`${forge} [data-tab='fail'] .rb-tab-count`)) === "2", "каунтер на табе провала: 2 (брак + порог)");
+await page.selectOption(`${forge} .rb-forge-avail`, "rare");
+await page.waitForTimeout(150);
+ok((await text(`${forge} .rb-forge-availdiff`)).length > 0, "рядом с доступностью видно, какая будет сложность");
 await page.click(`${forge} [data-action='forgeCreate']`);
 await page.waitForTimeout(250);
 const forged = await page.evaluate((rid) => {
@@ -936,6 +956,109 @@ ok(forged.slTarget === 5 && forged.upSl === 5 && forged.upIng === 2 && forged.up
   "улучшение записано: +5 УУ за мандрагору ×2 и 12 пенни", JSON.stringify(forged));
 ok(forged.critQ === "damaging" && forged.failFlawed && forged.cleanSL === 2 && forged.pool > 0 && forged.linked,
   "крит-качества и правила брака записаны, результат привязан");
+
+/* доступность: задаёт и поле предмета, и сложность рецепта по правилам */
+const availCheck = await page.evaluate((rid) => {
+  const item = game.items.find((i) => i.name === "Пробный меч");
+  const r = game.items.find((i) => i.id === rid);
+  return { avail: item?.system.availability?.value, diff: r.system.difficulty };
+}, forgeRec);
+ok(availCheck.avail === "rare" && availCheck.diff === "difficult",
+  "доступность из мастера записана в предмет и дала сложность рецепта", JSON.stringify(availCheck));
+
+/* --- Применяемые зелья: пресет и копия с донора (docs/wfrp4e-effects.md) --- */
+const potionRec = await page.evaluate(async () => {
+  const r = await Item.create({ name: "Рецепт зелья", type: "wfrp4e-recipe-book.recipe", img: "" });
+  r.sheet.render(true);
+  return r.id;
+});
+await page.waitForTimeout(200);
+await page.click(`#rb-sheet-${potionRec} [data-action='openForge']`);
+await page.waitForTimeout(200);
+const pf = `#rb-forge-${potionRec}`;
+await page.fill(`${pf} .rb-forge-name`, "Лечебное зелье");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-name`).dispatchEvent(new Event("change")), pf);
+await page.selectOption(`${pf} .rb-forge-type`, "trapping");
+await page.waitForTimeout(150);
+await page.click(`${pf} [data-tab='effect']`);
+await page.waitForTimeout(150);
+ok((await $(`${pf} .rb-eff-mode`).count()) === 1, "в мастере есть вкладка «Эффект»");
+await page.selectOption(`${pf} .rb-eff-mode`, "preset");
+await page.waitForTimeout(150);
+await page.selectOption(`${pf} .rb-eff-preset`, "heal");
+await page.waitForTimeout(150);
+ok((await text(`${pf} .rb-eff-summary`)).length > 0, "мастер показывает, что получится");
+ok((await text(`${pf} [data-tab='effect'] .rb-tab-count`)) === "1", "каунтер на табе эффекта");
+await page.click(`${pf} [data-action='forgeCreate']`);
+await page.waitForTimeout(250);
+const potion = await page.evaluate(() => {
+  const it = game.items.find((i) => i.name === "Лечебное зелье");
+  const eff = it?.effects ?? [];
+  const load = eff[0], apply = eff[1];
+  return {
+    count: eff.length,
+    sub: it?.system.trappingType?.value,
+    loadType: load?.system?.transferData?.type,
+    loadTrigger: load?.system?.scriptData?.[0]?.trigger,
+    loadScript: load?.system?.scriptData?.[0]?.script ?? "",
+    loadOnce: load?.system?.scriptData?.[0]?.options?.deleteEffect,
+    applyType: apply?.system?.transferData?.type,
+    applyDoc: apply?.system?.transferData?.documentType,
+    applyTrigger: apply?.system?.scriptData?.[0]?.trigger,
+    applyScript: apply?.system?.scriptData?.[0]?.script ?? "",
+    baseType: eff.every((e) => e.type === "base"),
+    noStatuses: eff.every((e) => !e.statuses?.length)
+  };
+});
+ok(potion.count === 2 && potion.baseType && potion.noStatuses,
+  "у зелья два эффекта типа base и без statuses (иначе система вырежет их в условия)", JSON.stringify(potion));
+ok(potion.loadType === "target" && potion.loadTrigger === "immediate" && potion.loadOnce === true &&
+   potion.loadScript.includes("modifyWounds"),
+  "нагрузка: target + immediate, лечит раны и исчезает после срабатывания", JSON.stringify(potion));
+ok(potion.applyType === "document" && potion.applyDoc === "Item" && potion.applyTrigger === "manual" &&
+   potion.applyScript.includes("reduceQuantity") && potion.applyScript.includes("applyEffect"),
+  "кнопка: document/Item + manual, тратит штуку и применяет нагрузку", JSON.stringify(potion));
+ok(potion.sub === "drugsPoisonsHerbsDraughts", "подтип зелья - снадобья", String(potion.sub));
+
+/* донор: эффекты копируются как есть */
+const donorRec = await page.evaluate(async () => {
+  const r = await Item.create({ name: "Рецепт панацеи", type: "wfrp4e-recipe-book.recipe", img: "" });
+  r.sheet.render(true);
+  return r.id;
+});
+await page.waitForTimeout(200);
+await page.click(`#rb-sheet-${donorRec} [data-action='openForge']`);
+await page.waitForTimeout(200);
+const df = `#rb-forge-${donorRec}`;
+await page.fill(`${df} .rb-forge-name`, "Копия панацеи");
+await page.evaluate((f) => document.querySelector(`${f} .rb-forge-name`).dispatchEvent(new Event("change")), df);
+await page.click(`${df} [data-tab='effect']`);
+await page.waitForTimeout(150);
+await page.selectOption(`${df} .rb-eff-mode`, "donor");
+await page.waitForTimeout(150);
+await page.click(`${df} [data-action='pickDonor']`);
+await page.waitForTimeout(150);
+await page.fill(`${df} .rb-picker-search`, "панацея");
+await page.waitForTimeout(150);
+await page.click(`${df} .rb-picker-row`);
+await page.waitForTimeout(200);
+await page.click(`${df} [data-action='forgeCreate']`);
+await page.waitForTimeout(250);
+const copied = await page.evaluate(() => {
+  const src = __RB_worldItems__.find((i) => i.name === "Панацея универсалис");
+  const it = game.items.find((i) => i.name === "Копия панацеи");
+  return {
+    n: it?.effects?.length ?? 0, src: src?.effects?.length ?? 0,
+    sameTrigger: it?.effects?.[1]?.system?.scriptData?.[0]?.trigger,
+    noId: (it?.effects ?? []).every((e) => !e._id)
+  };
+});
+ok(copied.n === copied.src && copied.n > 0 && copied.sameTrigger === "manual" && copied.noId,
+  "эффекты донора скопированы целиком и без идентификаторов", JSON.stringify(copied));
+await page.evaluate(() => {
+  for (const el of document.querySelectorAll("[id^='rb-sheet-'],[id^='rb-forge-']")) el.remove();
+});
+
 await page.evaluate(() => {
   for (const el of document.querySelectorAll("[id^='rb-sheet-'],[id^='rb-forge-']")) el.querySelector("[data-mock-close]")?.click();
 });

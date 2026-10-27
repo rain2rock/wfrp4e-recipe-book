@@ -133,6 +133,12 @@
             <span>{{rbL "WFRPRB.Target"}}</span>
             <span class="rb-target-num">{{#if detail.hasSkill}}{{detail.target}}{{else}}—{{/if}}</span>
           </div>
+          {{#if detail.pharmacist}}
+            <div class="rb-row rb-talent" data-rb-tip="{{rbL 'WFRPRB.Talent.PharmacistTip'}}">
+              <span><i class="fa-solid fa-mortar-pestle"></i> {{rbL "WFRPRB.Talent.Pharmacist"}}</span>
+              <span class="rb-dim">{{rbL "WFRPRB.Talent.PharmacistShort"}}</span>
+            </div>
+          {{/if}}
           <div class="rb-row rb-dim" data-rb-tip="{{detail.checkTip}}">
             <span>{{detail.skillUsed}}{{#if detail.skillAlt}} / {{detail.skillAlt}}{{/if}}</span>
             <span>{{#if detail.hasSkill}}{{detail.skillTotal}} · {{detail.diffLabel}}{{else}}{{rbL "WFRPRB.NoSkillShort"}}{{/if}}</span>
@@ -211,8 +217,10 @@
             </div>
           {{/each}}
           {{#if detail.needsWorkshop}}
-            <div class="rb-row rb-ing" data-rb-tip="{{rbL 'WFRPRB.Tip.Workshop'}}">
+            <div class="rb-row rb-ing {{#if detail.noWorkshopNeeded}}is-ok{{/if}}"
+              data-rb-tip="{{#if detail.noWorkshopNeeded}}{{rbL 'WFRPRB.Talent.ConcoctTip'}}{{else}}{{rbL 'WFRPRB.Tip.Workshop'}}{{/if}}">
               <span class="rb-ing-name"><span class="rb-ing-ico"><i class="fa-solid fa-warehouse"></i></span>{{rbL "WFRPRB.Workshop"}}</span>
+              {{#if detail.noWorkshopNeeded}}<span class="rb-dim">{{rbL "WFRPRB.Talent.ConcoctShort"}}</span>{{/if}}
             </div>
           {{/if}}
           {{#if detail.time}}

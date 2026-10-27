@@ -29,7 +29,7 @@ const css = read("styles/rb-system.css") + "\n" + read("styles/recipe-book.css")
 
 const stripModules = (src) => src.replace(/^import .*$/gm, "").replace(/^export /gm, "")
   .replaceAll("${MODULE_ID}", "wfrp4e-recipe-book"); // чтобы inlineAssets увидел пути ассетов в шаблонных строках
-const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/recipe-from-item.js", "scripts/welcome.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
+const appSrc = ["scripts/recipe-model.js", "scripts/recipe-book.js", "scripts/recipe-from-item.js", "scripts/item-effects.js", "scripts/item-forge.js", "scripts/recipe-sheet.js", "scripts/welcome.js", "scripts/starter-data.js", "scripts/starter-install.js", "scripts/main.js"]
   .map((p) => stripModules(read(p)))
   .join("\n");
 
