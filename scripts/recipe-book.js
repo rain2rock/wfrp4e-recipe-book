@@ -294,12 +294,27 @@ export function isGMView() {
   return !!game.user.isGM && !game.settings.get(MODULE_ID, "playerView");
 }
 
+/** Качества с уровнями: каждый уровень считается ОТДЕЛЬНЫМ достоинством (стр. 291).
+    Остальные значения у свойств - параметры (многозарядное (4), перезарядка (5)), а не уровни. */
+export const MULTI_LEVEL = new Set(["durable", "fine"]);
+
+/** Выбор игрока: {качество: уровень}. Старый формат (массив ключей) читаем как уровень 1. */
+export function pickedLevels(picked) {
+  const out = new Map();
+  if (Array.isArray(picked)) for (const k of picked) out.set(k, 1);
+  else for (const [k, v] of Object.entries(picked ?? {})) if (Number(v) > 0) out.set(k, Number(v));
+  return out;
+}
+
 export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
   const sys = recipe.system ?? {};
   const inv = idx ?? actorIndex(actor);
-  // Выбранные улучшения добавляют своё сырьё, деньги и требуемый УУ
-  const ups = (sys.upgrades ?? []).filter((u) => picked.includes(u.quality));
-  const slBase = (Number(sys.slTarget) || 1) + ups.reduce((n, u) => n + (Number(u.slBonus) || 0), 0);
+  // Выбранные улучшения добавляют своё сырьё, деньги и требуемый УУ - всё это умножается на уровень
+  const lv = pickedLevels(picked);
+  const ups = (sys.upgrades ?? [])
+    .filter((u) => (lv.get(u.quality) ?? 0) > 0)
+    .map((u) => ({ ...u, level: Math.min(lv.get(u.quality), Math.max(1, Number(u.levels) || 1)) }));
+  const slBase = (Number(sys.slTarget) || 1) + ups.reduce((n, u) => n + (Number(u.slBonus) || 0) * u.level, 0);
   const skillItem = findSkill(actor, sys.skill, inv) ?? findSkill(actor, sys.skillAlt, inv);
   const skillUsed = skillItem ? skillItem.name : sys.skill;
   const skillTotal = skillItem ? Number(skillItem.system.total?.value) || 0 : 0;
@@ -311,9 +326,10 @@ export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
   const needed = [...(sys.ingredients ?? []).map((i) => ({ ...i }))];
   for (const u of ups) {
     for (const ing of u.ingredients ?? []) {
+      const count = (Number(ing.count) || 1) * u.level;
       const same = needed.find((n) => norm(n.name) === norm(ing.name));
-      if (same) same.count += ing.count;
-      else needed.push({ ...ing });
+      if (same) same.count += count;
+      else needed.push({ ...ing, count });
     }
   }
   const ingredients = needed.map((ing) => {
@@ -324,7 +340,7 @@ export function recipeStatus(actor, recipe, { picked = [], idx = null } = {}) {
     const { have } = stockOf(actor, t.name, inv);
     return { ...t, have, ok: have > 0 };
   });
-  const costBp = (sys.moneyBp || 0) + ups.reduce((n, u) => n + (Number(u.moneyBp) || 0), 0);
+  const costBp = (sys.moneyBp || 0) + ups.reduce((n, u) => n + (Number(u.moneyBp) || 0) * u.level, 0);
   const haveBp = moneyPennies(actor, inv);
   const moneyOk = haveBp >= costBp;
   const countMoney = game.settings.get(MODULE_ID, "highlightMoney");
@@ -413,7 +429,7 @@ export async function startCraft(actor, recipe, picked = []) {
         moneyBp: st.costBp,
         spent: spentLite,
         // Выбранные улучшения: качества добавятся предмету при успехе
-        upgrades: st.ups.map((u) => ({ quality: u.quality, name: u.name }))
+        upgrades: st.ups.map((u) => ({ quality: u.quality, name: u.name, level: u.level || 1 }))
       }
     }
   }]);
@@ -537,7 +553,8 @@ async function finishCraft(actor, test) {
   const obj = await resultObject(data, test.name, count);
   const ups = test.getFlag(MODULE_ID, "upgrades") ?? [];
   if (ups.length) {
-    pushProps(obj, "qualities", ups.map((u) => ({ name: u.quality, value: null })));
+    // Уровень пишем значением качества: «Красивый (3)» - это три достоинства по правилам
+    pushProps(obj, "qualities", ups.map((u) => ({ name: u.quality, value: (u.level || 1) > 1 ? u.level : null })));
     lines.push("· " + esc(F("WFRPRB.Chat.Upgraded", { list: ups.map((u) => u.name || propertyLabel(u.quality)).join(", ") })));
   }
   if (obj_critQualities) pushProps(obj, "qualities", obj_critQualities);
@@ -905,7 +922,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this.filter = "all";
     this.search = "";
     this.selected = null; // {kind:"recipe"|"project", id}
-    this.picked = {};      // id рецепта -> массив выбранных улучшений (ключи качеств)
+    this.picked = {};      // id рецепта -> { ключ качества: выбранный уровень }
   }
 
   get title() {
@@ -1188,7 +1205,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
           (this._seen ??= new Set()).add(r.id);
           r.unsetFlag(MODULE_ID, "isNew").catch(() => null);
         }
-        const picked = this.picked[r.id] ?? [];
+        const picked = this.picked[r.id] ?? {};
         const st = recipeStatus(statusActor, r, { picked, idx: idxFor(statusActor) });
         const res = r.system.result ?? {};
         const dd = Number(r.system.timeDays) || 0;
@@ -1207,18 +1224,26 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
             tt: await this._itemTip(ing.name, ing.uuid, ing.img, statusActor)
           }))),
           moneyBp: st.costBp, moneyHtml: moneyHtml(st.costBp), moneyOk: st.moneyOk,
-          upgrades: (r.system.upgrades ?? []).map((u) => ({
+          upgrades: (r.system.upgrades ?? []).map((u) => {
+            const maxLevel = Math.max(1, Number(u.levels) || 1);
+            const level = Math.min(pickedLevels(picked).get(u.quality) ?? 0, maxLevel);
+            // Цена и сырьё показываются за выбранный уровень, а невыбранное - за один
+            const mul = level || 1;
+            return {
             quality: u.quality,
             name: u.name || propertyLabel(u.quality),
-            on: picked.includes(u.quality),
-            slBonus: u.slBonus,
+            on: level > 0,
+            level, maxLevel, multiLevel: maxLevel > 1,
+            slBonus: (Number(u.slBonus) || 0) * mul,
             costHtml: [
-              ...(u.ingredients ?? []).map((i) => `${esc(i.name)}${i.count > 1 ? ` ×${i.count}` : ""}`),
-              u.moneyBp ? moneyHtml(u.moneyBp) : ""
+              ...(u.ingredients ?? []).map((i) => `${esc(i.name)}${(i.count * mul) > 1 ? ` ×${i.count * mul}` : ""}`),
+              u.moneyBp ? moneyHtml(u.moneyBp * mul) : ""
             ].filter(Boolean).join(", "),
             // В подсказке - ЧТО ДАЁТ качество (цена и +УУ уже видны в самой строке)
-            tip: propertyTip(u.quality, u.name || propertyLabel(u.quality))
-          })),
+            tip: propertyTip(u.quality, u.name || propertyLabel(u.quality)) +
+              (maxLevel > 1 ? "\n" + F("WFRPRB.Upgrade.LevelTip", { max: maxLevel }) : "")
+            };
+          }),
           moneyTip: (() => {
             const cost = st.costBp;
             const left = st.haveBp - cost;
@@ -1315,6 +1340,12 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     RBTooltip.hide();
     RBTooltip.adoptTips();
     this._bindTooltips(root);
+    for (const el of root.querySelectorAll(".rb-upgrade-level")) {
+      el.addEventListener("change", (ev) => {
+        const t = ev.currentTarget;
+        this.setUpgradeLevel(t.dataset.quality, t.value, t.max);
+      });
+    }
     root.querySelector(".rb-skill-filter")?.addEventListener("change", (ev) => {
       this.skillFilter = ev.currentTarget.value;
       this.render();
@@ -1351,10 +1382,22 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     const id = this.selected?.id;
     if (!id) return;
     const key = target.dataset.quality;
-    const list = new Set(this.picked[id] ?? []);
-    if (list.has(key)) list.delete(key);
-    else list.add(key);
-    this.picked[id] = [...list];
+    const cur = { ...(this.picked[id] ?? {}) };
+    if (cur[key] > 0) delete cur[key];
+    else cur[key] = 1;
+    this.picked[id] = cur;
+    this.render();
+  }
+
+  /** Уровень улучшения: каждый уровень - отдельное достоинство (+5 УУ и своё сырьё) */
+  setUpgradeLevel(key, level, max) {
+    const id = this.selected?.id;
+    if (!id) return;
+    const cur = { ...(this.picked[id] ?? {}) };
+    const n = Math.max(0, Math.min(Number(level) || 0, Math.max(1, Number(max) || 1)));
+    if (n > 0) cur[key] = n;
+    else delete cur[key];
+    this.picked[id] = cur;
     this.render();
   }
 
@@ -1362,7 +1405,7 @@ export class RecipeBookApp extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.selected?.kind !== "recipe") return;
     const recipe = this.actor.items.get(this.selected.id);
     if (!recipe) return;
-    const test = await startCraft(this.actor, recipe, this.picked[recipe.id] ?? []);
+    const test = await startCraft(this.actor, recipe, this.picked[recipe.id] ?? {});
     // Если работа закончилась сразу, проекта уже нет - остаёмся на рецепте
     if (test?.id && this.actor.items.get(test.id)) this.selected = { kind: "project", id: test.id, recipeId: recipe.id };
     this.render();

@@ -168,6 +168,11 @@
   </div>
 
   <footer class="rb-sheet-foot">
+    {{#if quality}}
+      <span class="rb-forge-quality rb-dim" data-rb-tip="{{rbL 'WFRPRB.Forge.QualityTip'}}">
+        {{#unless quality.same}}{{rbL "WFRPRB.Forge.ByRules"}}: {{{quality.priceHtml}}} · {{quality.avail}}{{/unless}}
+      </span>
+    {{/if}}
     <span class="rb-forge-prognosis" data-rb-tip="{{rbL 'WFRPRB.Forge.PrognosisTip'}}">
       {{rbL "WFRPRB.Forge.Prognosis"}}: <b>{{prognosis}}</b> <span class="rb-dim">({{rbL "WFRPRB.SLTarget"}}: {{baseSL}})</span>
     </span>

@@ -4,7 +4,7 @@
    за достоинства, крит-качества (И/ИЛИ) и правила брака. */
 
 import { MODULE_ID, difficultyLabel } from "./recipe-model.js";
-import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, isDark, availLabel, RecipeBookApp } from "./recipe-book.js";
+import { L, F, esc, openItemPicker, propertyLabel, propertyTip, coinIco, isDark, availLabel, moneyHtml, COIN_VALUE, MULTI_LEVEL, RecipeBookApp } from "./recipe-book.js";
 import { AVAIL_TO_DIFF } from "./recipe-from-item.js";
 import { EFFECT_PRESETS, buildPotionEffects, donorEffects, effectSummary } from "./item-effects.js";
 
@@ -90,11 +90,18 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     this.baseSL = Number(this.recipe.system.slTarget) || 1;
   }
 
+  /** Сколько достоинств даёт свойство: у «Прочного» и «Красивого» каждый уровень
+      считается отдельным достоинством (стр. 291), у остальных значение - параметр. */
+  static qualityWeight(key, state) {
+    return MULTI_LEVEL.has(key) ? Math.max(1, Number(state?.value) || 1) : 1;
+  }
+
   /** Требуемый УУ: изъяны половинят (каждый), затем +5 за достоинство.
       withUpgrades=false - без качеств, которые станут выбираемыми улучшениями. */
   computedSL({ withUpgrades = true } = {}) {
-    const qs = Object.values(this.forge.qualities).filter((x) => x.on);
-    const nq = withUpgrades ? qs.length : qs.filter((v) => !(v.extraName || Number(v.extraBp) > 0)).length;
+    const entries = Object.entries(this.forge.qualities).filter(([, x]) => x.on);
+    const counted = withUpgrades ? entries : entries.filter(([, v]) => !(v.extraName || Number(v.extraBp) > 0));
+    const nq = counted.reduce((n, [key, v]) => n + ItemForgeApp.qualityWeight(key, v), 0);
     const nf = Object.values(this.forge.flaws).filter((x) => x.on).length;
     let sl = this.baseSL;
     for (let i = 0; i < nf; i++) sl = sl / 2;
@@ -172,6 +179,23 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       },
       baseSL: this.baseSL,
       prognosis: this.computedSL(),
+      // Правила качества предметов (стр. 291): каждое достоинство удваивает цену
+      // и снижает доступность на ступень, каждый изъян - наоборот
+      quality: (() => {
+        const nq = Object.entries(st.qualities).filter(([, x]) => x.on)
+          .reduce((n, [key, v]) => n + ItemForgeApp.qualityWeight(key, v), 0);
+        const nf = Object.values(st.flaws).filter((x) => x.on).length;
+        if (!nq && !nf) return null;
+        const bp = (Number(st.priceGc) || 0) * COIN_VALUE.gc + (Number(st.priceSs) || 0) * COIN_VALUE.ss + (Number(st.priceBp) || 0);
+        const shift = nq - nf;
+        const idx = Math.min(Math.max(AVAIL_KEYS.indexOf(st.avail) + shift, 0), AVAIL_KEYS.length - 1);
+        return {
+          nq, nf,
+          priceHtml: bp ? moneyHtml(Math.round(bp * Math.pow(2, shift))) : "",
+          avail: availLabel(AVAIL_KEYS[idx]),
+          same: shift === 0
+        };
+      })(),
       coinGc: coinIco("gc"), coinSs: coinIco("ss"), coinBp: coinIco("bp")
     };
   }
@@ -287,6 +311,8 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       quality: key,
       name: propertyLabel(key),
       slBonus: 5,
+      // Уровень у «Прочного» и «Красивого» игрок выбирает сам, до заданного максимума
+      levels: MULTI_LEVEL.has(key) ? Math.max(1, Number(v.value) || 1) : 1,
       moneyBp: Number(v.extraBp) || 0,
       ingredients: v.extraName ? [{ uuid: v.extraUuid ?? "", name: v.extraName, img: v.extraImg ?? "", count: v.extraCount || 1 }] : []
     }));

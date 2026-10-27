@@ -75,6 +75,8 @@ export function buildRecipeModel() {
         quality: new F.StringField({ initial: "" }),   // ключ качества системы
         name: new F.StringField({ initial: "" }),      // подпись для игрока
         slBonus: new F.NumberField({ initial: 5, min: 0, integer: true }),
+        // Сколько уровней качества игрок может взять (стр. 291: каждый уровень - отдельное достоинство)
+        levels: new F.NumberField({ initial: 1, min: 1, integer: true }),
         moneyBp: new F.NumberField({ initial: 0, min: 0, integer: true }),
         ingredients: new F.ArrayField(new F.SchemaField({
           uuid: new F.StringField({ initial: "" }),

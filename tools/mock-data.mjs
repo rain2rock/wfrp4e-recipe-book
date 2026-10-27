@@ -136,7 +136,7 @@ export const RECIPES = [
       upgrades: [
         { quality: "fast", name: "Быстрое", slBonus: 5, moneyBp: 0,
           ingredients: [{ uuid: "Item.ing-mithril", name: "Слиток мифрила", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", count: 1 }] },
-        { quality: "durable", name: "Прочный", slBonus: 5, moneyBp: 24,
+        { quality: "durable", name: "Прочный", slBonus: 5, levels: 3, moneyBp: 24,
           ingredients: [{ uuid: "Item.ing-iron", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/iron-ingot.png", count: 2 }] }
       ],
       critEnabled: true, critSL: 10, critExtra: false, critCount: 1, critUpgrade: false,

@@ -287,7 +287,9 @@
       "TabFail": "Failure",
       "Replace": "Replace icon",
       "TabEffect": "Effect",
-      "AvailTip": "Availability sets the test difficulty by the rules (p. 199)."
+      "AvailTip": "Availability sets the test difficulty by the rules (p. 199).",
+      "ByRules": "By the rules",
+      "QualityTip": "Item quality (p. 291)\nEach quality doubles the price and lowers availability by one step, each flaw does the opposite.\n~ This is a hint: the price and availability fields stay as you set them."
     },
     "Target": "d100 roll target",
     "NoSkillShort": "no skill",
@@ -379,6 +381,10 @@
       "SumRemoveCond": "Removes condition «{cond}» ×{n}",
       "SumBonus": "{charac} {n} for {rounds} rounds",
       "SumDonor": "Effects as in «{name}»"
+    },
+    "Upgrade": {
+      "Level": "Quality level",
+      "LevelTip": "Each level is a separate quality: +5 SL and its own materials. Max: {max}."
     }
   }
 }

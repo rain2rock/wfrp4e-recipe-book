@@ -190,8 +190,13 @@
             <div class="rb-row rb-ing rb-upgrade {{#if on}}is-on{{/if}}" data-rb-tip="{{tip}}">
               <label class="rb-ing-name">
                 <input type="checkbox" data-action="toggleUpgrade" data-quality="{{quality}}" {{#if on}}checked{{/if}}>
-                <span class="rb-prop-label">{{name}} <span class="rb-dim">+{{slBonus}} {{rbL "WFRPRB.SL"}}</span></span>
+                <span class="rb-prop-label">{{name}}{{#if multiLevel}}{{#if on}} {{level}}{{/if}}{{/if}} <span class="rb-dim">+{{slBonus}} {{rbL "WFRPRB.SL"}}</span></span>
               </label>
+              {{#if multiLevel}}{{#if on}}
+                <input type="number" class="rb-num rb-num--s rb-upgrade-level" data-quality="{{quality}}"
+                  value="{{level}}" min="1" max="{{maxLevel}}"
+                  aria-label="{{rbL 'WFRPRB.Upgrade.Level'}}" data-rb-tip="{{rbL 'WFRPRB.Upgrade.Level'}}">
+              {{/if}}{{/if}}
               <span class="rb-ing-count">{{{costHtml}}}</span>
             </div>
           {{/each}}

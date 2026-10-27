@@ -668,6 +668,76 @@ const upRes = await page.evaluate(() => {
 });
 ok(upRes.made && upRes.fast && upRes.chat.includes("лучшения"),
   "готовый предмет получил качество улучшения, в чате отмечено", JSON.stringify(upRes).slice(0, 160));
+
+/* --- Уровни качества: каждый уровень - отдельное достоинство (стр. 291) --- */
+await page.evaluate(async () => {
+  await __RB_actor__.createEmbeddedDocuments("Item", [{
+    name: "Рецепт: Красивый кубок", type: "wfrp4e-recipe-book.recipe", img: "",
+    system: {
+      result: { uuid: "", name: "Красивый кубок", img: "", count: 1 },
+      skill: "Ремесло (Аптекарь)", skillAlt: "", difficulty: "average", slTarget: 1,
+      ingredients: [], moneyBp: 0, needsWorkshop: false, tools: [],
+      upgrades: [{ quality: "fine", name: "Красивый", slBonus: 5, levels: 3, moneyBp: 12,
+        ingredients: [{ uuid: "", name: "Целебные травы", img: "", count: 1 }] }],
+      critEnabled: false, critSL: 99, critQualities: [], critResult: { uuid: "", name: "", img: "" },
+      failPool: [], timeDays: 0, timeHours: 0, timeMinutes: 0,
+      description: { value: "" }, gmdescription: { value: "" }
+    }
+  }]);
+});
+await page.waitForTimeout(150);
+await $(".rb-entry", { hasText: "Красивый кубок" }).first().click();
+await page.waitForTimeout(120);
+ok((await $(".rb-upgrade-level").count()) === 0, "поле уровня появляется только у выбранного улучшения");
+await page.click(".rb-upgrade input[data-action='toggleUpgrade']");
+await page.waitForTimeout(200);
+const slTargetNum = () => page.evaluate(() => {
+  const row = [...document.querySelectorAll(".rb-row")].find((r) => r.textContent.includes("Нужный уровень успеха"));
+  return Number(row?.querySelector("b")?.textContent) || 0;
+});
+const lvl1 = { sl: await slTargetNum(), max: await page.evaluate(() => document.querySelector(".rb-upgrade-level")?.max) };
+ok(lvl1.max === "3" && lvl1.sl === 4, "уровень 1: базовый 1 + 5 за достоинство − 2 за талант = 4", JSON.stringify(lvl1));
+await page.fill(".rb-upgrade-level", "3");
+await page.evaluate(() => document.querySelector(".rb-upgrade-level").dispatchEvent(new Event("change")));
+await page.waitForTimeout(250);
+const lvl3 = {
+  sl: await slTargetNum(),
+  row: await page.evaluate(() => document.querySelector(".rb-upgrade")?.textContent ?? ""),
+  herbs: await page.evaluate(() => [...document.querySelectorAll(".rb-ing")].find((r) => r.textContent.includes("Целебные травы"))?.textContent ?? "")
+};
+ok(lvl3.sl - lvl1.sl === 10 && lvl3.sl === 14,
+  "уровень 3 даёт +15 УУ, а не +5 (каждый уровень - отдельное достоинство)", JSON.stringify({ lvl1: lvl1.sl, lvl3: lvl3.sl }));
+ok(lvl3.row.includes("+15"), "в строке улучшения показана прибавка за выбранный уровень", lvl3.row.trim());
+ok(lvl3.herbs.includes("3"), "сырьё улучшения умножено на уровень", lvl3.herbs.trim());
+/* на три уровня нужно втрое больше сырья - выдаём персонажу запас */
+await page.evaluate(async () => {
+  await __RB_actor__.createEmbeddedDocuments("Item", [
+    { name: "Целебные травы", type: "trapping", img: "", system: { quantity: { value: 5 }, price: { gc: 0, ss: 0, bp: 1 } } }
+  ]);
+});
+await page.waitForTimeout(250);
+await page.evaluate(() => { window.__RB_FORCE_ROLL__ = 1; });
+await $(".rb-btn--craft").first().click();
+await page.waitForTimeout(350);
+/* требуемый УУ 14 - за один бросок не закрыть, доводим проект до цели напрямую */
+await page.evaluate(async () => {
+  const test = [...__RB_actor__.items].find((i) => i.type === "extendedTest");
+  if (test) await test.update({ "system.SL.current": Number(test.system.SL.target) });
+});
+await page.waitForTimeout(350);
+const madeFine = await page.evaluate(() => {
+  const it = [...__RB_actor__.items].find((i) => i.name === "Красивый кубок" && i.type === "trapping");
+  return it?.system.qualities?.value?.find((q) => q.name === "fine")?.value ?? null;
+});
+ok(Number(madeFine) === 3, "у готового предмета качество записано с уровнем 3", String(madeFine));
+/* убираем за собой: дальше идут проверки, считающие рецепты и сырьё */
+await page.evaluate(async () => {
+  for (const it of [...__RB_actor__.items]) {
+    if (["Рецепт: Красивый кубок", "Красивый кубок"].includes(it.name) ||
+        (it.name === "Целебные травы" && Number(it.system.quantity?.value) === 2)) await it.delete();
+  }
+});
+await page.waitForTimeout(200);
 await page.evaluate(async () => {
   for (const i of [...__RB_actor__.items].filter((x) => x.name.includes("Пробный клинок"))) await i.delete();
 });
@@ -912,6 +982,26 @@ ok((await text(`${forge} .rb-tab.is-active`)).includes("Достоинства")
 /* тултип-описание качества */
 ok(((await page.getAttribute(`${forge} .rb-qrow[data-key='durable']`, "data-rb-tip")) ?? "").includes("ыдерживает"),
   "у качества есть тултип с описанием эффекта");
+/* уровни достоинства в прогнозе: «Красивый 3» - это три достоинства, +15 УУ */
+const prognosis = () => page.evaluate((f) => Number(document.querySelector(`${f} .rb-forge-prognosis b`)?.textContent) || 0, forge);
+const pBase = await prognosis();
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
+await page.waitForTimeout(200);
+const pFine1 = await prognosis();
+await page.fill(`${forge} .rb-qrow[data-key='fine'] .rb-prop-value`, "3");
+await page.evaluate((f) => document.querySelector(`${f} .rb-qrow[data-key='fine'] .rb-prop-value`).dispatchEvent(new Event("change")), forge);
+await page.waitForTimeout(100);
+await page.click(`${forge} [data-tab='flaws']`);
+await page.waitForTimeout(100);
+await page.click(`${forge} [data-tab='qualities']`);
+await page.waitForTimeout(150);
+const pFine3 = await prognosis();
+ok(pFine1 - pBase === 5 && pFine3 - pBase === 15,
+  "прогноз УУ: уровень 1 даёт +5, уровень 3 даёт +15", JSON.stringify({ pBase, pFine1, pFine3 }));
+ok((await text(`${forge} .rb-forge-quality`)).length > 0, "в мастере видно, во что достоинства обойдутся по правилам");
+await page.click(`${forge} .rb-qrow[data-key='fine'] .rb-prop-on`);
+await page.waitForTimeout(200);
+
 /* крит и провал - в своих табах */
 await page.click(`${forge} [data-tab='crit']`);
 await page.waitForTimeout(120);
