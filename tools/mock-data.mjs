@@ -62,9 +62,9 @@ export const WORLD_ITEMS = [
         system: { transferData: { type: "document", documentType: "Item" },
           scriptData: [{ label: "@effect.name", trigger: "manual", script: "this.item.system.reduceQuantity();" }] } }
     ] },
-  { id: "res-blade", name: "Гномий клинок", type: "weapon", img: "modules/wfrp4e-recipe-book/assets/icons/hand-weapon.png", system: { quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Короткий клинок гномьей ковки: без узоров, зато переживёт хозяина.</p>' } } },
+  { id: "res-blade", name: "Гномий клинок", type: "weapon", img: "modules/wfrp4e-recipe-book/assets/icons/dwarf-blade.png", system: { quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Короткий клинок гномьей ковки: без узоров, зато переживёт хозяина.</p>' } } },
   { id: "ing-mithril", name: "Слиток мифрила", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 2, ss: 0, bp: 0 }, availability: { value: "rare" }, description: { value: '<p>Светлый, звонкий и непривычно лёгкий слиток. Гномы о таком не распространяются.</p>' } } },
-  { id: "tool-still", name: "Перегонный куб", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/glass-vial.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Медный куб со змеевиком. Гордость любой алхимической мастерской.</p>' } } },
+  { id: "tool-still", name: "Перегонный куб", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/distillation-still.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 1, ss: 0, bp: 0 }, availability: { value: "scarce" }, description: { value: '<p>Медный куб со змеевиком. Гордость любой алхимической мастерской.</p>' } } },
   { id: "res-mandrake", name: "Корень мандрагоры", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mandrake-root.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 2, bp: 6 }, availability: { value: "rare" }, description: { value: '<p>Скрюченный корень, похожий на человечка. Выкапывать советуют в перчатках и молча.</p>' } } },
   { id: "res-heal", name: "Лечебная настойка", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/healing-draught.png", system: { trappingType: { value: "drugsPoisonsHerbsDraughts" }, quantity: { value: 1 }, price: { gc: 0, ss: 1, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Горькая настойка тёмного стекла. Ставит на ноги - если выпить вовремя.</p>' } } },
   { id: "res-calm", name: "Успокоительный отвар", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/calming-brew.png", system: { trappingType: { value: "drugsPoisonsHerbsDraughts" }, quantity: { value: 1 }, price: { gc: 0, ss: 1, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Сладковатый отвар. Унимает дрожь в руках и дурные сны.</p>' } } },
@@ -88,7 +88,7 @@ export const RECIPES = [
       ],
       moneyBp: 15, needsWorkshop: false,
       critEnabled: true, critSL: 6, critExtra: true, critCount: 1, critUpgrade: false, critRefund: false, critRandom: false,
-      tools: [{ uuid: "", name: "Ступка и пестик", img: "modules/wfrp4e-recipe-book/assets/icons/trade-apothecary.png" }], timeDays: 0, timeHours: 1, timeMinutes: 0,
+      tools: [{ uuid: "", name: "Ступка и пестик", img: "modules/wfrp4e-recipe-book/assets/icons/mortar-pestle.png" }], timeDays: 0, timeHours: 1, timeMinutes: 0,
       description: { value: "<p>Горькая настойка на целебных травах - первая помощь искателя приключений.</p>" }
     }
   },
@@ -101,7 +101,7 @@ export const RECIPES = [
       difficulty: "average", slTarget: 5,
       ingredients: [
         { uuid: "", name: "Сонная трава", img: "modules/wfrp4e-recipe-book/assets/icons/nightshade.png", count: 2 },
-        { uuid: "", name: "Мёд", img: "modules/wfrp4e-recipe-book/assets/icons/digestive-tonic.png", count: 1 }
+        { uuid: "", name: "Мёд", img: "modules/wfrp4e-recipe-book/assets/icons/honey.png", count: 1 }
       ],
       moneyBp: 12, needsWorkshop: false, tools: [], timeDays: 0, timeHours: 0, timeMinutes: 30,
       description: { value: "<p>Сладковатый отвар, унимающий дрожь в руках и дурные сны.</p>" }
@@ -118,7 +118,7 @@ export const RECIPES = [
         { uuid: "Item.res-mandrake", name: "Корень мандрагоры", img: "modules/wfrp4e-recipe-book/assets/icons/mandrake-root.png", count: 1 },
         { uuid: "", name: "Целебные травы", img: "modules/wfrp4e-recipe-book/assets/icons/salwort.png", count: 1 }
       ],
-      moneyBp: 60, needsWorkshop: true, tools: [{ uuid: "Item.tool-still", name: "Перегонный куб", img: "modules/wfrp4e-recipe-book/assets/icons/spirit-pure.png" }], timeDays: 38, timeHours: 15, timeMinutes: 10,
+      moneyBp: 60, needsWorkshop: true, tools: [{ uuid: "Item.tool-still", name: "Перегонный куб", img: "modules/wfrp4e-recipe-book/assets/icons/distillation-still.png" }], timeDays: 38, timeHours: 15, timeMinutes: 10,
       description: { value: "<p>Против большинства известных ядов. Против неизвестных - как повезёт.</p>" }
     }
   },
@@ -126,7 +126,7 @@ export const RECIPES = [
     name: "Рецепт: Гномий клинок",
     img: "modules/wfrp4e-recipe-book/assets/icons/recipe-default.png",
     system: {
-      result: { uuid: "Item.res-blade", name: "Гномий клинок", img: "modules/wfrp4e-recipe-book/assets/icons/hand-weapon.png", count: 1 },
+      result: { uuid: "Item.res-blade", name: "Гномий клинок", img: "modules/wfrp4e-recipe-book/assets/icons/dwarf-blade.png", count: 1 },
       skill: "Ремесло (Кузнец)", skillAlt: "",
       difficulty: "challenging", slTarget: 5,
       ingredients: [{ uuid: "Item.ing-iron", name: "Железный слиток", img: "modules/wfrp4e-recipe-book/assets/icons/iron-ingot.png", count: 1 }],
@@ -195,11 +195,11 @@ export const ACTOR = {
     { id: "ing-herbs", name: "Целебные травы", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/salwort.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 3 }, price: { gc: 0, ss: 0, bp: 8 }, availability: { value: "common" }, description: { value: '<p>Пучок сушёных трав с заливных лугов Рейкланда. Пахнет летом и немного - болотом.</p>' } } },
     { id: "ing-spirit", name: "Спирт", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/spirit-pure.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 1, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Жгучая прозрачная жидкость. Аптекари настаивают, что это сырьё, а не напиток.</p>' } } },
     { id: "ing-sleep", name: "Сонная трава", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/nightshade.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 2 }, price: { gc: 0, ss: 0, bp: 6 }, availability: { value: "scarce" }, description: { value: '<p>Тёмные листья с горьким запахом. Собирают в сумерках - днём трава «спит».</p>' } } },
-    { id: "ing-honey", name: "Мёд", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/digestive-tonic.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 0, bp: 4 }, availability: { value: "common" }, description: { value: '<p>Густой мёд из пригородной пасеки. Слегка отдаёт дымом.</p>' } } },
+    { id: "ing-honey", name: "Мёд", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/honey.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 0, ss: 0, bp: 4 }, availability: { value: "common" }, description: { value: '<p>Густой мёд из пригородной пасеки. Слегка отдаёт дымом.</p>' } } },
     { id: "ing-iron", name: "Железный слиток", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/iron-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 3 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Брусок кричного железа с клеймом нульнской плавильни.</p>' } } },
     { id: "ing-mith", name: "Слиток мифрила", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mithril-ingot.png", system: { trappingType: { value: "ingredient" }, quantity: { value: 1 }, price: { gc: 2, ss: 0, bp: 0 }, availability: { value: "rare" }, description: { value: '<p>Светлый, звонкий и непривычно лёгкий слиток.</p>' } } },
     { id: "ing-meat", name: "Вяленое мясо", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/salted-meat.png", system: { trappingType: { value: "foodAndDrink" }, quantity: { value: 2 }, price: { gc: 0, ss: 0, bp: 10 }, availability: { value: "common" }, description: { value: '<p>Полоски солёного мяса, твёрдые как подошва. В дороге - деликатес.</p>' } } },
-    { id: "tool-mortar", name: "Ступка и пестик", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/trade-apothecary.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Каменная ступка, перетершая не один фунт трав. Пахнет всеми рецептами сразу.</p>' } } },
+    { id: "tool-mortar", name: "Ступка и пестик", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/mortar-pestle.png", system: { trappingType: { value: "toolsAndKits" }, quantity: { value: 1 }, price: { gc: 0, ss: 2, bp: 0 }, availability: { value: "common" }, description: { value: '<p>Каменная ступка, перетершая не один фунт трав. Пахнет всеми рецептами сразу.</p>' } } },
     { id: "ing-bread", name: "Сухари", type: "trapping", img: "modules/wfrp4e-recipe-book/assets/icons/grain-flour.png", system: { trappingType: { value: "foodAndDrink" }, quantity: { value: 2, price: { gc: 0, ss: 0, bp: 3 }, availability: { value: "common" }, description: { value: '<p>Дважды печёный хлеб. Не портится, но и не прожуёшь без эля.</p>' } } } }
   ]
 };
