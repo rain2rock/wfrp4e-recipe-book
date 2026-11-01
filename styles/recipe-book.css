@@ -251,3 +251,9 @@
 .wfrp-recipe-book .rb-field select.rb-forge-avail { flex: 1 1 auto; }
 /* Сводка будущего эффекта - итог вкладки, выделяем как значимую строку */
 .wfrp-recipe-book .rb-eff-summary { font-weight: 600; }
+
+/* Property glyphs have transparent backgrounds; labels remain the accessible names. */
+.wfrp-recipe-book .rb-forge-root .rb-ing-name .rb-prop-icon {
+  width: var(--rb-icon-s); height: var(--rb-icon-s); flex: 0 0 var(--rb-icon-s);
+  object-fit: contain; border: 0; border-radius: 0; background: transparent;
+}

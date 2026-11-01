@@ -19,6 +19,17 @@ function sysList(key) {
     .sort((a, b) => a.label.localeCompare(b.label, "ru"));
 }
 
+// Unknown addon properties retain their labels without a missing-image request.
+const PROPERTY_ART = {
+  q: new Set("durable fine lightweight practical accurate blackpowder blast damaging defensive distract entangle fast hack impact impale magical penetrating pistol precise pummel repeater shield trapblade unbreakable wrap flexible impenetrable".split(" ")),
+  f: new Set("ugly shoddy unreliable bulky dangerous imprecise reload slow tiring undamaging partial weakpoints".split(" "))
+};
+function propertyArt(kind, key) {
+  if (!PROPERTY_ART[kind]?.has(key)) return "";
+  const rel = `assets/icons/${kind}-${key}.png`;
+  return globalThis.__RB_ASSETS__?.[rel] ?? `modules/${MODULE_ID}/${rel}`;
+}
+
 /** Списки качеств/изъянов по типу предмета - из конфига системы */
 function propLists(type) {
   const c = game.wfrp4e?.config ?? {};
@@ -113,11 +124,12 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
     const { qualities, flaws } = propLists(st.type);
     // Подсказка-описание качества/изъяна - общая с книгой (propertyTip)
     const propTip = (key, label) => propertyTip(key, label);
-    const row = (map, stateMap) => Object.entries(map).map(([key, label]) => {
+    const row = (map, stateMap, kind) => Object.entries(map).map(([key, label]) => {
       const loc = game.i18n.localize(label);
       return {
         key,
         label: loc,
+        icon: propertyArt(kind, key),
         tip: propTip(key, loc),
         hasValue: hasValue(key),
         on: !!stateMap[key]?.on,
@@ -125,20 +137,20 @@ export class ItemForgeApp extends ForgeMixin(ForgeAppBase) {
       };
     }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
 
-    const qRows = row(qualities, st.qualities).map((r) => ({
+    const qRows = row(qualities, st.qualities, "q").map((r) => ({
       ...r,
       extraName: st.qualities[r.key]?.extraName ?? "",
       extraImg: st.qualities[r.key]?.extraImg ?? "",
       extraCount: st.qualities[r.key]?.extraCount ?? 1,
       extraBp: st.qualities[r.key]?.extraBp ?? 0
     }));
-    const fRows = row(flaws, st.flaws);
+    const fRows = row(flaws, st.flaws, "f");
     // Пул изъянов брака: по умолчанию все отмечены
     const poolRows = Object.entries(flaws).map(([key, label]) => {
       const loc = game.i18n.localize(label);
-      return { key, label: loc, tip: propTip(key, loc), on: st.failPool[key] ?? true };
+      return { key, label: loc, icon: propertyArt("f", key), tip: propTip(key, loc), on: st.failPool[key] ?? true };
     }).sort((a, b) => a.label.localeCompare(b.label, "ru"));
-    const critRows = row(qualities, st.critQualities);
+    const critRows = row(qualities, st.critQualities, "q");
 
     const eff = st.effect;
     const conditions = sysList("conditions");

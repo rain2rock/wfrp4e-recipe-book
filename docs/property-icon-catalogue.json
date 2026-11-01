@@ -1,0 +1,354 @@
+[
+  {
+    "kind": "quality",
+    "key": "durable",
+    "label": "Durable",
+    "categories": [
+      "itemQualities"
+    ],
+    "file": "q-durable.png"
+  },
+  {
+    "kind": "quality",
+    "key": "fine",
+    "label": "Fine",
+    "categories": [
+      "itemQualities"
+    ],
+    "file": "q-fine.png"
+  },
+  {
+    "kind": "quality",
+    "key": "lightweight",
+    "label": "Lightweight",
+    "categories": [
+      "itemQualities"
+    ],
+    "file": "q-lightweight.png"
+  },
+  {
+    "kind": "quality",
+    "key": "practical",
+    "label": "Practical",
+    "categories": [
+      "itemQualities"
+    ],
+    "file": "q-practical.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "ugly",
+    "label": "Ugly",
+    "categories": [
+      "itemFlaws"
+    ],
+    "file": "f-ugly.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "shoddy",
+    "label": "Shoddy",
+    "categories": [
+      "itemFlaws"
+    ],
+    "file": "f-shoddy.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "unreliable",
+    "label": "Unreliable",
+    "categories": [
+      "itemFlaws"
+    ],
+    "file": "f-unreliable.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "bulky",
+    "label": "Bulky",
+    "categories": [
+      "itemFlaws"
+    ],
+    "file": "f-bulky.png"
+  },
+  {
+    "kind": "quality",
+    "key": "accurate",
+    "label": "Accurate",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-accurate.png"
+  },
+  {
+    "kind": "quality",
+    "key": "blackpowder",
+    "label": "Blackpowder",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-blackpowder.png"
+  },
+  {
+    "kind": "quality",
+    "key": "blast",
+    "label": "Blast",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-blast.png"
+  },
+  {
+    "kind": "quality",
+    "key": "damaging",
+    "label": "Damaging",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-damaging.png"
+  },
+  {
+    "kind": "quality",
+    "key": "defensive",
+    "label": "Defensive",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-defensive.png"
+  },
+  {
+    "kind": "quality",
+    "key": "distract",
+    "label": "Distract",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-distract.png"
+  },
+  {
+    "kind": "quality",
+    "key": "entangle",
+    "label": "Entangle",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-entangle.png"
+  },
+  {
+    "kind": "quality",
+    "key": "fast",
+    "label": "Fast",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-fast.png"
+  },
+  {
+    "kind": "quality",
+    "key": "hack",
+    "label": "Hack",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-hack.png"
+  },
+  {
+    "kind": "quality",
+    "key": "impact",
+    "label": "Impact",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-impact.png"
+  },
+  {
+    "kind": "quality",
+    "key": "impale",
+    "label": "Impale",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-impale.png"
+  },
+  {
+    "kind": "quality",
+    "key": "magical",
+    "label": "Magical",
+    "categories": [
+      "weaponQualities",
+      "armorQualities"
+    ],
+    "file": "q-magical.png"
+  },
+  {
+    "kind": "quality",
+    "key": "penetrating",
+    "label": "Penetrating",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-penetrating.png"
+  },
+  {
+    "kind": "quality",
+    "key": "pistol",
+    "label": "Pistol",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-pistol.png"
+  },
+  {
+    "kind": "quality",
+    "key": "precise",
+    "label": "Precise",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-precise.png"
+  },
+  {
+    "kind": "quality",
+    "key": "pummel",
+    "label": "Pummel",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-pummel.png"
+  },
+  {
+    "kind": "quality",
+    "key": "repeater",
+    "label": "Repeater",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-repeater.png"
+  },
+  {
+    "kind": "quality",
+    "key": "shield",
+    "label": "Shield",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-shield.png"
+  },
+  {
+    "kind": "quality",
+    "key": "trapblade",
+    "label": "Trap Blade",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-trapblade.png"
+  },
+  {
+    "kind": "quality",
+    "key": "unbreakable",
+    "label": "Unbreakable",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-unbreakable.png"
+  },
+  {
+    "kind": "quality",
+    "key": "wrap",
+    "label": "Wrap",
+    "categories": [
+      "weaponQualities"
+    ],
+    "file": "q-wrap.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "dangerous",
+    "label": "Dangerous",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-dangerous.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "imprecise",
+    "label": "Imprecise",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-imprecise.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "reload",
+    "label": "Reload",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-reload.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "slow",
+    "label": "Slow",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-slow.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "tiring",
+    "label": "Tiring",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-tiring.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "undamaging",
+    "label": "Undamaging",
+    "categories": [
+      "weaponFlaws"
+    ],
+    "file": "f-undamaging.png"
+  },
+  {
+    "kind": "quality",
+    "key": "flexible",
+    "label": "Flexible",
+    "categories": [
+      "armorQualities"
+    ],
+    "file": "q-flexible.png"
+  },
+  {
+    "kind": "quality",
+    "key": "impenetrable",
+    "label": "Impenetrable",
+    "categories": [
+      "armorQualities"
+    ],
+    "file": "q-impenetrable.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "partial",
+    "label": "Partial",
+    "categories": [
+      "armorFlaws"
+    ],
+    "file": "f-partial.png"
+  },
+  {
+    "kind": "flaw",
+    "key": "weakpoints",
+    "label": "Weakpoints",
+    "categories": [
+      "armorFlaws"
+    ],
+    "file": "f-weakpoints.png"
+  }
+]

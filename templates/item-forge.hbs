@@ -44,7 +44,7 @@
   <section class="rb-block">
     {{#each qRows}}
       <div class="rb-row rb-qrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{#if icon}}<img class="rb-prop-icon" src="{{icon}}" alt="" aria-hidden="true">{{/if}}<span class="rb-prop-label">{{label}}</span></label>
           {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
         {{#if on}}
           <span class="rb-forge-extra">
@@ -64,7 +64,7 @@
   <section class="rb-block">
     {{#each fRows}}
       <div class="rb-row rb-frow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{#if icon}}<img class="rb-prop-icon" src="{{icon}}" alt="" aria-hidden="true">{{/if}}<span class="rb-prop-label">{{label}}</span></label>
           {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
       </div>
     {{/each}}
@@ -78,7 +78,7 @@
       <input type="number" class="rb-num rb-forge-critsl" value="{{st.critSL}}" min="1"></div>
     {{#each critRows}}
       <div class="rb-row rb-critrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+        <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{#if icon}}<img class="rb-prop-icon" src="{{icon}}" alt="" aria-hidden="true">{{/if}}<span class="rb-prop-label">{{label}}</span></label>
           {{#if hasValue}}<input type="number" class="rb-num rb-num--s rb-prop-value" value="{{value}}" min="1" aria-label="{{rbL 'WFRPRB.A11y.PropLevel'}}" data-rb-tip="{{rbL 'WFRPRB.A11y.PropLevel'}}">{{/if}}
       </div>
     {{/each}}
@@ -103,7 +103,7 @@
       <div class="rb-dim rb-forge-poollabel">{{rbL "WFRPRB.Forge.FailPool"}}:</div>
       {{#each poolRows}}
         <div class="rb-row rb-poolrow" data-key="{{key}}" {{#if tip}}data-rb-tip="{{tip}}"{{/if}}>
-          <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}><span class="rb-prop-label">{{label}}</span></label>
+          <label class="rb-ing-name"><input type="checkbox" class="rb-prop-on" {{#if on}}checked{{/if}}>{{#if icon}}<img class="rb-prop-icon" src="{{icon}}" alt="" aria-hidden="true">{{/if}}<span class="rb-prop-label">{{label}}</span></label>
         </div>
       {{/each}}
     {{/if}}
