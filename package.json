@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "mock": "node tools/build-mock.mjs --out docs/book-mock.html",
-    "qa": "node tools/qa/bookchk.mjs docs/book-mock.html && node tools/qa/uicheck.mjs docs/book-mock.html && node tools/qa/dslint.mjs && node tools/qa/propertyiconchk.mjs",
+    "qa": "node tools/qa/legacyiconchk.mjs && node tools/qa/bookchk.mjs docs/book-mock.html && node tools/qa/uicheck.mjs docs/book-mock.html && node tools/qa/dslint.mjs && node tools/qa/propertyiconchk.mjs",
     "styleguide": "node tools/build-styleguide.mjs",
     "dslint": "node tools/qa/dslint.mjs",
     "uicheck": "node tools/qa/uicheck.mjs docs/book-mock.html"
