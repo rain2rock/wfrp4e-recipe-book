@@ -99,3 +99,7 @@ A Foundry VTT module for Warhammer Fantasy Roleplay 4e that adds recipe-based cr
 **Install:** `https://github.com/rain2rock/wfrp4e-recipe-book/releases/latest/download/module.json`
 
 **Author:** Mikhail (rain2rock). **License:** free for personal use; modification and redistribution of modified versions are prohibited - see [LICENSE](LICENSE).
+
+### v0.1.41 - New spell artwork
+
+65 engraved spell icons from Sullasara, Blood and Bramble, and the Elf Player Guide. Files are available under `assets/icons/magic/spells/`; spell items remain outside the crafting stock picker.
